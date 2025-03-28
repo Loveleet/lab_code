@@ -8,29 +8,29 @@ const PORT = 3017;
 app.use(cors());
 
 // ✅ Database Connection Config
-// const dbConfig = {
-//   user: "sa",
-//   password: "IndiaNepal-1",
-//   server: "4.240.115.57",
-//   port: 1433,
-//   database: "labDB",
-//   options: {
-//     encrypt: false, // Set to true if using Azure SQL
-//     trustServerCertificate: true, // Use this for self-signed certificates
-
-//   },
-// };
 const dbConfig = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
-  database: process.env.DB_DATABASE,
+  user: "sa",
+  password: "IndiaNepal-1",
+  server: "4.240.115.57",
   port: 1433,
+  database: "labDB",
   options: {
-    encrypt: false,
-    trustServerCertificate: true,
+    encrypt: false, // Set to true if using Azure SQL
+    trustServerCertificate: true, // Use this for self-signed certificates
+
   },
 };
+// const dbConfig = {
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASSWORD,
+//   server: process.env.DB_SERVER,
+//   database: process.env.DB_DATABASE,
+//   port: 1433,
+//   options: {
+//     encrypt: false,
+//     trustServerCertificate: true,
+//   },
+// };
 
 // ✅ Auto-Retry SQL Connection Until Successful
 async function connectWithRetry() {
