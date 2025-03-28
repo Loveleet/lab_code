@@ -522,7 +522,7 @@ const Dashboard = () => {
   const [tradeData, setTradeData] = useState([]);
   const [clientData, setClientData] = useState([]);
   const [logData, setLogData] = useState([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [machines, setMachines] = useState([]);
   
   const [selectedSignals, setSelectedSignals] = useState({
