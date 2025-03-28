@@ -1,0 +1,134 @@
+ const handleOpenReport = () => {
+    const reportWindow = window.open("", "_blank", "width=1200,height=600");
+    
+    const updateReportContent = () => {
+      const filteredDataJSON = JSON.stringify(filteredData); // Preserve updated data
+
+      const reportContent = `
+        <html>
+          <head>
+            <title>${title.replace(/_/g, " ")} Report</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .table-container { max-height: 90vh; overflow: auto; border: 1px solid #ddd; }
+              table { width: 100%; border-collapse: collapse; cursor: pointer; }
+              th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+              th { background-color: #4CAF50; color: white; position: sticky; top: 0; cursor: pointer; }
+              th.sorted-asc::after { content: " 🔼"; }
+              th.sorted-desc::after { content: " 🔽"; }
+            </style>
+          </head>
+          <body>
+            <h2>${title.replace(/_/g, " ")} Details</h2>
+            <div class="table-container" id="tableContainer">
+              <table id="reportTable">
+                <thead>
+                  <tr>
+                    ${Object.keys(filteredData[0] || {}).map((key, index) => 
+                      `<th data-index="${index}" onclick="sortTable(${index})">${key.replace(/_/g, " ")}</th>`
+                    ).join("")}
+                  </tr>
+                </thead>
+                <tbody id="tableBody">
+                  ${filteredData.map(item => `
+                    <tr>${Object.values(item).map(value => `<td>${value}</td>`).join("")}</tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+            <script>
+              let scrollY = 0;
+              let sortOrder = {}; // Store sorting order for each column
+
+              const updateData = () => {
+                fetch("/tradeData.json")
+                  .then(response => response.json())
+                  .then(newData => {
+                    const parsedData = ${filteredDataJSON};
+                    const tbody = document.getElementById("tableBody");
+                    tbody.innerHTML = parsedData.map(item => 
+                      \`<tr>\${Object.values(item).map(value => \`<td>\${value}</td>\`).join("")}</tr>\`
+                    ).join("");
+
+                    document.getElementById("tableContainer").scrollTop = scrollY;
+                  });
+              };
+
+              // Save scroll position before refresh
+              document.getElementById("tableContainer").addEventListener("scroll", function() {
+                scrollY = this.scrollTop;
+              });
+
+              // Sorting Function
+              function sortTable(columnIndex) {
+                let table = document.getElementById("reportTable");
+                let tbody = document.getElementById("tableBody");
+                let rows = Array.from(tbody.rows);
+                let isAscending = sortOrder[columnIndex] !== "asc";
+
+                rows.sort((rowA, rowB) => {
+                  let cellA = rowA.cells[columnIndex].textContent.trim();
+                  let cellB = rowB.cells[columnIndex].textContent.trim();
+                  
+                  if (!isNaN(cellA) && !isNaN(cellB)) {
+                    return isAscending ? cellA - cellB : cellB - cellA;
+                  }
+                  return isAscending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+                });
+
+                // Apply sorting order
+                sortOrder[columnIndex] = isAscending ? "asc" : "desc";
+                
+                // Update table with sorted rows
+                tbody.innerHTML = "";
+                rows.forEach(row => tbody.appendChild(row));
+
+                // Reset header styles
+                document.querySelectorAll("th").forEach(th => th.classList.remove("sorted-asc", "sorted-desc"));
+                document.querySelectorAll("th")[columnIndex].classList.add(isAscending ? "sorted-asc" : "sorted-desc");
+              }
+
+              setInterval(updateData, 5000);
+            </script>
+          </body>
+        </html>
+      `;
+
+      reportWindow.document.write(reportContent);
+    };
+
+    updateReportContent();
+  };
+  return (
+    <div className="mt-6 p-6 bg-white shadow-md rounded-lg max-w-full">
+      <h2 className="text-xl font-bold">{title.replace(/_/g, " ")} Details</h2>
+
+      <button 
+  onClick={() => handleOpenReport(title, filteredData)}
+  className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2"
+>
+  Open in New Page
+</button>
+
+      <div className="overflow-auto max-h-[400px] border border-gray-300 rounded-lg">
+        <table className="w-full border-collapse">
+          <thead className="bg-gray-200 sticky top-0 z-10 shadow-md">
+            <tr>
+              {Object.keys(filteredData[0] || {}).map(key => (
+                <th key={key} className="px-4 py-2 text-left border">{key.replace(/_/g, " ")}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((item, index) => (
+              <tr key={index} className="border-b">
+                {Object.values(item).map((val, i) => (
+                  <td key={i} className="px-4 py-2 border">{val}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
