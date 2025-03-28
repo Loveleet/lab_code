@@ -529,7 +529,11 @@ const Dashboard = () => {
     "2POLE_IN5LOOP": true,
     "IMACD": true,
     "2POLE_Direct_Signal": true,
-    "SwingHighLOW": true
+    "HIGHEST SWING HIGH": true,
+    "LOWEST SWING LOW": true,
+    "NORMAL SWING HIGH": true,
+    "NORMAL SWING LOW": true,
+
   });
   const [selectedMachines, setSelectedMachines] = useState({});
   
@@ -686,7 +690,10 @@ useEffect(() => {
       "2POLE_IN5LOOP": true,
       "IMACD": true,
       "2POLE_Direct_Signal": true,
-      "SwingHighLOW": true,
+      "HIGHEST SWING HIGH": true,
+    "LOWEST SWING LOW": true,
+    "NORMAL SWING HIGH": true,
+    "NORMAL SWING LOW": true,
       ...parsed // this will override saved ones
     };
     setSelectedSignals(merged);
