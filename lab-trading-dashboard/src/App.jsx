@@ -514,7 +514,8 @@ const formatTradeData = (trade, index) => ({
   Signal_From: trade.SignalFrom || "N/A", // ✅ Newly Added
   Type: trade.Type || "N/A", // ✅ Newly Added
   Timestamp: trade.SignalFrom || "N/A",
-  Date: trade.Candel_time ? trade.Candel_time.split(" ")[0] : "N/A"
+  Date: trade.Candel_time ? trade.Candel_time.split(" ")[0] : "N/A",
+  Min_close: trade.Min_close
 });
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
@@ -636,7 +637,10 @@ const filteredTradeData = tradeData && Array.isArray(tradeData)
         // console.log("Profit after closing trades:", runningProfit); // ✅ DEBUG LOG
         // console.log("🔍 Selected Signals:", selectedSignals);
         // console.log("🔍 Selected Machines:", selectedMachines);
-        // console.log("🔍 Filtered Trade Data:", filteredTradeData);
+// Min_close
+// : 
+// "Min_close"
+        console.log("🔍 Filtered Trade Data:", filteredTradeData);
 
 
         // 🔹 Format dates for comparison
@@ -673,9 +677,16 @@ const filteredTradeData = tradeData && Array.isArray(tradeData)
           Investment_Available: isNaN(investmentAvailable) ? "$0" : `$${investmentAvailable.toFixed(2)}`,
           Close_in_Profit : filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length,
           Close_Curve_in_Loss : `${filteredTradeData.filter(trade => trade.Pl_after_comm < 0  &&  trade.Type === "close" && trade.Commision_journey === true).length} / $${filteredTradeData
-            .filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close" && trade.Commision_journey === true) // ✅ Correct field reference
+            .filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close" && trade.Commision_journey === true)// ✅ Correct field reference
             .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
-          // "Curve_loss_/_ profit" :
+          Min_Close_Profit : `${filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0).length} 
+          = $${filteredTradeData
+            .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0)
+            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
+          Min_Close_Loss : `${filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0).length} 
+          = $${filteredTradeData
+            .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0)
+            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
         }));
    
 }, [tradeData, selectedSignals, selectedMachines]);
