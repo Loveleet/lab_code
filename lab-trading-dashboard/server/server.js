@@ -3,13 +3,13 @@ const cors = require("cors");
 const sql = require("mssql");
 
 const app = express();
-const PORT = 3017;
+const PORT = 10000;
 
 app.use(cors());
 
 // ✅ Database Connection Config
 const dbConfig = {
-  user: "sa",
+  user: "sca",
   password: "IndiaNepal-1",
   server: "4.240.115.57",
   port: 1433,
@@ -20,7 +20,7 @@ const dbConfig = {
 
   },
 };
-// const dbConfig = {
+// const dbConfig = { /Users/apple/Desktop/lab_code/lab-trading-dashboard/server/server.js
 //   user: process.env.DB_USER,
 //   password: process.env.DB_PASSWORD,
 //   server: process.env.DB_SERVER,
