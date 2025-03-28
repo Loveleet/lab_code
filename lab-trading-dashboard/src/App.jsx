@@ -688,6 +688,7 @@ const filteredTradeData = tradeData && Array.isArray(tradeData)
             .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0)
             .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
         }));
+        
    
 }, [tradeData, selectedSignals, selectedMachines]);
 useEffect(() => {
