@@ -59,7 +59,9 @@ app.get("/api/trades", async (req, res) => {
     res.status(500).json({ error: error.message || "Failed to fetch trades" });
   }
 });
-
+app.get("/", (req, res) => {
+  res.send("✅ Backend is working!");
+});
 /* ✅ API: Fetch Machines */
 app.get("/api/machines", async (req, res) => {
   try {
