@@ -536,11 +536,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const tradeRes = await fetch("http://localhost:3017/api/trades");
+            const tradeRes = await fetch("https://lab-code-eam6.onrender.com/api/trades");
             const tradeJson = tradeRes.ok ? await tradeRes.json() : { trades: [] };
             const trades = Array.isArray(tradeJson.trades) ? tradeJson.trades : [];
 
-            const machinesRes = await fetch("http://localhost:3017/api/machines"); 
+            const machinesRes = await fetch("https://lab-code-eam6.onrender.com/api/machines"); 
             const machinesJson = machinesRes.ok ? await machinesRes.json() : { machines: [] };
             const machinesList = Array.isArray(machinesJson.machines) ? machinesJson.machines : [];
 
