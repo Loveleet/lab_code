@@ -408,9 +408,9 @@ th.datetime-column {
     return <p className="text-center text-gray-500 mt-4">⚠️ No relevant data available for {title}</p>;
   }
   const getStickyClass = (index) => {
-    if (index === 0) return "sticky left-0 z-30 bg-[#046e7a] text-white";
-    if (index === 1) return "sticky left-[110px] z-30 bg-[#046e7a] text-white";
-    if (index === 2) return "sticky left-[220px] z-30 bg-[#046e7a] text-white";
+    if (index === 0) return "sticky left-0 z-[5] bg-[#046e7a] text-white min-w-[110px] max-w-[110px]";
+    if (index === 1) return "sticky left-[110px] z-[5] bg-[#046e7a] text-white min-w-[130px] max-w-[130px]";
+    if (index === 2) return "sticky left-[240px] z-[5] bg-[#046e7a] text-white min-w-[130px] max-w-[130px]";
     return "";
   };
 return (
@@ -455,7 +455,7 @@ return (
       {Object.values(item).map((val, colIndex) => (
         <td
           key={colIndex}
-          className={`px-4 py-2 border text-sm whitespace-nowrap ${
+          className={`px-4 py-2 border text-sm whitespace-nowrap  ${
             colIndex < 3 ? `sticky left-[${colIndex * 110}px] bg-[#046e7a] text-white z-30` : ""
           } ${[
             "Candle_Time",
@@ -541,11 +541,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const tradeRes = await fetch("https://lab-code-eam6.onrender.com/api/trades");
+            const tradeRes = await fetch("https://lab-code-681j.onrender.com/api/trades");
             const tradeJson = tradeRes.ok ? await tradeRes.json() : { trades: [] };
             const trades = Array.isArray(tradeJson.trades) ? tradeJson.trades : [];
 
-            const machinesRes = await fetch("https://lab-code-eam6.onrender.com/api/machines"); 
+            const machinesRes = await fetch("https://lab-code-681j.onrender.com/api/machines"); 
             const machinesJson = machinesRes.ok ? await machinesRes.json() : { machines: [] };
             const machinesList = Array.isArray(machinesJson.machines) ? machinesJson.machines : [];
 
