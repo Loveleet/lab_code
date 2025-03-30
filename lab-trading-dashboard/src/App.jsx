@@ -525,6 +525,7 @@ const Dashboard = () => {
   const [logData, setLogData] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [machines, setMachines] = useState([]);
+  const [signalRadioMode, setSignalRadioMode] = useState(false);
   
   const [selectedSignals, setSelectedSignals] = useState({
     "2POLE_IN5LOOP": true,
@@ -541,11 +542,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const tradeRes = await fetch("https://lab-code-681j.onrender.com/api/trades");
+            const tradeRes = await fetch("https://lab-code-xqtq.onrender.com/api/trades");
             const tradeJson = tradeRes.ok ? await tradeRes.json() : { trades: [] };
             const trades = Array.isArray(tradeJson.trades) ? tradeJson.trades : [];
 
-            const machinesRes = await fetch("https://lab-code-681j.onrender.com/api/machines"); 
+            const machinesRes = await fetch("https://lab-code-xqtq.onrender.com/api/machines"); 
             const machinesJson = machinesRes.ok ? await machinesRes.json() : { machines: [] };
             const machinesList = Array.isArray(machinesJson.machines) ? machinesJson.machines : [];
 
@@ -735,7 +736,19 @@ const toggleMachine = (machineId) => {
       return updatedMachines;
   });
 };
-                              
+useEffect(() => {
+  if (signalRadioMode) {
+    const selected = Object.keys(selectedSignals).find((key) => selectedSignals[key]);
+    if (selected) {
+      const updated = {};
+      Object.keys(selectedSignals).forEach((key) => {
+        updated[key] = key === selected;
+      });
+      setSelectedSignals(updated);
+      localStorage.setItem("selectedSignals", JSON.stringify(updated));
+    }
+  }
+}, [signalRadioMode]);                               
 return (
   <div className="flex">
     {/* Sidebar */}
@@ -745,19 +758,81 @@ return (
       <div className="p-8">
         {/* ✅ Dashboard Title */}
         <h1 className="text-4xl font-bold text-gray-800 text-center mb-8">LAB Dashboard</h1>
-        {/* ✅ Signal Filter Checkboxes */}
-        <div className="flex items-center space-x-4 mb-4">
-          {Object.keys(selectedSignals).map((signal) => (
-            <label key={signal} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={selectedSignals[signal]}
-                onChange={() => toggleSignal(signal)}
-                className="form-checkbox h-5 w-5 text-blue-600"
-              />
-              <span className="text-gray-700 font-semibold">{signal}</span>
-            </label>
-          ))}
+
+{/* ✅ Signal Filter Checkboxes */}
+<div className="flex flex-col space-y-2 mb-4">
+  
+  {/* ✅ Toggle Mode Button */}
+  <div className="flex items-center space-x-2">
+    <span className="font-semibold text-gray-800">Signal Filter Mode:</span>
+    <button
+      onClick={() => setSignalRadioMode(prev => !prev)}
+      className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
+    >
+      {signalRadioMode ? "🔘 Radio Mode" : "☑️ Checkbox Mode"}
+    </button>
+  </div>
+
+  {/* ✅ Select All / Deselect All only when Checkbox Mode */}
+  {!signalRadioMode && (
+    <div className="flex items-center space-x-3">
+      <button
+        onClick={() => {
+          const allTrue = {};
+          Object.keys(selectedSignals).forEach(key => allTrue[key] = true);
+          setSelectedSignals(allTrue);
+          localStorage.setItem("selectedSignals", JSON.stringify(allTrue));
+        }}
+        className="bg-green-600 text-white text-sm px-2 py-1 rounded"
+      >
+        ✅ Select All
+      </button>
+      <button
+        onClick={() => {
+          const allFalse = {};
+          Object.keys(selectedSignals).forEach(key => allFalse[key] = false);
+          setSelectedSignals(allFalse);
+          localStorage.setItem("selectedSignals", JSON.stringify(allFalse));
+        }}
+        className="bg-red-600 text-white text-sm px-2 py-1 rounded"
+      >
+        ❌ Deselect All
+      </button>
+    </div>
+  )}
+
+  {/* ✅ Signal Inputs */}
+  <div className="flex flex-wrap items-center gap-4">
+    {Object.keys(selectedSignals).map((signal) => (
+      <label key={signal} className="flex items-center space-x-2">
+        {signalRadioMode ? (
+          <input
+            type="radio"
+            name="signalFilterRadio"
+            checked={selectedSignals[signal]}
+            onChange={() => {
+              const updated = {};
+              Object.keys(selectedSignals).forEach((key) => {
+                updated[key] = key === signal;
+              });
+              setSelectedSignals(updated);
+              localStorage.setItem("selectedSignals", JSON.stringify(updated));
+            }}
+            className="form-radio h-5 w-5 text-blue-600"
+          />
+        ) : (
+          <input
+            type="checkbox"
+            checked={selectedSignals[signal]}
+            onChange={() => toggleSignal(signal)}
+            className="form-checkbox h-5 w-5 text-blue-600"
+          />
+        )}
+        <span className="text-gray-700 font-semibold">{signal}</span>
+      </label>
+    ))}
+  </div>
+
         </div>
         {/* ✅ Machine Filter Checkboxes */}
         <div className="flex items-center space-x-4 mb-4">
