@@ -808,7 +808,7 @@ return (
       onClick={() => setSignalRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
     >
-      {signalRadioMode ? "🔘 Radio Mode" : "☑️ Checkbox Mode"}
+      {signalRadioMode ? "🔘 Radio" : "☑️ Check"}
     </button>
   {/* ✅ Select All / Deselect All only when Checkbox Mode */}
   {!signalRadioMode && (
@@ -822,7 +822,7 @@ return (
       }}
       className={`px-3 py-1 rounded text-sm text-white ${signalToggleAll ? "bg-green-600" : "bg-blue-600"}`}
     >
-      {signalToggleAll ? "✅ " : "❌ "}
+      {signalToggleAll ? "✅ All" : "❌ Uncheck" }
     </button>
 )}
 {/* ✅ Signal Inputs */}
@@ -865,7 +865,7 @@ return (
       onClick={() => setMachineRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
     >
-      {machineRadioMode ? "🔘 Radio Mode" : "☑️ Checkbox Mode"}
+      {machineRadioMode ? "🔘 Radio" : "☑️ Check"}
     </button>
 
 
@@ -887,7 +887,7 @@ return (
           : "bg-green-600"
       }`}
     >
-      {Object.values(selectedMachines).every(v => v === true) ? "❌" : "✅"}
+      {Object.values(selectedMachines).every(v => v === true) ? "❌ Uncheck" : "✅ All"}
     </button>
   )}
    
@@ -933,7 +933,7 @@ return (
       onClick={() => setIntervalRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
     >
-      {intervalRadioMode ? "🔘 Radio Mode" : "☑️ Checkbox Mode"}
+      {intervalRadioMode ? "🔘 Radio" : "☑️ Check"}
     </button>
     {!intervalRadioMode && (
   <button
@@ -952,7 +952,7 @@ return (
         : "bg-green-600"
     }`}
   >
-    {Object.values(selectedIntervals).every(val => val) ? "❌" : "✅"}
+    {Object.values(selectedIntervals).every(val => val) ? "❌ Uncheck" : "✅ All"}
   </button>
 )}
 
