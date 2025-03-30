@@ -822,7 +822,7 @@ return (
       }}
       className={`px-3 py-1 rounded text-sm text-white ${signalToggleAll ? "bg-green-600" : "bg-blue-600"}`}
     >
-      {signalToggleAll ? "✅ Select All" : "❌ Deselect All"}
+      {signalToggleAll ? "✅ " : "❌ "}
     </button>
 )}
 {/* ✅ Signal Inputs */}
@@ -887,7 +887,7 @@ return (
           : "bg-green-600"
       }`}
     >
-      {Object.values(selectedMachines).every(v => v === true) ? "❌ Deselect All" : "✅ Select All"}
+      {Object.values(selectedMachines).every(v => v === true) ? "❌" : "✅"}
     </button>
   )}
    
@@ -952,7 +952,7 @@ return (
         : "bg-green-600"
     }`}
   >
-    {Object.values(selectedIntervals).every(val => val) ? "❌ Deselect All" : "✅ Select All"}
+    {Object.values(selectedIntervals).every(val => val) ? "❌" : "✅"}
   </button>
 )}
 
