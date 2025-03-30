@@ -529,7 +529,19 @@ const Dashboard = () => {
   const [machineRadioMode, setMachineRadioMode] = useState(false);
   const [signalToggleAll, setSignalToggleAll] = useState(true);
   const [machineToggleAll, setMachineToggleAll] = useState(true);
+  const signalLabels = {
+    "2POLE_IN5LOOP": "2P_L",
+    "IMACD": "IMACD",
+    "2POLE_Direct_Signal": "2P_DS",
+    "HIGHEST SWING HIGH": "HSH",
+    "LOWEST SWING LOW": "LSL",
+    "NORMAL SWING HIGH": "NSH",
+    "NORMAL SWING LOW": "NSL",
+  };
   
+
+
+
   const [selectedSignals, setSelectedSignals] = useState({
     "2POLE_IN5LOOP": true,
     "IMACD": true,
@@ -839,7 +851,7 @@ return (
             className="form-checkbox h-5 w-5 text-blue-600"
           />
         )}
-        <span className="text-gray-700 font-semibold">{signal}</span>
+        <span className="text-gray-700 font-semibold">{signalLabels[signal] || signal}</span>
       </label>
     ))}
   
