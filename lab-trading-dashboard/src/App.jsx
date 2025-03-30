@@ -2,6 +2,11 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Home, BarChart, Users, FileText, Menu, X, Plus } from "lucide-react";
+import Datetime from 'react-datetime';
+import "react-datetime/css/react-datetime.css";
+import moment from "moment";
+
+
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
@@ -538,7 +543,8 @@ const Dashboard = () => {
     "NORMAL SWING HIGH": "NSH",
     "NORMAL SWING LOW": "NSL",
   };
-  
+  const [fromDate, setFromDate] = useState(null);
+  const [toDate, setToDate] = useState(null);
 
 
 
@@ -610,12 +616,25 @@ const [selectedIntervals, setSelectedIntervals] = useState({
 }, []); 
 const filteredTradeData = useMemo(() => {
   if (!Array.isArray(tradeData)) return [];
-  return tradeData.filter(trade =>
-    selectedSignals[trade.SignalFrom] &&
-    selectedMachines[trade.MachineId] &&
-    selectedIntervals[trade.Interval]
-  );
-}, [tradeData, selectedSignals, selectedMachines, selectedIntervals]);
+
+  return tradeData.filter(trade => {
+    const isSignalSelected = selectedSignals[trade.SignalFrom];
+    const isMachineSelected = selectedMachines[trade.MachineId];
+    const isIntervalSelected = selectedIntervals[trade.Interval];
+
+    // ✅ Handle missing or malformed Candle time
+    if (!trade.Candel_time) return false;
+
+    const tradeTime = moment(trade.Candel_time); // ⏳ Parse to moment
+
+    // ✅ Check if within selected date & time range
+    const isDateInRange = (!fromDate || tradeTime.isSameOrAfter(fromDate)) &&
+                          (!toDate || tradeTime.isSameOrBefore(toDate));
+
+    return isSignalSelected && isMachineSelected && isIntervalSelected && isDateInRange;
+  });
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, fromDate, toDate]);
+
   useEffect(() => {
             // 🔹 Total Investment Calculation
         const totalInvestment = filteredTradeData.reduce((sum, trade) => sum + (trade.Investment || 0), 0);
@@ -711,6 +730,7 @@ const filteredTradeData = useMemo(() => {
         
    
 }, [tradeData, selectedSignals, selectedMachines, selectedIntervals]);
+
 useEffect(() => {
   const savedSignals = localStorage.getItem("selectedSignals");
   const savedMachines = localStorage.getItem("selectedMachines");
@@ -808,7 +828,7 @@ return (
       onClick={() => setSignalRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
     >
-      {signalRadioMode ? "🔘 Radio" : "☑️ Check"}
+      {signalRadioMode ? "🔘 Check" : "☑️ Radio "}
     </button>
   {/* ✅ Select All / Deselect All only when Checkbox Mode */}
   {!signalRadioMode && (
@@ -865,7 +885,7 @@ return (
       onClick={() => setMachineRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
     >
-      {machineRadioMode ? "🔘 Radio" : "☑️ Check"}
+      {machineRadioMode ? "🔘 Check " : "☑️ Radio"}
     </button>
 
 
@@ -933,7 +953,7 @@ return (
       onClick={() => setIntervalRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
     >
-      {intervalRadioMode ? "🔘 Radio" : "☑️ Check"}
+      {intervalRadioMode ? "🔘 Check" : "☑️ Radio "}
     </button>
     {!intervalRadioMode && (
   <button
@@ -988,8 +1008,56 @@ return (
   </div>
 </div>
 
-
+<div className="flex flex-wrap items-center gap-4 my-4">
+  <div className="flex flex-col">
+    <label className="text-sm font-semibold text-gray-800 mb-1">📅 From Date & Time</label>
+    <Datetime
+  key={fromDate === null ? "reset-from" : "set-from"} // 🔁 Force re-render
+  value={fromDate || ''}
+  onChange={(date) => {
+    if (moment.isMoment(date)) {
+      setFromDate(date);
+    } else {
+      setFromDate(null);
+    }
+  }}
+  inputProps={{ placeholder: "Select From Date & Time" }}
+  timeFormat="HH:mm"
+  dateFormat="YYYY-MM-DD"
+/>
   </div>
+
+  <div className="flex flex-col">
+    <label className="text-sm font-semibold text-gray-800 mb-1">📅 To Date & Time</label>
+    <Datetime
+  key={toDate === null ? "reset-to" : "set-to"} // 🔁 Force re-render
+  value={toDate || ''}
+  onChange={(date) => {
+    if (moment.isMoment(date)) {
+      setToDate(date);
+    } else {
+      setToDate(null);
+    }
+  }}
+  inputProps={{ placeholder: "Select To Date & Time" }}
+  timeFormat="HH:mm"
+  dateFormat="YYYY-MM-DD"
+/>
+  </div>
+
+  <div className="flex items-end">
+  <button
+  onClick={() => {
+    setFromDate(null);
+    setToDate(null);
+  }}
+  className="bg-yellow-600 text-white px-4 py-2 rounded mt-auto"
+>
+  ❌ Clear
+</button>
+  </div>
+</div>
+</div>
         
         
         {/* ✅ Dashboard Cards */}
