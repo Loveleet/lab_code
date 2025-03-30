@@ -75,10 +75,7 @@ const DashboardCard = ({ title, value, isSelected, onClick }) => {
 </div>;
 
 const TableView = ({ title, tradeData }) => {
-  console.log("📊 TableView - Selected Box:", title);
-  console.log("📊 TableView - Received Data:", tradeData);
 
- 
   const [filteredData, setFilteredData] = useState([]);
 
 
@@ -86,6 +83,7 @@ const handleOpenReport = (title, sortedData) => {
   const reportWindow = window.open("", "_blank", "width=1200,height=600");
 
   const tableHeaders = Object.keys(sortedData[0] || []);
+  
 
   const reportContent = `
     <html>
@@ -117,18 +115,18 @@ th, td {
   border-bottom: 2px solid white;
 }
 
-th {
+thead th {
   position: sticky;
-  top: 0;             /* Locks it to the top */
-  z-index: 4; 
-  padding: 8px 10px;
-  font-size: clamp(11px, 1vw, 14px); 
-  background-color:rgb(40, 137, 148);
+  top: 0;
+  z-index: 10;
+  background-color: rgb(40, 137, 148);
   color: white;
+  padding: 8px 10px;
+  font-size: 13px;
   border-bottom: 2px solid white;
   text-align: center;
-  vertical-align: center;
-  white-space: normal;     /* Allow long headers to wrap */
+  vertical-align: middle;
+  white-space: normal;
 }
 
 /* 🔹 Apply sticky to first 3 columns with correct offsets */
@@ -233,14 +231,35 @@ th.datetime-column {
             }).join("")}
             </tr>
           </thead>
-          <tbody id="tableBody">
-          ${sortedData.map(item => `
-            <tr>${tableHeaders.map((key, index) => {
-              const stickyClass = index < 3 ? `sticky-col sticky-col-${index + 1}` : "";
-              return `<td class="${stickyClass}">${item[key]}</td>`;
-            }).join("")}</tr>
-          `).join("")}
+        <tbody id="tableBody">
+            ${sortedData.map(item => `
+              <tr>${tableHeaders.map((key, index) => {
+                const stickyClass = index < 3 ? `sticky-col sticky-col-${index + 1}` : "";
+
+                if (key === "Unique_ID" && typeof item[key] === "string") {
+                  const id = item[key];
+                  const match = id.match(/(\d{4}-\d{2}-\d{2})/); // match full date like 2025-03-30
+                  if (match) {
+                    const splitIndex = id.indexOf(match[0]);
+                    const pair = id.slice(0, splitIndex).toUpperCase();
+                    const timestamp = id.slice(splitIndex).replace("T", " ");
+                    return `<td class="${stickyClass}">
+                      <div style="font-weight: bold; font-size: 13px;">${pair}</div>
+                      <div style="font-size: 11px; opacity: 0.8; margin-top: 2px;">${timestamp}</div>
+                    </td>`;
+                  } else {
+                    // ⚠️ If no date found, return raw ID safely
+                    return `<td class="${stickyClass}">${id}</td>`;
+                  }
+                }
+
+                // ✅ Default rendering for all other columns
+                return `<td class="${stickyClass}">${item[key]}</td>`;
+              }).join("")}</tr>
+            `).join("")}
           </tbody>
+
+
         </table>
 
         <script>
@@ -431,9 +450,12 @@ th.datetime-column {
     return <p className="text-center text-gray-500 mt-4">⚠️ No relevant data available for {title}</p>;
   }
   const getStickyClass = (index) => {
-    if (index === 0) return "sticky left-0 z-[5] bg-[#046e7a] text-white min-w-[110px] max-w-[110px]";
-    if (index === 1) return "sticky left-[110px] z-[5] bg-[#046e7a] text-white min-w-[130px] max-w-[130px]";
-    if (index === 2) return "sticky left-[240px] z-[5] bg-[#046e7a] text-white min-w-[130px] max-w-[130px]";
+    if (index === 0)
+      return "sticky left-0 z-[5] bg-[#046e7a] text-white min-w-[110px] max-w-[110px]";
+    if (index === 1)
+      return "sticky left-[110px] z-[5] bg-[#046e7a] text-white min-w-[130px] max-w-[130px]";
+    if (index === 2)
+  return "sticky left-[190px] z-[5] bg-[#046e7a] text-white min-w-[130px] max-w-[130px]";
     return "";
   };
 return (
@@ -475,24 +497,36 @@ return (
 <tbody>
   {sortedData.map((item, rowIndex) => (
     <tr key={rowIndex} className="border-b">
-      {Object.values(item).map((val, colIndex) => (
-        <td
-          key={colIndex}
-          className={`px-4 py-2 border text-sm whitespace-nowrap  ${
-            colIndex < 3 ? `sticky left-[${colIndex * 110}px] bg-[#046e7a] text-white z-30` : ""
-          } ${[
-            "Candle_Time",
-            "Fetcher_Trade_Time",
-            "Operator_Trade_Time",
-            "Operator_Close_Time",
-          ].includes(Object.keys(item)[colIndex])
-            ? "text-xs"
-            : ""
-          }`}
-        >
-          {val}
-        </td>
-      ))}
+     {Object.entries(item).map(([key, val], colIndex) => (
+  <td
+    key={colIndex}
+    className={`
+      px-2 py-1 border whitespace-nowrap align-top text-sm
+      ${colIndex === 0 && "min-w-[90px] max-w-[90px] sticky left-0 bg-[#046e7a] text-white z-[5] text-xs"}
+      ${colIndex === 1 && "min-w-[100px] max-w-[100px] sticky left-[90px] bg-[#046e7a] text-white z-[5] text-[10px] font-light"}
+      ${colIndex === 2 && "min-w-[170px] max-w-[170px] sticky left-[190px] bg-[#046e7a] text-white z-[5] text-[12px] leading-snug"}
+      ${["Candle_Time", "Fetcher_Trade_Time", "Operator_Trade_Time", "Operator_Close_Time"].includes(key) ? "text-[11px]" : ""}
+    `}
+  >
+    {key === "Unique_ID" && typeof val === "string" && val.match(/\d{4}-\d{2}-\d{2}/) ? (
+      (() => {
+        const match = val.match(/\d{4}-\d{2}-\d{2}/);
+        const splitIndex = val.indexOf(match[0]);
+        const pair = val.slice(0, splitIndex);
+        const timestamp = val.slice(splitIndex).replace("T", " ");
+        return (
+          <>
+            <div className="font-bold text-[13px] leading-tight">{pair}</div>
+            <div className="text-[11px] opacity-80 -mt-[2px] leading-tight">{timestamp}</div>
+          </>
+        );
+      })()
+    ) : (
+      val
+    )}
+  </td>
+))}
+
     </tr>
   ))} 
 </tbody>
@@ -506,6 +540,10 @@ const formatTradeData = (trade, index) => ({
   "S No": index + 1,
   MachineId: trade.MachineId || "N/A",
   Unique_ID: trade.Unique_id || "N/A",
+
+
+
+
   Candle_Time: trade.Candel_time || "N/A", 
   Fetcher_Trade_Time: trade.Fetcher_Trade_time || "N/A",
   Operator_Trade_Time: trade.Operator_Trade_time || "N/A",
@@ -568,6 +606,7 @@ const Dashboard = () => {
     "LOWEST SWING LOW": "LSL",
     "NORMAL SWING HIGH": "NSH",
     "NORMAL SWING LOW": "NSL",
+    "ProGap":"PG",
   };
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
@@ -582,6 +621,7 @@ const Dashboard = () => {
     "LOWEST SWING LOW": true,
     "NORMAL SWING HIGH": true,
     "NORMAL SWING LOW": true,
+    "ProGap": true,
 
   });
   const [intervalRadioMode, setIntervalRadioMode] = useState(false);
@@ -772,6 +812,7 @@ useEffect(() => {
       "LOWEST SWING LOW": true,
       "NORMAL SWING HIGH": true,
       "NORMAL SWING LOW": true,
+      "ProGap": true,
       ...parsed,
     };
     setSelectedSignals(merged);
