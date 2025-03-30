@@ -532,7 +532,15 @@ const Dashboard = () => {
   const [machines, setMachines] = useState([]);
   const [signalRadioMode, setSignalRadioMode] = useState(false);
   const [machineRadioMode, setMachineRadioMode] = useState(false);
-  const [signalToggleAll, setSignalToggleAll] = useState(true);
+  const [signalToggleAll, setSignalToggleAll] = useState(() => {
+    const saved = localStorage.getItem("selectedSignals");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const allSelected = Object.values(parsed).every((val) => val === true);
+      return allSelected ? false : true; // If all selected, button should show ❌ Uncheck
+    }
+    return true; // Default
+  });
   const [machineToggleAll, setMachineToggleAll] = useState(true);
   const signalLabels = {
     "2POLE_IN5LOOP": "2P_L",
@@ -737,18 +745,19 @@ useEffect(() => {
 
   if (savedSignals) {
     const parsed = JSON.parse(savedSignals);
-    // ✅ Merge with any new signal keys not saved previously
     const merged = {
       "2POLE_IN5LOOP": true,
       "IMACD": true,
       "2POLE_Direct_Signal": true,
       "HIGHEST SWING HIGH": true,
-    "LOWEST SWING LOW": true,
-    "NORMAL SWING HIGH": true,
-    "NORMAL SWING LOW": true,
-      ...parsed // this will override saved ones
+      "LOWEST SWING LOW": true,
+      "NORMAL SWING HIGH": true,
+      "NORMAL SWING LOW": true,
+      ...parsed,
     };
     setSelectedSignals(merged);
+    const allSelected = Object.values(merged).every((val) => val === true);
+    setSignalToggleAll(!allSelected); // ✅ sync toggle button state
   }
 
   if (savedMachines) {
@@ -1012,8 +1021,7 @@ return (
   <div className="flex flex-col">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 From Date & Time</label>
     <Datetime
-  key={fromDate === null ? "reset-from" : "set-from"} // 🔁 Force re-render
-  value={fromDate || ''}
+  value={fromDate ? fromDate : ''} // ✅ Show empty when null
   onChange={(date) => {
     if (moment.isMoment(date)) {
       setFromDate(date);
@@ -1030,8 +1038,7 @@ return (
   <div className="flex flex-col">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 To Date & Time</label>
     <Datetime
-  key={toDate === null ? "reset-to" : "set-to"} // 🔁 Force re-render
-  value={toDate || ''}
+  value={toDate ? toDate : ''} // ✅ Show empty when null
   onChange={(date) => {
     if (moment.isMoment(date)) {
       setToDate(date);
