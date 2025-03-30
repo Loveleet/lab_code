@@ -131,11 +131,29 @@ th {
   white-space: normal;     /* Allow long headers to wrap */
 }
 
-/* ✅ FIX: Sticky header cells in first 3 columns */
-th.sticky-col-1,
-th.sticky-col-2,
-th.sticky-col-3 {
-  z-index: 5; /* 👈 this is the final fix */
+/* 🔹 Apply sticky to first 3 columns with correct offsets */
+.sticky-col-1 {
+  position: sticky;
+  left: 0px;
+  z-index: 3;
+  background: rgb(4, 110, 122);
+  color: white;
+}
+
+.sticky-col-2 {
+  position: sticky;
+  left: 110px; /* 110px = width of column 1 */
+  z-index: 3;
+  background: rgb(4, 110, 122);
+  color: white;
+}
+
+.sticky-col-3 {
+  position: sticky;
+  left: 240px; /* 110px + 130px = width of col 1 + col 2 */
+  z-index: 3;
+  background: rgb(4, 110, 122);
+  color: white;
 }
   /* ✅ Reduce font size only for Date/Time columns */
 td.datetime-column, th.datetime-column {
@@ -581,11 +599,11 @@ const [selectedIntervals, setSelectedIntervals] = useState({
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const tradeRes = await fetch("https://lab-code-xqtq.onrender.com/api/trades");
+            const tradeRes = await fetch("https://lab-code-mrtg.onrender.com/api/trades");
             const tradeJson = tradeRes.ok ? await tradeRes.json() : { trades: [] };
             const trades = Array.isArray(tradeJson.trades) ? tradeJson.trades : [];
 
-            const machinesRes = await fetch("https://lab-code-xqtq.onrender.com/api/machines"); 
+            const machinesRes = await fetch("https://lab-code-mrtg.onrender.com/api/machines"); 
             const machinesJson = machinesRes.ok ? await machinesRes.json() : { machines: [] };
             const machinesList = Array.isArray(machinesJson.machines) ? machinesJson.machines : [];
 
