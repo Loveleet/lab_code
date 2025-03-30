@@ -833,12 +833,12 @@ return (
   
   {/* ✅ Toggle Mode Button */}
   <div className="flex items-center space-x-2">
-    <span className="font-semibold text-gray-800">Signal Filter Mode:</span>
+    <span className="font-semibold text-gray-800">Signal :</span> <span></span><span></span>
     <button
       onClick={() => setSignalRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
     >
-      {signalRadioMode ? "🔘 Check" : "☑️ Radio "}
+      {signalRadioMode ?"🔘 Check" :"☑️ Radio"}
     </button>
   {/* ✅ Select All / Deselect All only when Checkbox Mode */}
   {!signalRadioMode && (
@@ -852,9 +852,9 @@ return (
       }}
       className={`px-3 py-1 rounded text-sm text-white ${signalToggleAll ? "bg-green-600" : "bg-blue-600"}`}
     >
-      {signalToggleAll ? "✅ All" : "❌ Uncheck" }
+      {signalToggleAll ?"✅ All" :"❌ Uncheck" }
     </button>
-)}
+)}<span></span> <span></span> 
 {/* ✅ Signal Inputs */}
     {Object.keys(selectedSignals).map((signal) => (
       <label key={signal} className="flex items-center space-x-2">
@@ -890,7 +890,7 @@ return (
        {/* ✅ Machine Filter with Mode Toggle */}
 <div className="flex flex-col space-y-2 mb-4">
   <div className="flex items-center space-x-2">
-    <span className="font-semibold text-gray-800">Machine Filter Mode:</span>
+    <span className="font-semibold text-gray-800">Machine :</span>
     <button
       onClick={() => setMachineRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
@@ -919,7 +919,7 @@ return (
     >
       {Object.values(selectedMachines).every(v => v === true) ? "❌ Uncheck" : "✅ All"}
     </button>
-  )}
+  )}<span></span> <span></span> 
    
 
   {/* ✅ Machines Filter Inputs */}
@@ -955,15 +955,16 @@ return (
         </label>
       ))}
   </div>
+  <div></div>
  {/* ✅ Interval Filter */}
  <div className="flex flex-col space-y-2 mb-4">
   <div className="flex items-center space-x-3">
-    <span className="font-semibold text-gray-800">Interval Filter Mode:</span>
+    <span className="font-semibold text-gray-800">Interval :</span> 
     <button
       onClick={() => setIntervalRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
     >
-      {intervalRadioMode ? "🔘 Check" : "☑️ Radio "}
+      {intervalRadioMode ? "🔘 Check" :"☑️ Radio"}
     </button>
     {!intervalRadioMode && (
   <button
@@ -982,10 +983,9 @@ return (
         : "bg-green-600"
     }`}
   >
-    {Object.values(selectedIntervals).every(val => val) ? "❌ Uncheck" : "✅ All"}
+    {Object.values(selectedIntervals).every(val => val) ?"❌ Uncheck" :"✅ All"}
   </button>
-)}
-
+)}<span></span> <span></span> 
 
     {Object.keys(selectedIntervals).map((interval) => (
       <label key={interval} className="flex items-center space-x-2">
@@ -1017,7 +1017,7 @@ return (
     ))}
   </div>
 </div>
-
+<div></div><div></div>
 <div className="flex flex-wrap items-center gap-4 my-4">
   <div className="flex flex-col">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 From Date & Time</label>
