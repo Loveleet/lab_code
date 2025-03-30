@@ -569,6 +569,7 @@ const Dashboard = () => {
   const [intervalRadioMode, setIntervalRadioMode] = useState(false);
 const [selectedIntervals, setSelectedIntervals] = useState({
   "1m": true,
+  "3m": true,
   "5m": true,
   "15m": true,
   "30m": true,
