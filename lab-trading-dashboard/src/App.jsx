@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Home, BarChart, Users, FileText, Menu, X, Plus } from "lucide-react";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -526,6 +526,9 @@ const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [machines, setMachines] = useState([]);
   const [signalRadioMode, setSignalRadioMode] = useState(false);
+  const [machineRadioMode, setMachineRadioMode] = useState(false);
+  const [signalToggleAll, setSignalToggleAll] = useState(true);
+  const [machineToggleAll, setMachineToggleAll] = useState(true);
   
   const [selectedSignals, setSelectedSignals] = useState({
     "2POLE_IN5LOOP": true,
@@ -537,6 +540,15 @@ const Dashboard = () => {
     "NORMAL SWING LOW": true,
 
   });
+  const [intervalRadioMode, setIntervalRadioMode] = useState(false);
+const [selectedIntervals, setSelectedIntervals] = useState({
+  "1m": true,
+  "5m": true,
+  "15m": true,
+  "30m": true,
+  "1h": true,
+  "4h": true,
+});
   const [selectedMachines, setSelectedMachines] = useState({});
   
   useEffect(() => {
@@ -584,21 +596,16 @@ const Dashboard = () => {
     const interval = setInterval(fetchData, 1000); // ✅ Fetch every second
     return () => clearInterval(interval);
 }, []); 
-const filteredTradeData = tradeData && Array.isArray(tradeData)
-  ? tradeData.filter(trade =>
-      selectedSignals[trade.SignalFrom] !== undefined &&
-      selectedSignals[trade.SignalFrom] &&
-      selectedMachines[trade.MachineId] !== undefined &&
-      selectedMachines[trade.MachineId]
-    )
-  : []; 
+const filteredTradeData = useMemo(() => {
+  if (!Array.isArray(tradeData)) return [];
+  return tradeData.filter(trade =>
+    selectedSignals[trade.SignalFrom] &&
+    selectedMachines[trade.MachineId] &&
+    selectedIntervals[trade.Interval]
+  );
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals]);
   useEffect(() => {
-         
-        
-    
-    // ✅ If tradeData is undefined, assign an empty array
-
-        // 🔹 Total Investment Calculation
+            // 🔹 Total Investment Calculation
         const totalInvestment = filteredTradeData.reduce((sum, trade) => sum + (trade.Investment || 0), 0);
         let investmentAvailable = 50000 - totalInvestment;
         investmentAvailable = investmentAvailable < 0 ? 0 : investmentAvailable; // ✅ Prevent negative values
@@ -691,7 +698,7 @@ const filteredTradeData = tradeData && Array.isArray(tradeData)
         }));
         
    
-}, [tradeData, selectedSignals, selectedMachines]);
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals]);
 useEffect(() => {
   const savedSignals = localStorage.getItem("selectedSignals");
   const savedMachines = localStorage.getItem("selectedMachines");
@@ -716,6 +723,13 @@ useEffect(() => {
     setSelectedMachines(JSON.parse(savedMachines));
   }
 }, []);
+const toggleInterval = (interval) => {
+  setSelectedIntervals(prev => {
+    const updated = { ...prev, [interval]: !prev[interval] };
+    localStorage.setItem("selectedIntervals", JSON.stringify(updated));
+    return updated;
+  });
+};
 
   const toggleBox = (title) => {
                                     setSelectedBox(selectedBox === title ? null : title);
@@ -748,7 +762,20 @@ useEffect(() => {
       localStorage.setItem("selectedSignals", JSON.stringify(updated));
     }
   }
-}, [signalRadioMode]);                               
+}, [signalRadioMode]);      
+useEffect(() => {
+  if (intervalRadioMode) {
+    const selected = Object.keys(selectedIntervals).find(key => selectedIntervals[key]);
+    if (selected) {
+      const updated = {};
+      Object.keys(selectedIntervals).forEach((key) => {
+        updated[key] = key === selected;
+      });
+      setSelectedIntervals(updated);
+      localStorage.setItem("selectedIntervals", JSON.stringify(updated));
+    }
+  }
+}, [intervalRadioMode]);                         
 return (
   <div className="flex">
     {/* Sidebar */}
@@ -771,38 +798,22 @@ return (
     >
       {signalRadioMode ? "🔘 Radio Mode" : "☑️ Checkbox Mode"}
     </button>
-  </div>
-
   {/* ✅ Select All / Deselect All only when Checkbox Mode */}
   {!signalRadioMode && (
-    <div className="flex items-center space-x-3">
-      <button
-        onClick={() => {
-          const allTrue = {};
-          Object.keys(selectedSignals).forEach(key => allTrue[key] = true);
-          setSelectedSignals(allTrue);
-          localStorage.setItem("selectedSignals", JSON.stringify(allTrue));
-        }}
-        className="bg-green-600 text-white text-sm px-2 py-1 rounded"
-      >
-        ✅ Select All
-      </button>
-      <button
-        onClick={() => {
-          const allFalse = {};
-          Object.keys(selectedSignals).forEach(key => allFalse[key] = false);
-          setSelectedSignals(allFalse);
-          localStorage.setItem("selectedSignals", JSON.stringify(allFalse));
-        }}
-        className="bg-red-600 text-white text-sm px-2 py-1 rounded"
-      >
-        ❌ Deselect All
-      </button>
-    </div>
-  )}
-
-  {/* ✅ Signal Inputs */}
-  <div className="flex flex-wrap items-center gap-4">
+    <button
+      onClick={() => {
+        const newState = {};
+        Object.keys(selectedSignals).forEach(key => newState[key] = signalToggleAll);
+        setSelectedSignals(newState);
+        setSignalToggleAll(!signalToggleAll);
+        localStorage.setItem("selectedSignals", JSON.stringify(newState));
+      }}
+      className={`px-3 py-1 rounded text-sm text-white ${signalToggleAll ? "bg-green-600" : "bg-blue-600"}`}
+    >
+      {signalToggleAll ? "✅ Select All" : "❌ Deselect All"}
+    </button>
+)}
+{/* ✅ Signal Inputs */}
     {Object.keys(selectedSignals).map((signal) => (
       <label key={signal} className="flex items-center space-x-2">
         {signalRadioMode ? (
@@ -831,25 +842,142 @@ return (
         <span className="text-gray-700 font-semibold">{signal}</span>
       </label>
     ))}
-  </div>
+  
+</div>
+        </div>
+       {/* ✅ Machine Filter with Mode Toggle */}
+<div className="flex flex-col space-y-2 mb-4">
+  <div className="flex items-center space-x-2">
+    <span className="font-semibold text-gray-800">Machine Filter Mode:</span>
+    <button
+      onClick={() => setMachineRadioMode(prev => !prev)}
+      className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
+    >
+      {machineRadioMode ? "🔘 Radio Mode" : "☑️ Checkbox Mode"}
+    </button>
 
-        </div>
-        {/* ✅ Machine Filter Checkboxes */}
-        <div className="flex items-center space-x-4 mb-4">
-          {machines
-            .filter(machine => machine.Active) // ✅ NEW CHANGE: Show only active machines
-            .map((machine) => (
-              <label key={machine.MachineId} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={selectedMachines[machine.MachineId] || false}
-                  onChange={() => toggleMachine(machine.MachineId)}
-                  className="form-checkbox h-5 w-5 text-green-600"
-                />
-                <span className="text-gray-700 font-semibold">{machine.MachineId}</span>
-              </label>
-            ))}
-        </div>
+
+  {/* ✅ Single Toggle All Button in Checkbox Mode */}
+  {!machineRadioMode && (
+    <button
+      onClick={() => {
+        const allChecked = Object.values(selectedMachines).every(v => v === true);
+        const updated = {};
+        machines.forEach(machine => {
+          if (machine.Active) updated[machine.MachineId] = !allChecked;
+        });
+        setSelectedMachines(updated);
+        localStorage.setItem("selectedMachines", JSON.stringify(updated));
+      }}
+      className={`text-white text-sm px-2 py-1 rounded w-fit ${
+        Object.values(selectedMachines).every(v => v === true)
+          ? "bg-blue-600"
+          : "bg-green-600"
+      }`}
+    >
+      {Object.values(selectedMachines).every(v => v === true) ? "❌ Deselect All" : "✅ Select All"}
+    </button>
+  )}
+   
+
+  {/* ✅ Machines Filter Inputs */}
+  
+    {machines
+      .filter(machine => machine.Active)
+      .map((machine) => (
+        <label key={machine.MachineId} className="flex items-center space-x-2">
+          {machineRadioMode ? (
+            <input
+              type="radio"
+              name="machineRadio"
+              checked={selectedMachines[machine.MachineId] === true}
+              onChange={() => {
+                const updated = {};
+                machines.forEach((m) => {
+                  if (m.Active) updated[m.MachineId] = m.MachineId === machine.MachineId;
+                });
+                setSelectedMachines(updated);
+                localStorage.setItem("selectedMachines", JSON.stringify(updated));
+              }}
+              className="form-radio h-5 w-5 text-green-600"
+            />
+          ) : (
+            <input
+              type="checkbox"
+              checked={selectedMachines[machine.MachineId] || false}
+              onChange={() => toggleMachine(machine.MachineId)}
+              className="form-checkbox h-5 w-5 text-green-600"
+            />
+          )}
+          <span className="text-gray-700 font-semibold">{machine.MachineId}</span>
+        </label>
+      ))}
+  </div>
+ {/* ✅ Interval Filter */}
+ <div className="flex flex-col space-y-2 mb-4">
+  <div className="flex items-center space-x-3">
+    <span className="font-semibold text-gray-800">Interval Filter Mode:</span>
+    <button
+      onClick={() => setIntervalRadioMode(prev => !prev)}
+      className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
+    >
+      {intervalRadioMode ? "🔘 Radio Mode" : "☑️ Checkbox Mode"}
+    </button>
+    {!intervalRadioMode && (
+  <button
+    onClick={() => {
+      const allSelected = Object.values(selectedIntervals).every(val => val);
+      const updated = {};
+      Object.keys(selectedIntervals).forEach(key => {
+        updated[key] = !allSelected;
+      });
+      setSelectedIntervals(updated);
+      localStorage.setItem("selectedIntervals", JSON.stringify(updated));
+    }}
+    className={`text-white text-sm px-2 py-1 rounded ${
+      Object.values(selectedIntervals).every(val => val)
+        ? "bg-blue-600"
+        : "bg-green-600"
+    }`}
+  >
+    {Object.values(selectedIntervals).every(val => val) ? "❌ Deselect All" : "✅ Select All"}
+  </button>
+)}
+
+
+    {Object.keys(selectedIntervals).map((interval) => (
+      <label key={interval} className="flex items-center space-x-2">
+        {intervalRadioMode ? (
+          <input
+            type="radio"
+            name="intervalFilterRadio"
+            checked={selectedIntervals[interval]}
+            onChange={() => {
+              const updated = {};
+              Object.keys(selectedIntervals).forEach((key) => {
+                updated[key] = key === interval;
+              });
+              setSelectedIntervals(updated);
+              localStorage.setItem("selectedIntervals", JSON.stringify(updated));
+            }}
+            className="form-radio h-5 w-5 text-purple-600"
+          />
+        ) : (
+          <input
+            type="checkbox"
+            checked={selectedIntervals[interval]}
+            onChange={() => toggleInterval(interval)}
+            className="form-checkbox h-5 w-5 text-purple-600"
+          />
+        )}
+        <span className="text-gray-700 font-semibold">{interval}</span>
+      </label>
+    ))}
+  </div>
+</div>
+
+
+  </div>
         
         
         {/* ✅ Dashboard Cards */}
