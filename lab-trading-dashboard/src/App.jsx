@@ -639,11 +639,11 @@ const [selectedIntervals, setSelectedIntervals] = useState({
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const tradeRes = await fetch("https://lab-code-94ua.onrender.com/api/trades");
+            const tradeRes = await fetch("https://lab-code-ar4v.onrender.com/api/trades");
             const tradeJson = tradeRes.ok ? await tradeRes.json() : { trades: [] };
             const trades = Array.isArray(tradeJson.trades) ? tradeJson.trades : [];
 
-            const machinesRes = await fetch("https://lab-code-94ua.onrender.com/api/machines"); 
+            const machinesRes = await fetch("https://lab-code-ar4v.onrender.com/api/machines"); 
             const machinesJson = machinesRes.ok ? await machinesRes.json() : { machines: [] };
             const machinesList = Array.isArray(machinesJson.machines) ? machinesJson.machines : [];
 
@@ -976,7 +976,7 @@ return (
           : "bg-green-600"
       }`}
     >
-      {Object.values(selectedMachines).every(v => v === true) ? "❌ Uncheck" : "✅ All"}
+      {Object.values(selectedMachines).every(v => v === true) ?"❌ Uncheck" : "✅ All"}
     </button>
   )}<span></span> <span></span> 
    
