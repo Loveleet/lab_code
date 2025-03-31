@@ -9,8 +9,8 @@ app.use(cors());
 
 // ✅ Database Connection Config
 const dbConfig = {
-  user: "sa",
-  password: "IndiaNepal-1",
+  user: "lab",
+  password: "IndiaNepal1-",
   server: "4.240.115.57",
   port: 1433,
   database: "labDB",
