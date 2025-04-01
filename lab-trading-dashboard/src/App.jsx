@@ -246,7 +246,7 @@ th.datetime-column {
           }
     .highlighted-row {
   background-color:rgb(190, 204, 0) !important;
-  color: white !important;
+  color: black !important;
   font-weight: bold;
   transition: background-color 0.3s ease, color 0.3s ease;
   box-shadow: inset 0 0 0 2px #005fa3, 0 0 5px rgba(0, 0, 0, 0.2);
@@ -525,13 +525,15 @@ return (
 </thead>
 <tbody>
   {sortedData.map((item, rowIndex) => (
-    <tr
-    key={rowIndex}
-    className={`border-b cursor-pointer transition-all duration-150 ${
-      selectedRow === rowIndex ? "bg-blue-100 font-semibold shadow-md" : ""
-    }`}
-    onClick={() => setSelectedRow(prev => prev === rowIndex ? null : rowIndex)}
-  >
+   <tr
+   key={rowIndex}
+   className={`border-b cursor-pointer transition-all duration-200 ${
+     selectedRow === rowIndex
+       ? "bg-gradient-to-r from-yellow-300 to-yellow-500 text-black text-[15px] font-extrabold shadow-xl border-l-4 border-yellow-700 rounded-md"
+       : "hover:bg-blue-100 text-sm"
+   }`}
+   onClick={() => setSelectedRow(prev => prev === rowIndex ? null : rowIndex)}
+ >
      {Object.entries(item).map(([key, val], colIndex) => (
   <td
     key={colIndex}
