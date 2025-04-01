@@ -5,18 +5,22 @@ const sql = require("mssql");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ✅ Set up CORS correctly
+// ✅ Allowed Frontend Origins (Local + Vercel + Render)
 const allowedOrigins = [
-  "http://localhost:5173",         // Your React dev environment
-  "https://lab-code-trs1.onrender.com" // Add your production frontend URL if needed
+  "http://localhost:5173",                    // Dev (Vite)
+  "https://lab-code-lyart.vercel.app",       // ✅ Your Vercel Frontend
+  "https://lab-code-trs1.onrender.com"       // Optional: if your frontend is ever on Render
 ];
 
+// ✅ Proper CORS Handling
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error("CORS not allowed for this origin"));
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error("❌ CORS blocked origin:", origin);
+      callback(new Error("CORS not allowed for this origin"));
+    }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -24,7 +28,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// ✅ Database Config
+// ✅ Database Configuration
 const dbConfig = {
   user: "lab",
   password: "IndiaNepal1-",
@@ -37,7 +41,7 @@ const dbConfig = {
   },
 };
 
-// ✅ Auto-Retry SQL Connection
+// ✅ Retry SQL Connection Until Successful
 async function connectWithRetry() {
   try {
     const pool = await new sql.ConnectionPool(dbConfig).connect();
@@ -52,11 +56,12 @@ async function connectWithRetry() {
 
 let poolPromise = connectWithRetry();
 
-// ✅ Routes
+// ✅ Health Check Route
 app.get("/", (req, res) => {
   res.send("✅ Backend is working!");
 });
 
+// ✅ API: Fetch All Trades
 app.get("/api/trades", async (req, res) => {
   try {
     const pool = await poolPromise;
@@ -64,11 +69,12 @@ app.get("/api/trades", async (req, res) => {
     const result = await pool.request().query("SELECT * FROM AllTradeRecords;");
     res.json({ trades: result.recordset });
   } catch (error) {
-    console.error("❌ Query Error (trades):", error.message);
+    console.error("❌ Query Error (/api/trades):", error.message);
     res.status(500).json({ error: error.message || "Failed to fetch trades" });
   }
 });
 
+// ✅ API: Fetch Machines
 app.get("/api/machines", async (req, res) => {
   try {
     const pool = await poolPromise;
@@ -76,12 +82,12 @@ app.get("/api/machines", async (req, res) => {
     const result = await pool.request().query("SELECT MachineId, Active FROM Machines;");
     res.json({ machines: result.recordset });
   } catch (error) {
-    console.error("❌ Query Error (machines):", error.message);
+    console.error("❌ Query Error (/api/machines):", error.message);
     res.status(500).json({ error: error.message || "Failed to fetch machines" });
   }
 });
 
-// ✅ Start the Server
+// ✅ Start Express Server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
