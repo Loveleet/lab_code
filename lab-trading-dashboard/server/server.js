@@ -76,6 +76,16 @@ app.get("/api/machines", async (req, res) => {
 });
 
 // ✅ Start the Server
+const https = require("https");
+
+setInterval(() => {
+  https.get("https://lab-code-vdlw.onrender.com", (res) => {
+    console.log(`📡 Self-ping status: ${res.statusCode}`);
+  }).on("error", (err) => {
+    console.error("❌ Self-ping failed:", err.message);
+  });
+}, 14 * 60 * 1000); // Every 14 minutes
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
