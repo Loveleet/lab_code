@@ -74,15 +74,58 @@ const DashboardCard = ({ title, value, isSelected, onClick }) => {
   {/* Sidebar & Content */}
 </div>;
 
-const TableView = ({ title, tradeData }) => {
+const TableView = ({ title, tradeData, clientData, logData }) => {
 
   const [filteredData, setFilteredData] = useState([]);
+  const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
 
+  const sortedData = useMemo(() => {
+    if (!sortConfig.key) return filteredData;
+    return [...filteredData].sort((a, b) => {
+      const aVal = a[sortConfig.key] || "";
+      const bVal = b[sortConfig.key] || "";
+
+      if (!isNaN(aVal) && !isNaN(bVal)) {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      return sortConfig.direction === 'asc'
+        ? aVal.localeCompare(bVal)
+        : bVal.localeCompare(aVal);
+    });
+  }, [filteredData, sortConfig]);
+
+  useEffect(() => {
+    if (!tradeData || tradeData.length === 0) return;
+
+    let result = [];
+    switch (title) {
+      case "Profit_+_Loss_=_Total_Profit $":
+        result = tradeData.map((trade, index) => formatTradeData(trade, index));
+        break;
+
+      case "Profit_+_Loss_=_Closed_Profit $":
+        result = tradeData
+          .filter(trade => trade.Type === "close")
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+
+      // ... other cases
+
+      default:
+        result = [];
+    }
+
+    setFilteredData(result);
+  }, [title, tradeData]);
 
 const handleOpenReport = (title, sortedData) => {
+  if (!sortedData || sortedData.length === 0) return;
   const reportWindow = window.open("", "_blank", "width=1200,height=600");
 
-  const tableHeaders = Object.keys(sortedData[0] || []);
+  if (!sortedData || sortedData.length === 0 || typeof sortedData[0] !== "object") {
+    return ;
+  }
+  const tableHeaders = sortedData.length > 0 && typeof sortedData[0] === "object" ? Object.keys(sortedData[0]) : [];
   
 
   const reportContent = `
@@ -309,11 +352,11 @@ th.datetime-column {
   reportWindow.document.write(reportContent);
 };
 
-  if (!tradeData || tradeData.length === 0) {
-    return <p className="text-center text-gray-500 mt-4">⚠️ No data available for {title}</p>;
-  }
-  // ✅ SORTING STATE
-  const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
+// ✅ SAFE to render fallback after all hooks
+// if (!tradeData || tradeData.length === 0) {
+//   return <p className="text-center text-gray-500 mt-4">⚠️ No data available for {title}</p>;
+// }
+
 
   // ✅ SORT FUNCTION
   const sortTable = (key) => {
@@ -324,20 +367,6 @@ th.datetime-column {
   };
   
 
-  // ✅ APPLY SORTING TO DATA
-  const sortedData = React.useMemo(() => {
-    if (!sortConfig.key) return filteredData;
-    return [...filteredData].sort((a, b) => {
-      let aValue = a[sortConfig.key] || "";
-      let bValue = b[sortConfig.key] || "";
-
-      if (!isNaN(aValue) && !isNaN(bValue)) {
-        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
-      }
-      return sortConfig.direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-    });
-  }, [filteredData, sortConfig]);
-
   const handleSort = (key) => {
     setSortConfig(prev => ({
       key,
@@ -345,11 +374,6 @@ th.datetime-column {
     }));
   };
 
-  if (!tradeData || tradeData.length === 0) {
-    return <p className="text-center text-gray-500 mt-4">⚠️ No data available for {title}</p>;
-  }
-
-  
   
   useEffect(() => {
     if (!tradeData || tradeData.length === 0) return;
@@ -446,6 +470,9 @@ th.datetime-column {
     setFilteredData(result);
   }, [title, tradeData]);
 
+  if (!tradeData || tradeData.length === 0) {
+    return <p className="text-center text-gray-500 mt-4">⚠️ No data available for {title}</p>;
+  }
   if (filteredData.length === 0) {
     return <p className="text-center text-gray-500 mt-4">⚠️ No relevant data available for {title}</p>;
   }
@@ -746,7 +773,7 @@ const filteredTradeData = useMemo(() => {
 // Min_close
 // : 
 // "Min_close"
-        console.log("🔍 Filtered Trade Data:", filteredTradeData);
+        // console.log("🔍 Filtered Trade Data:", filteredTradeData);
 
 
         // 🔹 Format dates for comparison
