@@ -91,3 +91,13 @@ app.get("/api/machines", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+const http = require("http");
+
+// ✅ Self-Ping to Prevent Render Sleep (every 14 minutes)
+setInterval(() => {
+  http.get("http://lab-code-wjsi.onrender.com/api/machines", (res) => {
+    console.log(`📡 Self-ping status: ${res.statusCode}`);
+  }).on("error", (err) => {
+    console.error("❌ Self-ping failed:", err.message);
+  });
+}, 14 * 60 * 1000); // 14 minutes
