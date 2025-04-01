@@ -78,6 +78,7 @@ const TableView = ({ title, tradeData, clientData, logData }) => {
 
   const [filteredData, setFilteredData] = useState([]);
   const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
+  const [selectedRow, setSelectedRow] = useState(null);
 
   const sortedData = useMemo(() => {
     if (!sortConfig.key) return filteredData;
@@ -259,6 +260,11 @@ th.datetime-column {
     border: 1px solid #ccc;
     border-radius: 4px;
           }
+    .highlighted-row {
+  background-color: #d4f1f4 !important;
+  font-weight: bold;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
         </style>
       </head>
       <body>
@@ -270,8 +276,7 @@ th.datetime-column {
             <tr>
             ${tableHeaders.map((key, index) => {
               const stickyClass = index < 3 ? `sticky-col sticky-col-${index + 1}` : "";
-              return `<th onclick="sortTable(${index })" class="${stickyClass}" data-index < "${index < 3}">${key.replace(/_/g, " ")}</th>`;
-            }).join("")}
+              return `<th onclick="sortTable(${index})" class="${stickyClass}" data-index='${index}'>${key.replace(/_/g, " ")}</th>`;            }).join("")}
             </tr>
           </thead>
         <tbody id="tableBody">
@@ -305,47 +310,58 @@ th.datetime-column {
 
         </table>
 
-        <script>
-          let currentSortIndex = null;
-          let currentSortDirection = "asc";
+        <script >
+  let currentSortIndex = null;
+  let currentSortDirection = "asc";
 
-          function sortTable(columnIndex) {
-            const table = document.getElementById("reportTable");
-            const tbody = table.querySelector("tbody");
-            const rows = Array.from(tbody.rows);
+  function sortTable(columnIndex) {
+    const table = document.getElementById("reportTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.rows);
 
-            const isAsc = currentSortIndex === columnIndex && currentSortDirection === "asc" ? false : true;
-            currentSortIndex = columnIndex;
-            currentSortDirection = isAsc ? "asc" : "desc";
+    const isAsc = currentSortIndex === columnIndex && currentSortDirection === "asc" ? false : true;
+    currentSortIndex = columnIndex;
+    currentSortDirection = isAsc ? "asc" : "desc";
 
-            rows.sort((a, b) => {
-              const valA = a.cells[columnIndex].textContent.trim();
-              const valB = b.cells[columnIndex].textContent.trim();
+    rows.sort((a, b) => {
+      const valA = a.cells[columnIndex].textContent.trim();
+      const valB = b.cells[columnIndex].textContent.trim();
 
-              if (!isNaN(valA) && !isNaN(valB)) {
-                return isAsc ? parseFloat(valA) - parseFloat(valB) : parseFloat(valB) - parseFloat(valA);
-              }
-              return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            });
+      if (!isNaN(valA) && !isNaN(valB)) {
+        return isAsc ? parseFloat(valA) - parseFloat(valB) : parseFloat(valB) - parseFloat(valA);
+      }
+      return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    });
 
-            tbody.innerHTML = "";
-            rows.forEach(row => tbody.appendChild(row));
+    tbody.innerHTML = "";
+    rows.forEach(row => tbody.appendChild(row));
 
-            document.querySelectorAll("th").forEach(th => th.classList.remove("sorted-asc", "sorted-desc"));
-            document.querySelector(\`th[data-index="\${columnIndex}"]\`).classList.add(isAsc ? "sorted-asc" : "sorted-desc");
-          }
+    document.querySelectorAll("th").forEach(th => th.classList.remove("sorted-asc", "sorted-desc"));
+    document.querySelector(\`th[data-index="\${columnIndex}"]\`).classList.add(isAsc ? "sorted-asc" : "sorted-desc");
+  }
 
-          function filterRows() {
-            const query = document.getElementById("searchBox").value.toLowerCase();
-            const rows = document.querySelectorAll("#tableBody tr");
+  function filterRows() {
+    const query = document.getElementById("searchBox").value.toLowerCase();
+    const rows = document.querySelectorAll("#tableBody tr");
 
-            rows.forEach(row => {
-              const rowText = row.textContent.toLowerCase();
-              row.style.display = rowText.includes(query) ? "" : "none";
-            });
-          }
-        </script>
-      </body>
+    rows.forEach(row => {
+      const rowText = row.textContent.toLowerCase();
+      row.style.display = rowText.includes(query) ? "" : "none";
+    });
+  }
+
+  // ✅ Fix: Attach event listeners right away after page loads
+  document.getElementById("tableBody").addEventListener("click", function (e) {
+  const clickedRow = e.target.closest("tr");
+  if (!clickedRow) return;
+
+  // Remove highlight from all rows
+  Array.from(this.rows).forEach(row => row.classList.remove("highlighted-row"));
+
+  // Add highlight to clicked row
+  clickedRow.classList.add("highlighted-row");
+});// Small delay to ensure table renders first
+</script>      </body>
     </html>
   `;
 
@@ -523,7 +539,13 @@ return (
 </thead>
 <tbody>
   {sortedData.map((item, rowIndex) => (
-    <tr key={rowIndex} className="border-b">
+    <tr
+    key={rowIndex}
+    className={`border-b cursor-pointer transition-all duration-150 ${
+      selectedRow === rowIndex ? "bg-blue-100 font-semibold shadow-md" : ""
+    }`}
+    onClick={() => setSelectedRow(prev => prev === rowIndex ? null : rowIndex)}
+  >
      {Object.entries(item).map(([key, val], colIndex) => (
   <td
     key={colIndex}
