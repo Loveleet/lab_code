@@ -36,7 +36,7 @@ const SidebarItem = ({ icon: Icon, text, isOpen }) => (
   </li>
 );
 
-const DashboardCard = ({ title, value, isSelected, onClick }) => {
+const DashboardCard = ({ title, value, isSelected, onClick, filteredTradeData }) =>  {
 
   const formatValue = (val) => {
     return val.split(/([+-]?[\d.]+)/g).map((part) => {
@@ -53,6 +53,7 @@ const DashboardCard = ({ title, value, isSelected, onClick }) => {
       }
     }).join(""); // ✅ Join into one string
   };
+ 
   return (
     <div
       className={`cursor-pointer p-6 rounded-xl shadow-lg transition-all duration-300
@@ -97,25 +98,8 @@ const TableView = ({ title, tradeData, clientData, logData }) => {
 
   useEffect(() => {
     if (!tradeData || tradeData.length === 0) return;
-
-    let result = [];
-    switch (title) {
-      case "Profit_+_Loss_=_Total_Profit $":
-        result = tradeData.map((trade, index) => formatTradeData(trade, index));
-        break;
-
-      case "Profit_+_Loss_=_Closed_Profit $":
-        result = tradeData
-          .filter(trade => trade.Type === "close")
-          .map((trade, index) => formatTradeData(trade, index));
-        break;
-
-      // ... other cases
-
-      default:
-        result = [];
-    }
-
+  
+    const result = tradeData.map((trade, index) => formatTradeData(trade, index));
     setFilteredData(result);
   }, [title, tradeData]);
 
@@ -261,7 +245,7 @@ th.datetime-column {
     border-radius: 4px;
           }
     .highlighted-row {
-  background-color: #d4f1f4 !important;
+  background-color:rgb(220, 226, 44) !important;
   font-weight: bold;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
 }
@@ -585,47 +569,49 @@ return (
 );
 };
 // ✅ Helper Function to Format Trade Data
+const safeFixed = (val, digits = 2, prefix = "") => {
+  const num = parseFloat(val);
+  return isNaN(num) ? "N/A" : `${prefix}${num.toFixed(digits)}`;
+};
+
 const formatTradeData = (trade, index) => ({
   "S No": index + 1,
   MachineId: trade.MachineId || "N/A",
   Unique_ID: trade.Unique_id || "N/A",
 
-
-
-
-  Candle_Time: trade.Candel_time || "N/A", 
+  Candle_Time: trade.Candel_time || "N/A",
   Fetcher_Trade_Time: trade.Fetcher_Trade_time || "N/A",
   Operator_Trade_Time: trade.Operator_Trade_time || "N/A",
   Operator_Close_Time: trade.Operator_Close_time || "N/A",
   Pair: trade.Pair || "N/A",
-  Investment: trade.Investment ? `$${trade.Investment.toFixed(2)}` : "N/A",
+  Investment: safeFixed(trade.Investment, 2, "$"),
   Interval: trade.Interval || "N/A",
-  Stop_Price: trade.Stop_price ? trade.Stop_price.toFixed(6) : "N/A",
-  Save_Price: trade.Save_price ? trade.Save_price.toFixed(6) : "N/A",
-  Min_Comm: trade.Min_comm ? trade.Min_comm.toFixed(6) : "N/A",
+  Stop_Price: safeFixed(trade.Stop_price, 6),
+  Save_Price: safeFixed(trade.Save_price, 6),
+  Min_Comm: safeFixed(trade.Min_comm, 6),
   Hedge: trade.Hedge ? "✅ Yes" : "❌ No",
-  Hedge_1_1_Bool: trade.Hedge_1_1_bool ? "✅ Yes" : "❌ No", // ✅ Newly Added
-  Hedge_Order_Size: trade.Hedge_order_size || "N/A", // ✅ Newly Added
-  Min_Comm_After_Hedge: trade.Min_comm_after_hedge ? trade.Min_comm_after_hedge.toFixed(6) : "N/A", // ✅ Newly Added
-  Min_Profit: trade.Min_profit ? `$${trade.Min_profit.toFixed(2)}` : "N/A", // ✅ Newly Added
+  Hedge_1_1_Bool: trade.Hedge_1_1_bool ? "✅ Yes" : "❌ No",
+  Hedge_Order_Size: trade.Hedge_order_size || "N/A",
+  Min_Comm_After_Hedge: safeFixed(trade.Min_comm_after_hedge, 6),
+  Min_Profit: safeFixed(trade.Min_profit, 2, "$"),
   Action: trade.Action || "N/A",
   Buy_Qty: trade.Buy_qty || 0,
-  Buy_Price: trade.Buy_price ? trade.Buy_price.toFixed(6) : "N/A",
-  Buy_PL: trade.Buy_pl ? trade.Buy_pl.toFixed(6) : "N/A",
-  Added_Qty: trade.Added_qty || "N/A", // ✅ Newly Added
+  Buy_Price: safeFixed(trade.Buy_price, 6),
+  Buy_PL: safeFixed(trade.Buy_pl, 6),
+  Added_Qty: trade.Added_qty || "N/A",
   Sell_Qty: trade.Sell_qty || 0,
-  Sell_Price: trade.Sell_price ? trade.Sell_price.toFixed(6) : "N/A",
-  Sell_PL: trade.Sell_pl ? trade.Sell_pl.toFixed(6) : "N/A",
-  Close_Price: trade.Close_price ? trade.Close_price.toFixed(6) : "N/A", // ✅ Newly Added
-  Commission: trade.Commission ? `$${trade.Commission.toFixed(2)}` : "N/A",
+  Sell_Price: safeFixed(trade.Sell_price, 6),
+  Sell_PL: safeFixed(trade.Sell_pl, 6),
+  Close_Price: safeFixed(trade.Close_price, 6),
+  Commission: safeFixed(trade.Commission, 2, "$"),
   Commision_Journey: trade.Commision_journey ? "✅ Yes" : "❌ No",
-  PL_After_Comm: trade.Pl_after_comm ? `$${trade.Pl_after_comm.toFixed(2)}` : "N/A",
+  PL_After_Comm: safeFixed(trade.Pl_after_comm, 2, "$"),
   Profit_Journey: trade.Profit_journey ? "✅ Yes" : "❌ No",
-  Signal_From: trade.SignalFrom || "N/A", // ✅ Newly Added
-  Type: trade.Type || "N/A", // ✅ Newly Added
+  Signal_From: trade.SignalFrom || "N/A",
+  Type: trade.Type || "N/A",
   Timestamp: trade.SignalFrom || "N/A",
   Date: trade.Candel_time ? trade.Candel_time.split(" ")[0] : "N/A",
-  Min_close: trade.Min_close
+  Min_close: trade.Min_close,
 });
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
@@ -750,6 +736,51 @@ const filteredTradeData = useMemo(() => {
     return isSignalSelected && isMachineSelected && isIntervalSelected && isDateInRange;
   });
 }, [tradeData, selectedSignals, selectedMachines, selectedIntervals, fromDate, toDate]);
+
+const getFilteredForTitle = useMemo(() => {
+  const memo = {};
+
+  (filteredTradeData || []).forEach((trade) => {
+    const pushTo = (key) => {
+      if (!memo[key]) memo[key] = [];
+      memo[key].push(trade);  // ✅ Only push raw trade here
+    };
+
+    pushTo("Total_Trades");
+
+    if (trade.Type === "close") pushTo("Profit_+_Loss_=_Closed_Profit $");
+    if (trade.Type === "running") pushTo("Profit_+_Loss_=_Running_Profit $");
+    if (["assign", "running", "close"].includes(trade.Type)) pushTo("Assign_/_Running_/_Closed Count");
+
+    if (trade.Action === "BUY") {
+      pushTo("Running_/_Total_Buy");
+      if (trade.Type === "running") pushTo("Running_/_Total_Buy");
+    }
+
+    if (trade.Action === "SELL") {
+      pushTo("Running_/_Total_Sell");
+      if (trade.Type === "running") pushTo("Running_/_Total_Sell");
+    }
+
+    if (trade.Commision_journey) pushTo("Comission_Point_Crossed");
+    if (trade.Profit_journey) pushTo("Profit_Journey_Crossed");
+    if (trade.Commision_journey === false) pushTo("Below_Commision_Point");
+
+    if (trade.Type === "close" && trade.Commision_journey && !trade.Profit_journey) pushTo("Closed_After_Comission_Point");
+    if (trade.Type === "close" && trade.Pl_after_comm < 0) pushTo("Close_in_Loss");
+    if (trade.Type === "close" && trade.Profit_journey) pushTo("Close_After_Profit_Journey");
+    if (trade.Type === "close" && trade.Commision_journey && trade.Pl_after_comm < 0) pushTo("Close_Curve_in_Loss");
+
+    if (trade.Type === "close" && trade.Min_close === "Min_close") {
+      if (trade.Pl_after_comm > 0) pushTo("Min_Close_Profit");
+      if (trade.Pl_after_comm < 0) pushTo("Min_Close_Loss");
+    }
+
+    pushTo("Profit_+_Loss_=_Total_Profit $");
+  });
+
+  return memo;
+}, [filteredTradeData]);
 
   useEffect(() => {
             // 🔹 Total Investment Calculation
@@ -1181,12 +1212,13 @@ return (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Object.entries(metrics).map(([title, value]) => (
               <DashboardCard 
-                key={title} 
-                title={title} 
-                value={value} 
-                isSelected={selectedBox === title} 
-                onClick={() => toggleBox(title)} 
-              />
+              key={title} 
+              title={title} 
+              value={value} 
+              isSelected={selectedBox === title} 
+              onClick={() => toggleBox(title)} 
+              filteredTradeData={filteredTradeData} // ✅ Add this line if DashboardCard uses it!
+            />
             ))}
           </div>
         )}
@@ -1194,15 +1226,12 @@ return (
         {/* ✅ Data Table */}
         
         {selectedBox && (
-          
   <TableView 
-  
     title={selectedBox} 
-    tradeData={filteredTradeData || []}  // ✅ Prevents undefined error
-    clientData={clientData || []}  // ✅ Ensures clientData is valid
-    logData={logData || []}  // ✅ Ensures logData is valid
+    tradeData={getFilteredForTitle[selectedBox] || []}
+    clientData={clientData || []}
+    logData={logData || []}
   />
-  
 )}
 
       </div>
