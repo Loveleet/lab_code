@@ -251,6 +251,25 @@ th.datetime-column {
   transition: background-color 0.3s ease, color 0.3s ease;
   box-shadow: inset 0 0 0 2px #005fa3, 0 0 5px rgba(0, 0, 0, 0.2);
 }
+  
+tr:hover {
+  background-color: #bbf7d0 !important; /* light green hover */
+  transform: scale(1.003);
+  border-left: 2px solid #3b82f6; /* blue border on hover */
+  transition: all 0.2s ease-in-out;
+}
+
+/* ✨ Stylish selected row effect */
+tr.highlighted-row {
+  background: linear-gradient(to right, #facc15, #f59e0b); /* yellow-300 to yellow-500 */
+  font-weight: 800;
+  color: black;
+  border-left: 4px solid #b45309; /* deep yellow border */
+  border-radius: 6px;
+  transform: scale(1.01);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+
         </style>
       </head>
       <body>
@@ -267,7 +286,7 @@ th.datetime-column {
           </thead>
         <tbody id="tableBody">
             ${sortedData.map(item => `
-              <tr>${tableHeaders.map((key, index) => {
+              <tr class="transition-all duration-200 hover:bg-yellow-100 hover:shadow hover:scale-[1.01] cursor-pointer">${tableHeaders.map((key, index) => {
                 const stickyClass = index < 3 ? `sticky-col sticky-col-${index + 1}` : "";
 
                 if (key === "Unique_ID" && typeof item[key] === "string") {
@@ -530,7 +549,7 @@ return (
    className={`border-b cursor-pointer transition-all duration-200 ${
      selectedRow === rowIndex
        ? "bg-gradient-to-r from-yellow-300 to-yellow-500 text-black text-[15px] font-bold shadow-xl border-l-4 border-yellow-700 rounded-md"
-       : "hover:bg-blue-100 text-sm"
+       : "hover:bg-green-200 hover:scale-[1.001] hover:border-l-2 hover:border-blue-500"
    }`}
    onClick={() => setSelectedRow(prev => prev === rowIndex ? null : rowIndex)}
  >
