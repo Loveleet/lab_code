@@ -56,10 +56,12 @@ const DashboardCard = ({ title, value, isSelected, onClick, filteredTradeData })
  
   return (
     <div
-      className={`cursor-pointer p-6 rounded-xl shadow-lg transition-all duration-300
-      ${isSelected ? "bg-yellow-500 scale-110" : "bg-gradient-to-br from-blue-800 to-indigo-900 hover:brightness-210"}`}
-      onClick={onClick}
-    >
+  className={`cursor-pointer p-6 rounded-2xl border transition-all duration-300 transform
+    ${isSelected
+      ? "bg-gradient-to-br from-blue-900 to-green-500 scale-[1.03] shadow-lg ring-4 ring-yellow-600 border-yellow-700 text-gray-900"
+      : "bg-gradient-to-br from-blue-800 to-indigo-900 hover:scale-[1.03] hover:shadow-xl hover:ring-4 hover:ring-yellow-400/60 hover:border-yellow-500/70 text-white"}`}
+  onClick={onClick}
+>
       {/* ✅ Title with sky blue color */}
       <h2 className="text-lg font-semibold text-center text-blue-400">{title.replace(/_/g, " ")}</h2>
       
@@ -701,11 +703,11 @@ const [selectedIntervals, setSelectedIntervals] = useState({
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const tradeRes = await fetch("https://lab-code-v1dw.onrender.com/api/trades");
+            const tradeRes = await fetch("https://lab-code-trs1.onrender.com/api/trades");
             const tradeJson = tradeRes.ok ? await tradeRes.json() : { trades: [] };
             const trades = Array.isArray(tradeJson.trades) ? tradeJson.trades : [];
 
-            const machinesRes = await fetch("https://lab-code-v1dw.onrender.com/api/machines"); 
+            const machinesRes = await fetch("https://lab-code-trs1.onrender.com/api/machines"); 
             const machinesJson = machinesRes.ok ? await machinesRes.json() : { machines: [] };
             const machinesList = Array.isArray(machinesJson.machines) ? machinesJson.machines : [];
 
