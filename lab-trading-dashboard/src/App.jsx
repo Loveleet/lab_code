@@ -471,6 +471,12 @@ tr.highlighted-row {
           .filter(trade => trade.Type === "close" && trade.Pl_after_comm < 0)
           .map((trade, index) => formatTradeData(trade, index));
         break;
+
+        case "Close_in_Profit":
+          result = tradeData
+            .filter(trade => trade.Type === "close" && trade.Pl_after_comm > 0)
+            .map((trade, index) => formatTradeData(trade, index));
+          break;
   
       case "Close_After_Profit_Journey":
         result = tradeData
@@ -797,6 +803,7 @@ const getFilteredForTitle = useMemo(() => {
 
     if (trade.Type === "close" && trade.Commision_journey && !trade.Profit_journey) pushTo("Closed_After_Comission_Point");
     if (trade.Type === "close" && trade.Pl_after_comm < 0) pushTo("Close_in_Loss");
+    if (trade.Type === "close" && trade.Pl_after_comm > 0) pushTo("Close_in_Profit");
     if (trade.Type === "close" && trade.Profit_journey) pushTo("Close_After_Profit_Journey");
     if (trade.Type === "close" && trade.Commision_journey && trade.Pl_after_comm < 0) pushTo("Close_Curve_in_Loss");
 
