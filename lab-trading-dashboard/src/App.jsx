@@ -646,6 +646,8 @@ const Dashboard = () => {
     "NORMAL SWING HIGH": "NSH",
     "NORMAL SWING LOW": "NSL",
     "ProGap":"PG",
+    "CrossOver": "CO",
+    "Kicker":"KR",
   };
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
@@ -661,6 +663,8 @@ const Dashboard = () => {
     "NORMAL SWING HIGH": true,
     "NORMAL SWING LOW": true,
     "ProGap": true,
+    "CrossOver": true,
+    "Kicker": true,
 
   });
   const [intervalRadioMode, setIntervalRadioMode] = useState(false);
@@ -897,6 +901,8 @@ useEffect(() => {
       "NORMAL SWING HIGH": true,
       "NORMAL SWING LOW": true,
       "ProGap": true,
+      "CrossOver": true,
+      "Kicker": true,
       ...parsed,
     };
     setSelectedSignals(merged);
