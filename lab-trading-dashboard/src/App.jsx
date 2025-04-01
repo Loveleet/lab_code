@@ -703,11 +703,11 @@ const [selectedIntervals, setSelectedIntervals] = useState({
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const tradeRes = await fetch("https://lab-code-trs1.onrender.com/api/trades");
+            const tradeRes = await fetch("https://lab-code-wjsi.onrender.com/api/trades");
             const tradeJson = tradeRes.ok ? await tradeRes.json() : { trades: [] };
             const trades = Array.isArray(tradeJson.trades) ? tradeJson.trades : [];
 
-            const machinesRes = await fetch("https://lab-code-trs1.onrender.com/api/machines"); 
+            const machinesRes = await fetch("https://lab-code-wjsi.onrender.com/api/machines"); 
             const machinesJson = machinesRes.ok ? await machinesRes.json() : { machines: [] };
             const machinesList = Array.isArray(machinesJson.machines) ? machinesJson.machines : [];
 
