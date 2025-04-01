@@ -89,7 +89,7 @@ app.get("/api/machines", async (req, res) => {
 
 // ✅ Start Express Server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
 const http = require("http");
 
