@@ -3,11 +3,28 @@ const cors = require("cors");
 const sql = require("mssql");
 
 const app = express();
-const PORT = 10000;
+const PORT = process.env.PORT || 10000;
 
-app.use(cors());
+// ✅ Set up CORS correctly
+const allowedOrigins = [
+  "http://localhost:5173",         // Your React dev environment
+  "https://lab-code-trs1.onrender.com" // Add your production frontend URL if needed
+];
 
-// ✅ Database Connection Config
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("CORS not allowed for this origin"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+}));
+
+app.use(express.json());
+
+// ✅ Database Config
 const dbConfig = {
   user: "lab",
   password: "IndiaNepal1-",
@@ -15,24 +32,12 @@ const dbConfig = {
   port: 1433,
   database: "labDB",
   options: {
-    encrypt: false, // Set to true if using Azure SQL
-    trustServerCertificate: true, // Use this for self-signed certificates
-
+    encrypt: false,
+    trustServerCertificate: true,
   },
 };
-// const dbConfig = { /Users/apple/Desktop/lab_code/lab-trading-dashboard/server/server.js
-//   user: process.env.DB_USER,
-//   password: process.env.DB_PASSWORD,
-//   server: process.env.DB_SERVER,
-//   database: process.env.DB_DATABASE,
-//   port: 1433,
-//   options: {
-//     encrypt: false,
-//     trustServerCertificate: true,
-//   },
-// };
 
-// ✅ Auto-Retry SQL Connection Until Successful
+// ✅ Auto-Retry SQL Connection
 async function connectWithRetry() {
   try {
     const pool = await new sql.ConnectionPool(dbConfig).connect();
@@ -40,14 +45,18 @@ async function connectWithRetry() {
     return pool;
   } catch (err) {
     console.error("❌ SQL Connection Failed. Retrying in 5 seconds...", err.code || err.message);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     return connectWithRetry();
   }
 }
 
 let poolPromise = connectWithRetry();
 
-/* ✅ API: Fetch ALL Trades */
+// ✅ Routes
+app.get("/", (req, res) => {
+  res.send("✅ Backend is working!");
+});
+
 app.get("/api/trades", async (req, res) => {
   try {
     const pool = await poolPromise;
@@ -55,14 +64,11 @@ app.get("/api/trades", async (req, res) => {
     const result = await pool.request().query("SELECT * FROM AllTradeRecords;");
     res.json({ trades: result.recordset });
   } catch (error) {
-    console.error("❌ Query Error:", error.message);
+    console.error("❌ Query Error (trades):", error.message);
     res.status(500).json({ error: error.message || "Failed to fetch trades" });
   }
 });
-app.get("/", (req, res) => {
-  res.send("✅ Backend is working!");
-});
-/* ✅ API: Fetch Machines */
+
 app.get("/api/machines", async (req, res) => {
   try {
     const pool = await poolPromise;
@@ -70,7 +76,7 @@ app.get("/api/machines", async (req, res) => {
     const result = await pool.request().query("SELECT MachineId, Active FROM Machines;");
     res.json({ machines: result.recordset });
   } catch (error) {
-    console.error("❌ Query Error:", error.message);
+    console.error("❌ Query Error (machines):", error.message);
     res.status(500).json({ error: error.message || "Failed to fetch machines" });
   }
 });
