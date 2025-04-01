@@ -245,9 +245,11 @@ th.datetime-column {
     border-radius: 4px;
           }
     .highlighted-row {
-  background-color:rgb(220, 226, 44) !important;
+  background-color:rgb(190, 204, 0) !important;
+  color: white !important;
   font-weight: bold;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  box-shadow: inset 0 0 0 2px #005fa3, 0 0 5px rgba(0, 0, 0, 0.2);
 }
         </style>
       </head>
