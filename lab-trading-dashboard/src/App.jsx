@@ -742,7 +742,7 @@ const [selectedIntervals, setSelectedIntervals] = useState({
     
     
     fetchData();
-    const interval = setInterval(fetchData, 1000); // ✅ Fetch every second
+    const interval = setInterval(fetchData, 10000); // ✅ Fetch every second
     return () => clearInterval(interval);
 }, []); 
 const filteredTradeData = useMemo(() => {
