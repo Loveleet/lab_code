@@ -529,7 +529,7 @@ return (
    key={rowIndex}
    className={`border-b cursor-pointer transition-all duration-200 ${
      selectedRow === rowIndex
-       ? "bg-gradient-to-r from-yellow-300 to-yellow-500 text-black text-[15px] font-extrabold shadow-xl border-l-4 border-yellow-700 rounded-md"
+       ? "bg-gradient-to-r from-yellow-300 to-yellow-500 text-black text-[15px] font-bold shadow-xl border-l-4 border-yellow-700 rounded-md"
        : "hover:bg-blue-100 text-sm"
    }`}
    onClick={() => setSelectedRow(prev => prev === rowIndex ? null : rowIndex)}
