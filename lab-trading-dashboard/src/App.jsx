@@ -717,6 +717,7 @@ const [selectedIntervals, setSelectedIntervals] = useState({
   "4h": true,
 });
   const [selectedMachines, setSelectedMachines] = useState({});
+  const [dateKey, setDateKey] = useState(0);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -925,7 +926,7 @@ const getFilteredForTitle = useMemo(() => {
         }));
         
    
-}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions]);
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate]);
 
 useEffect(() => {
   const savedSignals = localStorage.getItem("selectedSignals");
@@ -1040,9 +1041,13 @@ return (
         setSignalToggleAll(!signalToggleAll);
         localStorage.setItem("selectedSignals", JSON.stringify(newState));
       }}
-      className={`px-3 py-1 rounded text-sm text-white ${signalToggleAll ? "bg-green-600" : "bg-blue-600"}`}
+      className={`text-white text-sm px-2 py-1 rounded w-fit ${
+        Object.values(selectedMachines).every(v => v === true)
+          ? "bg-blue-600 hover:bg-blue-700"
+        : "bg-green-600 hover:bg-green-700"
+      }`}
     >
-      {signalToggleAll ?"✅ All" :"❌ Uncheck" }
+      {signalToggleAll ?"✅>------All" :"❌ Uncheck" }
     </button>
 )}<span></span> <span></span> 
 {/* ✅ Signal Inputs */}
@@ -1085,7 +1090,7 @@ return (
       onClick={() => setMachineRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
     >
-      {machineRadioMode ? "🔘 Check " : "☑️ Radio"}
+      {machineRadioMode ?"🔘 Check " : "☑️ Radio"}
     </button>
 
 
@@ -1103,11 +1108,11 @@ return (
       }}
       className={`text-white text-sm px-2 py-1 rounded w-fit ${
         Object.values(selectedMachines).every(v => v === true)
-          ? "bg-blue-600"
-          : "bg-green-600"
+          ? "bg-blue-600 hover:bg-blue-700"
+        : "bg-green-600 hover:bg-green-700"
       }`}
     >
-      {Object.values(selectedMachines).every(v => v === true) ?"❌ Uncheck" : "✅ All"}
+      {Object.values(selectedMachines).every(v => v === true) ?"❌ Uncheck" : "✅>------All"}
     </button>
   )}<span></span> <span></span> 
    
@@ -1148,8 +1153,8 @@ return (
   <div></div>
  {/* ✅ Interval Filter */}
  <div className="flex flex-col space-y-2 mb-4">
-  <div className="flex items-center space-x-3">
-    <span className="font-semibold text-gray-800">Interval :</span> 
+  <div className="flex items-center space-x-2">
+    <span className="font-semibold text-gray-800">Interval :</span> <span></span>
     <button
       onClick={() => setIntervalRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
@@ -1169,13 +1174,13 @@ return (
     }}
     className={`text-white text-sm px-2 py-1 rounded ${
       Object.values(selectedIntervals).every(val => val)
-        ? "bg-blue-600"
-        : "bg-green-600"
+        ? "bg-blue-600 hover:bg-blue-700"
+        : "bg-green-600 hover:bg-green-700"
     }`}
   >
-    {Object.values(selectedIntervals).every(val => val) ?"❌ Uncheck" :"✅ All"}
+    {Object.values(selectedIntervals).every(val => val) ?"❌ Uncheck" :"✅>------All"}
   </button>
-)}<span></span> <span></span> 
+)}<span></span> <span></span>
 
     {Object.keys(selectedIntervals).map((interval) => (
       <label key={interval} className="flex items-center space-x-2">
@@ -1210,8 +1215,8 @@ return (
 <div></div>
 {/* ✅ Buy/Sell Filter */}
 <div className="flex flex-col space-y-2 mb-4">
-  <div className="flex items-center space-x-3">
-    <span className="font-semibold text-gray-800">Action :</span> 
+  <div className="flex items-center space-x-2">
+    <span className="font-semibold text-gray-800">Action :</span> <span></span><span></span>
     <button
       onClick={() => setActionRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
@@ -1229,14 +1234,14 @@ return (
         }}
         className={`text-white text-sm px-2 py-1 rounded ${
           Object.values(selectedActions).every(val => val)
-            ? "bg-blue-600"
-            : "bg-green-600"
+            ? "bg-blue-600 hover:bg-blue-700"
+            : "bg-green-600 hover:bg-green-700"
         }`}
       >
-        {Object.values(selectedActions).every(val => val) ? "❌ Uncheck" : "✅ All"}
+        {Object.values(selectedActions).every(val => val) ? "❌ Uncheck" : "✅>------All"}
       </button>
     )}
-
+    <span></span> <span></span>
     {["BUY", "SELL"].map((action) => (
       <label key={action} className="flex items-center space-x-2">
         {actionRadioMode ? (
@@ -1275,6 +1280,7 @@ return (
   <div className="flex flex-col">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 From Date & Time</label>
     <Datetime
+    key={`from-${dateKey}`}
   value={fromDate ? fromDate : ''} // ✅ Show empty when null
   onChange={(date) => {
     if (moment.isMoment(date)) {
@@ -1292,6 +1298,7 @@ return (
   <div className="flex flex-col">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 To Date & Time</label>
     <Datetime
+    key={`to-${dateKey}`}
   value={toDate ? toDate : ''} // ✅ Show empty when null
   onChange={(date) => {
     if (moment.isMoment(date)) {
@@ -1311,6 +1318,7 @@ return (
   onClick={() => {
     setFromDate(null);
     setToDate(null);
+    setDateKey(prev => prev + 1); // 🔁 Force calendar re-render
   }}
   className="bg-yellow-600 text-white px-4 py-2 rounded mt-auto"
 >
