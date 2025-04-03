@@ -496,6 +496,16 @@ tr.highlighted-row {
         .filter(trade => trade.Type === "close" && trade.Commision_journey === true && trade.Pl_after_comm < 0 )
         .map((trade, index) => formatTradeData(trade, index));
       break;
+      case "Min_Close_Profit":
+        result = tradeData
+        .filter(trade => trade.Type === "close" && trade.Min_close === "Min_close" && trade.Pl_after_comm > 0 )
+        .map((trade, index) => formatTradeData(trade, index));
+      break;
+      case "Min_Close_Loss":
+        result = tradeData
+        .filter(trade => trade.Type === "close" && trade.Min_close === "Min_close" && trade.Pl_after_comm < 0 )
+        .map((trade, index) => formatTradeData(trade, index));
+      break;
 
   
       default:
