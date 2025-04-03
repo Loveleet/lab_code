@@ -704,6 +704,13 @@ const [selectedIntervals, setSelectedIntervals] = useState({
   "1h": true,
   "4h": true,
 });
+
+const [actionRadioMode, setActionRadioMode] = useState(false);
+const [selectedActions, setSelectedActions] = useState({
+  BUY: true,
+  SELL: true,
+});
+
   const [selectedMachines, setSelectedMachines] = useState({});
   
   useEffect(() => {
@@ -751,6 +758,7 @@ const [selectedIntervals, setSelectedIntervals] = useState({
     const interval = setInterval(fetchData, 20000); // ✅ Fetch every second
     return () => clearInterval(interval);
 }, []); 
+
 const filteredTradeData = useMemo(() => {
   if (!Array.isArray(tradeData)) return [];
 
@@ -758,19 +766,17 @@ const filteredTradeData = useMemo(() => {
     const isSignalSelected = selectedSignals[trade.SignalFrom];
     const isMachineSelected = selectedMachines[trade.MachineId];
     const isIntervalSelected = selectedIntervals[trade.Interval];
+    const action = (trade.Action || "").toUpperCase(); // Normalize casing
+    const isActionSelected = selectedActions[action];
 
-    // ✅ Handle missing or malformed Candle time
     if (!trade.Candel_time) return false;
 
-    const tradeTime = moment(trade.Candel_time); // ⏳ Parse to moment
-
-    // ✅ Check if within selected date & time range
+    const tradeTime = moment(trade.Candel_time);
     const isDateInRange = (!fromDate || tradeTime.isSameOrAfter(fromDate)) &&
                           (!toDate || tradeTime.isSameOrBefore(toDate));
-
-    return isSignalSelected && isMachineSelected && isIntervalSelected && isDateInRange;
+    return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange;
   });
-}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, fromDate, toDate]);
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate]);
 
 const getFilteredForTitle = useMemo(() => {
   const memo = {};
@@ -917,6 +923,7 @@ const getFilteredForTitle = useMemo(() => {
 useEffect(() => {
   const savedSignals = localStorage.getItem("selectedSignals");
   const savedMachines = localStorage.getItem("selectedMachines");
+  const savedActions = localStorage.getItem("selectedActions");
 
   if (savedSignals) {
     const parsed = JSON.parse(savedSignals);
@@ -937,7 +944,9 @@ useEffect(() => {
     const allSelected = Object.values(merged).every((val) => val === true);
     setSignalToggleAll(!allSelected); // ✅ sync toggle button state
   }
-
+  if (savedActions) {
+    setSelectedActions(JSON.parse(savedActions));
+  }
   if (savedMachines) {
     setSelectedMachines(JSON.parse(savedMachines));
   }
@@ -994,7 +1003,22 @@ useEffect(() => {
       localStorage.setItem("selectedIntervals", JSON.stringify(updated));
     }
   }
-}, [intervalRadioMode]);                         
+}, [intervalRadioMode]); 
+useEffect(() => {
+  if (actionRadioMode) {
+    const selected = Object.keys(selectedActions).find(key => selectedActions[key]);
+    if (selected) {
+      const updated = { BUY: false, SELL: false };
+      updated[selected] = true;
+      setSelectedActions(updated);
+      localStorage.setItem("selectedActions", JSON.stringify(updated));
+    }
+  }
+}, [actionRadioMode]);   
+console.log("selectedActions:", selectedActions);
+console.log("Filtered Actions in data:", tradeData.map(t => t.Action));
+
+
 return (
   <div className="flex">
     {/* Sidebar */}
@@ -1133,6 +1157,7 @@ return (
       ))}
   </div>
   <div></div>
+
  {/* ✅ Interval Filter */}
  <div className="flex flex-col space-y-2 mb-4">
   <div className="flex items-center space-x-3">
@@ -1195,6 +1220,76 @@ return (
   </div>
 </div>
 <div></div><div></div>
+{/* ✅ Buy/Sell Filter */}
+<div className="flex flex-col space-y-2 mb-4">
+  <div className="flex items-center space-x-3">
+    <span className="font-semibold text-gray-800">Buy/Sell :</span> 
+    <button
+      onClick={() => setActionRadioMode(prev => !prev)}
+      className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
+    >
+      {actionRadioMode ? "🔘 Check" : "☑️ Radio"}
+    </button>
+
+    {!actionRadioMode && (
+      <button
+        onClick={() => {
+          const allSelected = Object.values(selectedActions).every(val => val);
+          const updated = {
+            BUY: !allSelected,
+            SELL: !allSelected,
+          };
+          setSelectedActions(updated);
+        }}
+        className={`text-white text-sm px-2 py-1 rounded ${
+          Object.values(selectedActions).every(val => val)
+            ? "bg-blue-600"
+            : "bg-green-600"
+        }`}
+      >
+        {Object.values(selectedActions).every(val => val) ? "❌ Uncheck" : "✅ All"}
+      </button>
+    )}
+
+    {/* ✅ Action Inputs */}
+    {["BUY", "SELL"].map((action) => (
+      <label key={action} className="flex items-center space-x-2">
+        {actionRadioMode ? (
+          <input
+            type="radio"
+            name="actionFilterRadio"
+            checked={selectedActions[action]}
+            
+            onChange={() => {
+              setSelectedActions(prev => {
+                const updated = { BUY: false, SELL: false };
+                updated[action] = true;
+                localStorage.setItem("selectedActions", JSON.stringify(updated));
+                return updated;
+              });
+            }}
+            className="form-radio h-5 w-5 text-pink-600"
+          />
+        ) : (
+          <input
+            type="checkbox"
+            checked={selectedActions[action]}
+            
+            onChange={() =>
+              setSelectedActions((prev) => ({
+                ...prev,
+                [action]: !prev[action],
+              }))
+            }
+            className="form-checkbox h-5 w-5 text-pink-600"
+          />
+        )}
+        <span className="text-gray-700 font-semibold">{action}</span>
+      </label>
+    ))}
+  </div>
+</div>
+
 <div className="flex flex-wrap items-center gap-4 my-4">
   <div className="flex flex-col">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 From Date & Time</label>
@@ -1212,6 +1307,8 @@ return (
   dateFormat="YYYY-MM-DD"
 />
   </div>
+
+  
 
   <div className="flex flex-col">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 To Date & Time</label>
