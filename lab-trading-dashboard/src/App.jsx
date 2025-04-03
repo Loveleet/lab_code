@@ -1042,7 +1042,7 @@ return (
         localStorage.setItem("selectedSignals", JSON.stringify(newState));
       }}
       className={`text-white text-sm px-2 py-1 rounded w-fit ${
-        Object.values(selectedMachines).every(v => v === true)
+        Object.values(selectedSignals).every(v => v === true)
           ? "bg-blue-600 hover:bg-blue-700"
         : "bg-green-600 hover:bg-green-700"
       }`}
