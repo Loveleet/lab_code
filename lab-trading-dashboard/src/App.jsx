@@ -38,6 +38,12 @@ const SidebarItem = ({ icon: Icon, text, isOpen }) => (
 
 const DashboardCard = ({ title, value, isSelected, onClick, filteredTradeData }) =>  {
 
+const [actionRadioMode, setActionRadioMode] = useState(false);
+const [selectedActions, setSelectedActions] = useState({
+  BUY: true,
+  SELL: true,
+});
+
   const formatValue = (val) => {
     return val.split(/([+-]?[\d.]+)/g).map((part) => {
       if (!isNaN(part) && part.trim() !== "") {
@@ -695,6 +701,12 @@ const Dashboard = () => {
 
   });
   const [intervalRadioMode, setIntervalRadioMode] = useState(false);
+  const [actionRadioMode, setActionRadioMode] = useState(false);
+
+const [selectedActions, setSelectedActions] = useState({
+  BUY: true,
+  SELL: true,
+});
 const [selectedIntervals, setSelectedIntervals] = useState({
   "1m": true,
   "3m": true,
@@ -704,13 +716,6 @@ const [selectedIntervals, setSelectedIntervals] = useState({
   "1h": true,
   "4h": true,
 });
-
-const [actionRadioMode, setActionRadioMode] = useState(false);
-const [selectedActions, setSelectedActions] = useState({
-  BUY: true,
-  SELL: true,
-});
-
   const [selectedMachines, setSelectedMachines] = useState({});
   
   useEffect(() => {
@@ -758,7 +763,6 @@ const [selectedActions, setSelectedActions] = useState({
     const interval = setInterval(fetchData, 20000); // ✅ Fetch every second
     return () => clearInterval(interval);
 }, []); 
-
 const filteredTradeData = useMemo(() => {
   if (!Array.isArray(tradeData)) return [];
 
@@ -766,14 +770,17 @@ const filteredTradeData = useMemo(() => {
     const isSignalSelected = selectedSignals[trade.SignalFrom];
     const isMachineSelected = selectedMachines[trade.MachineId];
     const isIntervalSelected = selectedIntervals[trade.Interval];
-    const action = (trade.Action || "").toUpperCase(); // Normalize casing
-    const isActionSelected = selectedActions[action];
+    const isActionSelected = selectedActions[trade.Action];
 
+    // ✅ Handle missing or malformed Candle time
     if (!trade.Candel_time) return false;
 
-    const tradeTime = moment(trade.Candel_time);
+    const tradeTime = moment(trade.Candel_time); // ⏳ Parse to moment
+
+    // ✅ Check if within selected date & time range
     const isDateInRange = (!fromDate || tradeTime.isSameOrAfter(fromDate)) &&
                           (!toDate || tradeTime.isSameOrBefore(toDate));
+
     return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange;
   });
 }, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate]);
@@ -918,12 +925,11 @@ const getFilteredForTitle = useMemo(() => {
         }));
         
    
-}, [tradeData, selectedSignals, selectedMachines, selectedIntervals]);
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions]);
 
 useEffect(() => {
   const savedSignals = localStorage.getItem("selectedSignals");
   const savedMachines = localStorage.getItem("selectedMachines");
-  const savedActions = localStorage.getItem("selectedActions");
 
   if (savedSignals) {
     const parsed = JSON.parse(savedSignals);
@@ -944,9 +950,7 @@ useEffect(() => {
     const allSelected = Object.values(merged).every((val) => val === true);
     setSignalToggleAll(!allSelected); // ✅ sync toggle button state
   }
-  if (savedActions) {
-    setSelectedActions(JSON.parse(savedActions));
-  }
+
   if (savedMachines) {
     setSelectedMachines(JSON.parse(savedMachines));
   }
@@ -1003,22 +1007,7 @@ useEffect(() => {
       localStorage.setItem("selectedIntervals", JSON.stringify(updated));
     }
   }
-}, [intervalRadioMode]); 
-useEffect(() => {
-  if (actionRadioMode) {
-    const selected = Object.keys(selectedActions).find(key => selectedActions[key]);
-    if (selected) {
-      const updated = { BUY: false, SELL: false };
-      updated[selected] = true;
-      setSelectedActions(updated);
-      localStorage.setItem("selectedActions", JSON.stringify(updated));
-    }
-  }
-}, [actionRadioMode]);   
-console.log("selectedActions:", selectedActions);
-console.log("Filtered Actions in data:", tradeData.map(t => t.Action));
-
-
+}, [intervalRadioMode]);                         
 return (
   <div className="flex">
     {/* Sidebar */}
@@ -1157,7 +1146,6 @@ return (
       ))}
   </div>
   <div></div>
-
  {/* ✅ Interval Filter */}
  <div className="flex flex-col space-y-2 mb-4">
   <div className="flex items-center space-x-3">
@@ -1219,11 +1207,11 @@ return (
     ))}
   </div>
 </div>
-<div></div><div></div>
+<div></div>
 {/* ✅ Buy/Sell Filter */}
 <div className="flex flex-col space-y-2 mb-4">
   <div className="flex items-center space-x-3">
-    <span className="font-semibold text-gray-800">Buy/Sell :</span> 
+    <span className="font-semibold text-gray-800">Action :</span> 
     <button
       onClick={() => setActionRadioMode(prev => !prev)}
       className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
@@ -1235,11 +1223,9 @@ return (
       <button
         onClick={() => {
           const allSelected = Object.values(selectedActions).every(val => val);
-          const updated = {
-            BUY: !allSelected,
-            SELL: !allSelected,
-          };
+          const updated = { BUY: !allSelected, SELL: !allSelected };
           setSelectedActions(updated);
+          localStorage.setItem("selectedActions", JSON.stringify(updated));
         }}
         className={`text-white text-sm px-2 py-1 rounded ${
           Object.values(selectedActions).every(val => val)
@@ -1251,22 +1237,18 @@ return (
       </button>
     )}
 
-    {/* ✅ Action Inputs */}
     {["BUY", "SELL"].map((action) => (
       <label key={action} className="flex items-center space-x-2">
         {actionRadioMode ? (
           <input
             type="radio"
-            name="actionFilterRadio"
+            name="actionRadio"
             checked={selectedActions[action]}
-            
             onChange={() => {
-              setSelectedActions(prev => {
-                const updated = { BUY: false, SELL: false };
-                updated[action] = true;
-                localStorage.setItem("selectedActions", JSON.stringify(updated));
-                return updated;
-              });
+              const updated = { BUY: false, SELL: false };
+              updated[action] = true;
+              setSelectedActions(updated);
+              localStorage.setItem("selectedActions", JSON.stringify(updated));
             }}
             className="form-radio h-5 w-5 text-pink-600"
           />
@@ -1274,13 +1256,11 @@ return (
           <input
             type="checkbox"
             checked={selectedActions[action]}
-            
-            onChange={() =>
-              setSelectedActions((prev) => ({
-                ...prev,
-                [action]: !prev[action],
-              }))
-            }
+            onChange={() => {
+              const updated = { ...selectedActions, [action]: !selectedActions[action] };
+              setSelectedActions(updated);
+              localStorage.setItem("selectedActions", JSON.stringify(updated));
+            }}
             className="form-checkbox h-5 w-5 text-pink-600"
           />
         )}
@@ -1290,6 +1270,7 @@ return (
   </div>
 </div>
 
+<div></div>
 <div className="flex flex-wrap items-center gap-4 my-4">
   <div className="flex flex-col">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 From Date & Time</label>
@@ -1307,8 +1288,6 @@ return (
   dateFormat="YYYY-MM-DD"
 />
   </div>
-
-  
 
   <div className="flex flex-col">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 To Date & Time</label>
