@@ -43,6 +43,7 @@ const [selectedActions, setSelectedActions] = useState({
   BUY: true,
   SELL: true,
 });
+const [includeMinClose, setIncludeMinClose] = useState(true);
 
   const formatValue = (val) => {
     return val.split(/([+-]?[\d.]+)/g).map((part) => {
@@ -670,6 +671,7 @@ const Dashboard = () => {
   const [machines, setMachines] = useState([]);
   const [signalRadioMode, setSignalRadioMode] = useState(false);
   const [machineRadioMode, setMachineRadioMode] = useState(false);
+  const [includeMinClose, setIncludeMinClose] = useState(true);
   const [signalToggleAll, setSignalToggleAll] = useState(() => {
     const saved = localStorage.getItem("selectedSignals");
     if (saved) {
@@ -778,6 +780,8 @@ const filteredTradeData = useMemo(() => {
   if (!Array.isArray(tradeData)) return [];
 
   return tradeData.filter(trade => {
+
+    if (!includeMinClose && trade.Min_close === "Min_close") return false;
     const isSignalSelected = selectedSignals[trade.SignalFrom];
     const isMachineSelected = selectedMachines[trade.MachineId];
     const isIntervalSelected = selectedIntervals[trade.Interval];
@@ -794,7 +798,7 @@ const filteredTradeData = useMemo(() => {
 
     return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange;
   });
-}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate]);
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate, includeMinClose]);
 
 const getFilteredForTitle = useMemo(() => {
   const memo = {};
@@ -936,7 +940,7 @@ const getFilteredForTitle = useMemo(() => {
         }));
         
    
-}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate]);
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate, includeMinClose]);
 
 useEffect(() => {
   const savedSignals = localStorage.getItem("selectedSignals");
@@ -1284,7 +1288,16 @@ return (
     ))}
   </div>
 </div>
-
+<div className="flex items-center mb-4">
+  <button
+    onClick={() => setIncludeMinClose(prev => !prev)}
+    className={`text-white px-3 py-2 rounded text-sm transition-all ${
+      includeMinClose ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
+    }`}
+  >
+    {includeMinClose ? "✅ Min Close ON" : "❌ Min Close OFF"}
+  </button>
+</div>
 <div></div>
 <div className="flex flex-wrap items-center gap-4 my-4">
   <div className="flex flex-col">
