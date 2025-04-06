@@ -815,14 +815,12 @@ const getFilteredForTitle = useMemo(() => {
     if (trade.Type === "running") pushTo("Profit_+_Loss_=_Running_Profit $");
     if (["assign", "running", "close"].includes(trade.Type)) pushTo("Assign_/_Running_/_Closed Count");
 
-    if (trade.Action === "BUY") {
+    if (trade.Action === "BUY" && trade.Type === "running") {
       pushTo("Running_/_Total_Buy");
-      if (trade.Type === "running") pushTo("Running_/_Total_Buy");
     }
 
-    if (trade.Action === "SELL") {
+    if (trade.Action === "SELL" && trade.Type === "running") {
       pushTo("Running_/_Total_Sell");
-      if (trade.Type === "running") pushTo("Running_/_Total_Sell");
     }
 
     if (trade.Commision_journey && trade.Pl_after_comm > 0 && trade.Profit_journey === false && trade.Type === "running" ) pushTo("Comission_Point_Crossed");
@@ -890,7 +888,7 @@ const getFilteredForTitle = useMemo(() => {
 // Min_close
 // : 
 // "Min_close"
-        // console.log("🔍 Filtered Trade Data:", filteredTradeData);
+        console.log("🔍 Filtered Trade Data:", filteredTradeData);  
 
 
         // 🔹 Format dates for comparison
