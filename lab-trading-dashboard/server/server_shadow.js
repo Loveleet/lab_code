@@ -7,10 +7,10 @@ const PORT = process.env.PORT || 10000;
 
 // ✅ Allowed Frontend Origins (Local + Vercel + Render)
 const allowedOrigins = [
-  "http://localhost:5173",                    // Dev (Vite)
-  "lab-code-4kbs.vercel.app",       // ✅ Your Vercel Frontend
+  "http://localhost:5174",                    // Dev (Vite)
+  "https://lab-code-4kbs.vercel.app",       // ✅ Your Vercel Frontend
   "https://lab-code-1.onrender.com", 
-  "lab-code-4kbs-qxqvbinls-loveleets-projects-ef26b22c.vercel.app"       // Optional: if your frontend is ever on Render
+  "https://lab-code-4kbs-qxqvbinls-loveleets-projects-ef26b22c.vercel.app"       // Optional: if your frontend is ever on Render
 ];
 
 // ✅ Proper CORS Handling
