@@ -96,7 +96,7 @@ const http = require("http");
 
 // ✅ Self-Ping to Prevent Render Sleep (every 14 minutes)
 setInterval(() => {
-  http.get("https://lab-code-scvl.onrender.com/api/machines", (res) => {
+  http.get("https://lab-code-95es.onrender.com/api/machines", (res) => {
     console.log(`📡 Self-ping status: ${res.statusCode}`);
   }).on("error", (err) => {
     console.error("❌ Self-ping failed:", err.message);

@@ -734,11 +734,11 @@ const [selectedIntervals, setSelectedIntervals] = useState({
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const tradeRes = await fetch("https://lab-code-95es.onrender.com/api/trades");
+            const tradeRes = await fetch("https://lab-code-1.onrender.com/api/trades");
             const tradeJson = tradeRes.ok ? await tradeRes.json() : { trades: [] };
             const trades = Array.isArray(tradeJson.trades) ? tradeJson.trades : [];
 
-            const machinesRes = await fetch("https://lab-code-95es.onrender.com/api/machines"); 
+            const machinesRes = await fetch("https://lab-code-1.onrender.com/api/machines"); 
             const machinesJson = machinesRes.ok ? await machinesRes.json() : { machines: [] };
             const machinesList = Array.isArray(machinesJson.machines) ? machinesJson.machines : [];
 
@@ -1029,7 +1029,7 @@ return (
     <div className={`flex-1 min-h-screen transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-20"} overflow-hidden`}>
       <div className="p-8">
         {/* ✅ Dashboard Title */}
-        <h1 className="text-4xl font-bold text-gray-800 text-center mb-8">LAB Dashboard</h1>
+        <h1 className="text-4xl font-bold text-gray-800 text-center mb-8">LAB Dashboard (Shadow)</h1>
 
 {/* ✅ Signal Filter Checkboxes */}
 <div className="flex flex-col space-y-2 mb-4">
