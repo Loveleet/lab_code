@@ -660,7 +660,8 @@ const formatTradeData = (trade, index) => ({
   Timestamp: trade.SignalFrom || "N/A",
   Date: trade.Candel_time ? trade.Candel_time.split(" ")[0] : "N/A",
   Min_close: trade.Min_close,
-  live_active: trade.live_active,
+  Buy_live_active: trade.Buy_live_active || "N/A",
+  Sell_live_active: trade.Sell_live_active || "N/A",
 });
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
@@ -797,10 +798,19 @@ const filteredTradeData = useMemo(() => {
     // ✅ Check if within selected date & time range
     const isDateInRange = (!fromDate || tradeTime.isSameOrAfter(fromDate)) &&
                           (!toDate || tradeTime.isSameOrBefore(toDate));
-    const liveStatus = (trade.live_active || "").trim().toLowerCase();
+    const buyStatus = (trade.Buy_live_active || "").trim().toLowerCase();
+    const sellStatus = (trade.Sell_live_active || "").trim().toLowerCase();
+    const action = trade.Action?.toUpperCase();
+    
     let isLiveStatusMatch = true;
-    if (shadowStatusFilter === "Green") isLiveStatusMatch = liveStatus === "green";
-    else if (shadowStatusFilter === "Red") isLiveStatusMatch = liveStatus === "red";
+    
+    if (shadowStatusFilter === "Green") {
+      if (action === "BUY") isLiveStatusMatch = buyStatus === "green";
+      else if (action === "SELL") isLiveStatusMatch = sellStatus === "green";
+    } else if (shadowStatusFilter === "Red") {
+      if (action === "BUY") isLiveStatusMatch = buyStatus === "red";
+      else if (action === "SELL") isLiveStatusMatch = sellStatus === "red";
+    }
 
     return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange && isLiveStatusMatch;
   });
