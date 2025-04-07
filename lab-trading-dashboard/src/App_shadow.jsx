@@ -44,7 +44,7 @@ const [selectedActions, setSelectedActions] = useState({
   SELL: true,
 });
 const [includeMinClose, setIncludeMinClose] = useState(true);
-
+const [shadowStatusFilter, setShadowStatusFilter] = useState("Both"); // Options: Green, Red, Both
   const formatValue = (val) => {
     return val.split(/([+-]?[\d.]+)/g).map((part) => {
       if (!isNaN(part) && part.trim() !== "") {
@@ -660,6 +660,7 @@ const formatTradeData = (trade, index) => ({
   Timestamp: trade.SignalFrom || "N/A",
   Date: trade.Candel_time ? trade.Candel_time.split(" ")[0] : "N/A",
   Min_close: trade.Min_close,
+  live_active: trade.live_active,
 });
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
@@ -672,6 +673,7 @@ const Dashboard = () => {
   const [signalRadioMode, setSignalRadioMode] = useState(false);
   const [machineRadioMode, setMachineRadioMode] = useState(false);
   const [includeMinClose, setIncludeMinClose] = useState(true);
+  const [shadowStatusFilter, setShadowStatusFilter] = useState("Both");
   const [signalToggleAll, setSignalToggleAll] = useState(() => {
     const saved = localStorage.getItem("selectedSignals");
     if (saved) {
@@ -795,10 +797,14 @@ const filteredTradeData = useMemo(() => {
     // ✅ Check if within selected date & time range
     const isDateInRange = (!fromDate || tradeTime.isSameOrAfter(fromDate)) &&
                           (!toDate || tradeTime.isSameOrBefore(toDate));
+    const liveStatus = (trade.live_active || "").trim().toLowerCase();
+    let isLiveStatusMatch = true;
+    if (shadowStatusFilter === "Green") isLiveStatusMatch = liveStatus === "green";
+    else if (shadowStatusFilter === "Red") isLiveStatusMatch = liveStatus === "red";
 
-    return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange;
+    return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange && isLiveStatusMatch;
   });
-}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate, includeMinClose]);
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate, includeMinClose, shadowStatusFilter]);
 
 const getFilteredForTitle = useMemo(() => {
   const memo = {};
@@ -938,7 +944,7 @@ const getFilteredForTitle = useMemo(() => {
         }));
         
    
-}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate, includeMinClose]);
+}, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate, includeMinClose, shadowStatusFilter]);
 
 useEffect(() => {
   const savedSignals = localStorage.getItem("selectedSignals");
@@ -1286,7 +1292,9 @@ return (
     ))}
   </div>
 </div>
-<div className="flex items-center mb-4">
+
+<div className="flex items-center space-x-4">
+  {/* ✅ Min Close ON Button - keep this as-is */}
   <button
     onClick={() => setIncludeMinClose(prev => !prev)}
     className={`text-white px-3 py-2 rounded text-sm transition-all ${
@@ -1295,7 +1303,42 @@ return (
   >
     {includeMinClose ? "✅ Min Close ON" : "❌ Min Close OFF"}
   </button>
+
+  {/* ✅ NEW: Shadow Status Radio Buttons */}
+  <div className="flex items-center gap-8">
+  <span className="font-semibold text-gray-800">Live Status:</span>
+  {["Green", "Red", "Both"].map((status) => {
+    const isSelected = shadowStatusFilter === status;
+    const baseColors = {
+      Green: "bg-green-100 text-green-800 border-green-500",
+      Red: "bg-red-100 text-red-800 border-red-500",
+      Both: "bg-yellow-100 text-yellow-800 border-yellow-500",
+    };
+
+    return (
+      <label
+        key={status}
+        className={`px-3 py-1 rounded-full border cursor-pointer font-semibold transition-all duration-200
+          ${baseColors[status]} ${isSelected ? "ring-2  shadow-lg  ring-offset-1 scale-125" : "opacity-55 hover:opacity-100"}
+        `}
+      >
+        <input
+          type="radio"
+          name="shadowStatus"
+          value={status}
+          checked={isSelected}
+          onChange={() => setShadowStatusFilter(status)}
+          className="hidden"
+        />
+        {status === "Green" && "🟢 Green"}
+        {status === "Red" && "🔴 Red"}
+        {status === "Both" && "🟡 Both"}
+      </label>
+    );
+  })}
 </div>
+</div>
+
 <div></div>
 <div className="flex flex-wrap items-center gap-4 my-4">
   <div className="flex flex-col">
