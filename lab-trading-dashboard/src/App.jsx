@@ -463,7 +463,7 @@ tr.highlighted-row {
   
       case "Below_Commision_Point":
         result = tradeData
-          .filter(trade => trade.Commision_journey === false && trade.Pl_after_comm < 0 && trade.Type === "running" )
+          .filter(trade =>  trade.Pl_after_comm < 0 && trade.Type === "running" )
           .map((trade, index) => formatTradeData(trade, index));
         break;
   
@@ -825,7 +825,7 @@ const getFilteredForTitle = useMemo(() => {
 
     if (trade.Commision_journey && trade.Pl_after_comm > 0 && trade.Profit_journey === false && trade.Type === "running" ) pushTo("Comission_Point_Crossed");
     if (trade.Profit_journey && trade.Pl_after_comm > 0 && trade.Type === "running"  ) pushTo("Profit_Journey_Crossed");
-    if (trade.Commision_journey === false && trade.Pl_after_comm < 0 && trade.Type === "running" ) pushTo("Below_Commision_Point");
+    if (trade.Pl_after_comm < 0 && trade.Type === "running" ) pushTo("Below_Commision_Point");
 
     if (trade.Type === "close" && trade.Commision_journey && !trade.Profit_journey) pushTo("Closed_After_Comission_Point");
     if (trade.Type === "close" && trade.Pl_after_comm < 0) pushTo("Close_in_Loss");
@@ -917,7 +917,7 @@ const getFilteredForTitle = useMemo(() => {
           // Comission_Journey_Crossed : filteredTradeData.filter(trade => trade.Commision_journey === true  ).length,
           Comission_Point_Crossed: filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length,
           Profit_Journey_Crossed: filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running"  ).length,
-          Below_Commision_Point: filteredTradeData.filter(trade => trade.Commision_journey === false && trade.Pl_after_comm < 0 && trade.Type === "running" ).length,
+          Below_Commision_Point: filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running" ).length,
           Closed_After_Comission_Point: filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Type === "close" && trade.Profit_journey === false ).length,
           Close_in_Loss : filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length,
           Close_After_Profit_Journey: filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close" ).length,
