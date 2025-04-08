@@ -125,6 +125,7 @@ const handleOpenReport = (title, sortedData) => {
   const reportContent = `
     <html>
       <head>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
         <title>${title.replace(/_/g, " ")} Report</title>
         <style>
          body {
@@ -151,7 +152,18 @@ th, td {
   max-width: 140px;        /* Prevent super wide columns */
   border-bottom: 2px solid white;
 }
-
+<button onclick="exportToExcel()" style="
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+">
+  📥 Export to Excel
+</button>
 thead th {
   position: sticky;
   top: 0;
@@ -284,7 +296,18 @@ tr.highlighted-row {
       <body>
         <h2>${title.replace(/_/g, " ")} Details</h2>
         <input type="text" id="searchBox" placeholder="🔍 Type to filter rows..." onkeyup="filterRows()" />
-
+<button onclick="exportToExcel()" style="
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+">
+  📥 Export to Excel
+</button>
         <table id="reportTable">
           <thead>
             <tr>
@@ -323,7 +346,7 @@ tr.highlighted-row {
 
 
         </table>
-
+        
         <script >
   let currentSortIndex = null;
   let currentSortDirection = "asc";
@@ -375,6 +398,16 @@ tr.highlighted-row {
   // Add highlight to clicked row
   clickedRow.classList.add("highlighted-row");
 });// Small delay to ensure table renders first
+
+function exportToExcel() {
+  const table = document.getElementById("reportTable");
+
+  // Convert HTML table to a worksheet
+  const workbook = XLSX.utils.table_to_book(table, { sheet: "Report" });
+
+  // Trigger file download
+  XLSX.writeFile(workbook, "Lab_Trade_Report.xlsx");
+}
 </script>      </body>
     </html>
   `;
@@ -662,6 +695,7 @@ const formatTradeData = (trade, index) => ({
   Min_close: trade.Min_close,
   Buy_live_active: trade.Buy_live_active || "N/A",
   Sell_live_active: trade.Sell_live_active || "N/A",
+  Opposite: trade.Opposite,
 });
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
@@ -801,15 +835,22 @@ const filteredTradeData = useMemo(() => {
     const buyStatus = (trade.Buy_live_active || "").trim().toLowerCase();
     const sellStatus = (trade.Sell_live_active || "").trim().toLowerCase();
     const action = trade.Action?.toUpperCase();
+    const opposite = (trade.Opposite || "").trim().toLowerCase();
     
     let isLiveStatusMatch = true;
     
     if (shadowStatusFilter === "Green") {
-      if (action === "BUY") isLiveStatusMatch = buyStatus === "green";
-      else if (action === "SELL") isLiveStatusMatch = sellStatus === "green";
+      // ✅ Green + Opposite === "neutral"
+      isLiveStatusMatch = (action === "BUY" ? buyStatus === "green" : sellStatus === "green") && opposite === "neutral";
     } else if (shadowStatusFilter === "Red") {
-      if (action === "BUY") isLiveStatusMatch = buyStatus === "red";
-      else if (action === "SELL") isLiveStatusMatch = sellStatus === "red";
+      // ❌ Red + Opposite === "false"
+      isLiveStatusMatch = (action === "BUY" ? buyStatus === "red" : sellStatus === "red") && opposite === "false";
+    } else if (shadowStatusFilter === "Both") {
+      // ❌ Red + Opposite === "false OR neutral"
+      isLiveStatusMatch = (action === "BUY" ? buyStatus === "red" : sellStatus === "red") && (opposite === "false" || opposite === "neutral");
+    } else if (shadowStatusFilter === "Live") {
+      // ✅ Green + Opposite === "true OR neutral"
+      isLiveStatusMatch = (action === "BUY" ? buyStatus === "green" : sellStatus === "green") && (opposite === "true" || opposite === "neutral");
     }
 
     return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange && isLiveStatusMatch;
@@ -1317,7 +1358,7 @@ return (
   {/* ✅ NEW: Shadow Status Radio Buttons */}
   <div className="flex items-center gap-8">
   <span className="font-semibold text-gray-800">Live Status:</span>
-  {["Green", "Red", "Both"].map((status) => {
+  {["Green", "Red", "Both", "Live"].map((status) => {
     const isSelected = shadowStatusFilter === status;
     const baseColors = {
       Green: "bg-green-100 text-green-800 border-green-500",
@@ -1340,9 +1381,10 @@ return (
           onChange={() => setShadowStatusFilter(status)}
           className="hidden"
         />
-        {status === "Green" && "🟢 Green"}
+       {status === "Green" && "🟢 Green"}
         {status === "Red" && "🔴 Red"}
         {status === "Both" && "🟡 Both"}
+        {status === "Live" && "🟣 Live"}
       </label>
     );
   })}
