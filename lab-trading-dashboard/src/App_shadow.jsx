@@ -836,22 +836,18 @@ const filteredTradeData = useMemo(() => {
     const sellStatus = (trade.Sell_live_active || "").trim().toLowerCase();
     const action = trade.Action?.toUpperCase();
     const opposite = (trade.Opposite || "").trim().toLowerCase();
-    
-    let isLiveStatusMatch = true;
-    
-    if (shadowStatusFilter === "Green") {
-      // ✅ Green + Opposite === "neutral"
-      isLiveStatusMatch = (action === "BUY" ? buyStatus === "green" : sellStatus === "green") && opposite === "neutral";
-    } else if (shadowStatusFilter === "Red") {
-      // ❌ Red + Opposite === "false"
-      isLiveStatusMatch = (action === "BUY" ? buyStatus === "red" : sellStatus === "red") && opposite === "false";
-    } else if (shadowStatusFilter === "Both") {
-      // ❌ Red + Opposite === "false OR neutral"
-      isLiveStatusMatch = (action === "BUY" ? buyStatus === "red" : sellStatus === "red") && (opposite === "false" || opposite === "neutral");
-    } else if (shadowStatusFilter === "Live") {
-      // ✅ Green + Opposite === "true OR neutral"
-      isLiveStatusMatch = (action === "BUY" ? buyStatus === "green" : sellStatus === "green") && (opposite === "true" || opposite === "neutral");
-    }
+
+let isLiveStatusMatch = true;
+
+if (shadowStatusFilter === "Green") {
+  isLiveStatusMatch = opposite === "neutral";
+} else if (shadowStatusFilter === "Red") {
+  isLiveStatusMatch = opposite === "false";
+} else if (shadowStatusFilter === "Both") {
+  isLiveStatusMatch = opposite === "false" || opposite === "neutral";
+} else if (shadowStatusFilter === "Live") {
+  isLiveStatusMatch = opposite === "true" || opposite === "neutral";
+}
 
     return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange && isLiveStatusMatch;
   });
