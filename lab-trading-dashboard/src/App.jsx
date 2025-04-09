@@ -125,6 +125,7 @@ const handleOpenReport = (title, sortedData) => {
   const reportContent = `
     <html>
       <head>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
         <title>${title.replace(/_/g, " ")} Report</title>
         <style>
          body {
@@ -151,7 +152,18 @@ th, td {
   max-width: 140px;        /* Prevent super wide columns */
   border-bottom: 2px solid white;
 }
-
+<button onclick="exportToExcel()" style="
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+">
+  📥 Export to Excel
+</button> 
 thead th {
   position: sticky;
   top: 0;
@@ -284,7 +296,18 @@ tr.highlighted-row {
       <body>
         <h2>${title.replace(/_/g, " ")} Details</h2>
         <input type="text" id="searchBox" placeholder="🔍 Type to filter rows..." onkeyup="filterRows()" />
-
+<button onclick="exportToExcel()" style="
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+">
+  📥 Export to Excel
+</button>
         <table id="reportTable">
           <thead>
             <tr>
@@ -375,10 +398,20 @@ tr.highlighted-row {
   // Add highlight to clicked row
   clickedRow.classList.add("highlighted-row");
 });// Small delay to ensure table renders first
-</script>      </body>
-    </html>
-  `;
-
+  
+  function exportToExcel() {
+    const table = document.getElementById("reportTable");
+  
+    // Convert HTML table to a worksheet
+    const workbook = XLSX.utils.table_to_book(table, { sheet: "Report" });
+  
+    // Trigger file download
+    XLSX.writeFile(workbook, "Lab_Trade_Report.xlsx");
+  }
+  </script>      </body>
+      </html>
+    `;
+    
   reportWindow.document.write(reportContent);
 };
 
