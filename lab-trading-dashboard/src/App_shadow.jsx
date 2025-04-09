@@ -44,7 +44,7 @@ const [selectedActions, setSelectedActions] = useState({
   SELL: true,
 });
 const [includeMinClose, setIncludeMinClose] = useState(true);
-const [shadowStatusFilter, setShadowStatusFilter] = useState("Both"); // Options: Green, Red, Both
+const [shadowStatusFilter, setShadowStatusFilter] = useState("Shadow"); // Options: Green, Red, Both
   const formatValue = (val) => {
     return val.split(/([+-]?[\d.]+)/g).map((part) => {
       if (!isNaN(part) && part.trim() !== "") {
@@ -708,7 +708,7 @@ const Dashboard = () => {
   const [signalRadioMode, setSignalRadioMode] = useState(false);
   const [machineRadioMode, setMachineRadioMode] = useState(false);
   const [includeMinClose, setIncludeMinClose] = useState(true);
-  const [shadowStatusFilter, setShadowStatusFilter] = useState("Both");
+  const [shadowStatusFilter, setShadowStatusFilter] = useState("Shadow");
   const [signalToggleAll, setSignalToggleAll] = useState(() => {
     const saved = localStorage.getItem("selectedSignals");
     if (saved) {
@@ -843,7 +843,7 @@ if (shadowStatusFilter === "Green") {
   isLiveStatusMatch = opposite === "neutral";
 } else if (shadowStatusFilter === "Red") {
   isLiveStatusMatch = opposite === "false";
-} else if (shadowStatusFilter === "Both") {
+} else if (shadowStatusFilter === "Shadow") {
   isLiveStatusMatch = opposite === "false" || opposite === "neutral";
 } else if (shadowStatusFilter === "Live") {
   isLiveStatusMatch = opposite === "true" || opposite === "neutral";
@@ -1356,12 +1356,12 @@ return (
   {/* ✅ NEW: Shadow Status Radio Buttons */}
   <div className="flex items-center gap-8">
   <span className="font-semibold text-gray-800">Live Status:</span>
-  {["Green", "Red", "Both", "Live", "Opposite"].map((status) => {
+  {[ "Shadow", "Live", "Green",  "Red",  "Opposite"].map((status) => {
     const isSelected = shadowStatusFilter === status;
     const baseColors = {
       Green: "bg-green-100 text-green-800 border-green-500",
       Red: "bg-red-100 text-red-800 border-red-500",
-      Both: "bg-yellow-100 text-yellow-800 border-yellow-500",
+      Shadow: "bg-yellow-100 text-yellow-800 border-yellow-500",
     };
 
     return (
@@ -1379,11 +1379,12 @@ return (
           onChange={() => setShadowStatusFilter(status)}
           className="hidden"
         />
-       {status === "Green" && "🟢 Green"}
+       
+        {status === "Shadow" && "\u{1F6E1}\u{FE0F} Shadow"}
+        {status === "Green" && "🟢 Green"}
         {status === "Red" && "🔴 Red"}
-        {status === "Both" && "🟡 Both"}
-        {status === "Live" && "🟣 Live"}
-        {status === "Opposite" && "💜 Opposite"}
+        {status === "Live" && "\u{1F525} Live"}
+        {status === "Opposite" && "\u{1F3AD} Opposite"}
       </label>
     );
   })}
