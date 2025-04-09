@@ -847,6 +847,8 @@ if (shadowStatusFilter === "Green") {
   isLiveStatusMatch = opposite === "false" || opposite === "neutral";
 } else if (shadowStatusFilter === "Live") {
   isLiveStatusMatch = opposite === "true" || opposite === "neutral";
+} else if (shadowStatusFilter === "Opposite") {
+  isLiveStatusMatch = opposite === "true";
 }
 
     return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange && isLiveStatusMatch;
@@ -1354,7 +1356,7 @@ return (
   {/* ✅ NEW: Shadow Status Radio Buttons */}
   <div className="flex items-center gap-8">
   <span className="font-semibold text-gray-800">Live Status:</span>
-  {["Green", "Red", "Both", "Live"].map((status) => {
+  {["Green", "Red", "Both", "Live", "Opposite"].map((status) => {
     const isSelected = shadowStatusFilter === status;
     const baseColors = {
       Green: "bg-green-100 text-green-800 border-green-500",
@@ -1381,6 +1383,7 @@ return (
         {status === "Red" && "🔴 Red"}
         {status === "Both" && "🟡 Both"}
         {status === "Live" && "🟣 Live"}
+        {status === "Opposite" && "💜 Opposite"}
       </label>
     );
   })}
