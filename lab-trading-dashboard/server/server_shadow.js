@@ -92,7 +92,7 @@ app.get("/api/machines", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
-const http = require("http");
+const http = require("https");
 
 // ✅ Self-Ping to Prevent Render Sleep (every 14 minutes)
 setInterval(() => {
