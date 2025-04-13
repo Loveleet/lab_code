@@ -400,18 +400,45 @@ tr.highlighted-row {
 });// Small delay to ensure table renders first
   
   function exportToExcel() {
-    const table = document.getElementById("reportTable");
-  
-    // Convert HTML table to a worksheet
-    const workbook = XLSX.utils.table_to_book(table, { sheet: "Report" });
-  
-    // Trigger file download
-    XLSX.writeFile(workbook, "Lab_Trade_Report.xlsx");
-  }
+  const table = document.getElementById("reportTable");
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(table);
+
+  // Format all date fields to include full date + time
+  const dateFields = [
+    "Candle Time",
+    "Fetcher Trade Time",
+    "Operator Trade Time",
+    "Operator Close Time"
+  ];
+
+  const headerRow = XLSX.utils.sheet_to_json(ws, { header: 1 })[0];
+
+  const dateColIndexes = dateFields.map(field => headerRow.indexOf(field)).filter(i => i !== -1);
+
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  const formatted = data.map((row, rowIndex) => {
+    if (rowIndex === 0) return row; // keep headers
+
+    return row.map((cell, colIndex) => {
+      if (dateColIndexes.includes(colIndex)) {
+        const parsed = new Date(cell);
+        if (!isNaN(parsed.getTime())) {
+          return parsed.toISOString().replace("T", " ").slice(0, 19); // YYYY-MM-DD HH:mm:ss
+        }
+      }
+      return cell;
+    });
+  });
+
+  const newWs = XLSX.utils.aoa_to_sheet(formatted);
+  XLSX.utils.book_append_sheet(wb, newWs, "Report");
+  XLSX.writeFile(wb, "Lab_Trade_Report.xlsx");
+}
   </script>      </body>
       </html>
     `;
-    
+
   reportWindow.document.write(reportContent);
 };
 
@@ -654,16 +681,21 @@ const safeFixed = (val, digits = 2, prefix = "") => {
   const num = parseFloat(val);
   return isNaN(num) ? "N/A" : `${prefix}${num.toFixed(digits)}`;
 };
+const formatDateTime = (val) => {
+  if (!val || val === "N/A") return "N/A";
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? "N/A" : d.toISOString().replace("T", " ").slice(0, 19);
+};
 
 const formatTradeData = (trade, index) => ({
   "S No": index + 1,
   MachineId: trade.MachineId || "N/A",
   Unique_ID: trade.Unique_id || "N/A",
 
-  Candle_Time: trade.Candel_time || "N/A",
-  Fetcher_Trade_Time: trade.Fetcher_Trade_time || "N/A",
-  Operator_Trade_Time: trade.Operator_Trade_time || "N/A",
-  Operator_Close_Time: trade.Operator_Close_time || "N/A",
+  Candle_Time: formatDateTime(trade.Candel_time),
+Fetcher_Trade_Time: formatDateTime(trade.Fetcher_Trade_time),
+Operator_Trade_Time: formatDateTime(trade.Operator_Trade_time),
+Operator_Close_Time: formatDateTime(trade.Operator_Close_time),
   Pair: trade.Pair || "N/A",
   Investment: safeFixed(trade.Investment, 2, "$"),
   Interval: trade.Interval || "N/A",

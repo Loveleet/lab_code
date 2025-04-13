@@ -401,18 +401,54 @@ tr.highlighted-row {
 
 function exportToExcel() {
   const table = document.getElementById("reportTable");
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(table);
 
-  // Convert HTML table to a worksheet
-  const workbook = XLSX.utils.table_to_book(table, { sheet: "Report" });
+  // Format all date fields to include full date + time
+  const dateFields = [
+    "Candle Time",
+    "Fetcher Trade Time",
+    "Operator Trade Time",
+    "Operator Close Time"
+  ];
 
-  // Trigger file download
-  XLSX.writeFile(workbook, "Lab_Trade_Report.xlsx");
+  const headerRow = XLSX.utils.sheet_to_json(ws, { header: 1 })[0];
+
+  const dateColIndexes = dateFields.map(field => headerRow.indexOf(field)).filter(i => i !== -1);
+
+const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+const cleanedData = data.map((row, i) => {
+  if (i === 0) return row;
+  return row.map((cell, colIndex) => {
+  if (dateColIndexes.includes(colIndex)) {
+    if (
+      !cell || 
+      cell === "N/A" || 
+      typeof cell !== "string" || 
+      cell.includes("1970") || 
+      isNaN(new Date(cell).getTime())
+    ) {
+      return ""; // ✅ Don't allow junk timestamps
+    }
+
+    const formatted = new Date(cell).toISOString().replace("T", " ").slice(0, 19);
+    return "\u00A0" + formatted; // ✅ Keep Excel from re-parsing
+  }
+
+  return cell;
+});
+});
+const newWs = XLSX.utils.aoa_to_sheet(cleanedData);
+  XLSX.utils.book_append_sheet(wb, newWs, "Report");
+  XLSX.writeFile(wb, "Lab_Trade_Report.xlsx");
 }
 </script>      </body>
     </html>
   `;
 
-  reportWindow.document.write(reportContent);
+  reportWindow.document.open();
+  reportWindow.document.write(reportContent); // write full HTML immediately
+  reportWindow.document.close();
 };
 
 // ✅ SAFE to render fallback after all hooks
@@ -655,48 +691,76 @@ const safeFixed = (val, digits = 2, prefix = "") => {
   return isNaN(num) ? "N/A" : `${prefix}${num.toFixed(digits)}`;
 };
 
-const formatTradeData = (trade, index) => ({
-  "S No": index + 1,
-  MachineId: trade.MachineId || "N/A",
-  Unique_ID: trade.Unique_id || "N/A",
+const formatDateTime = (val) => {
+  if (!val || val === "N/A") return "N/A";
 
-  Candle_Time: trade.Candel_time || "N/A",
-  Fetcher_Trade_Time: trade.Fetcher_Trade_time || "N/A",
-  Operator_Trade_Time: trade.Operator_Trade_time || "N/A",
-  Operator_Close_Time: trade.Operator_Close_time || "N/A",
-  Pair: trade.Pair || "N/A",
-  Investment: safeFixed(trade.Investment, 2, "$"),
-  Interval: trade.Interval || "N/A",
-  Stop_Price: safeFixed(trade.Stop_price, 6),
-  Save_Price: safeFixed(trade.Save_price, 6),
-  Min_Comm: safeFixed(trade.Min_comm, 6),
-  Hedge: trade.Hedge ? "✅ Yes" : "❌ No",
-  Hedge_1_1_Bool: trade.Hedge_1_1_bool ? "✅ Yes" : "❌ No",
-  Hedge_Order_Size: trade.Hedge_order_size || "N/A",
-  Min_Comm_After_Hedge: safeFixed(trade.Min_comm_after_hedge, 6),
-  Min_Profit: safeFixed(trade.Min_profit, 2, "$"),
-  Action: trade.Action || "N/A",
-  Buy_Qty: trade.Buy_qty || 0,
-  Buy_Price: safeFixed(trade.Buy_price, 6),
-  Buy_PL: safeFixed(trade.Buy_pl, 6),
-  Added_Qty: trade.Added_qty || "N/A",
-  Sell_Qty: trade.Sell_qty || 0,
-  Sell_Price: safeFixed(trade.Sell_price, 6),
-  Sell_PL: safeFixed(trade.Sell_pl, 6),
-  Close_Price: safeFixed(trade.Close_price, 6),
-  Commission: safeFixed(trade.Commission, 2, "$"),
-  Commision_Journey: trade.Commision_journey ? "✅ Yes" : "❌ No",
-  PL_After_Comm: safeFixed(trade.Pl_after_comm, 2, "$"),
-  Profit_Journey: trade.Profit_journey ? "✅ Yes" : "❌ No",
-  Signal_From: trade.SignalFrom || "N/A",
-  Type: trade.Type || "N/A",
-  Timestamp: trade.SignalFrom || "N/A",
-  Date: trade.Candel_time ? trade.Candel_time.split(" ")[0] : "N/A",
-  Min_close: trade.Min_close,
-  Buy_live_active: trade.Buy_live_active || "N/A",
-  Sell_live_active: trade.Sell_live_active || "N/A",
-  Opposite: trade.Opposite,
-});
+  // 🔧 Fix: Replace space with T if not already ISO
+  const cleaned = typeof val === "string" && val.includes(" ") ? val.replace(" ", "T") : val;
+
+  const d = new Date(cleaned);
+  return isNaN(d.getTime()) ? "N/A" : d.toISOString().replace("T", " ").slice(0, 19);
+};
+
+const formatTradeData = (trade, index) => {
+  const formatDateTime = (val) => {
+    if (!val || val === "N/A" || val.includes("1970")) return "N/A";
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? "N/A" : d.toISOString().replace("T", " ").slice(0, 19);
+  };
+
+  const safeFixed = (val, digits = 2, prefix = "") => {
+    const num = parseFloat(val);
+    return isNaN(num) ? "N/A" : `${prefix}${num.toFixed(digits)}`;
+  };
+
+  return {
+    "S No": index + 1,
+    MachineId: trade.MachineId || "N/A",
+    Unique_ID: trade.Unique_id || "N/A",
+
+    Candle_Time: formatDateTime(trade.Candel_time),
+    Fetcher_Trade_Time: formatDateTime(trade.Fetcher_Trade_time),
+    Operator_Trade_Time: formatDateTime(trade.Operator_Trade_time),
+    Operator_Close_Time: formatDateTime(trade.Operator_Close_time),
+
+    Pair: trade.Pair || "N/A",
+    Investment: safeFixed(trade.Investment, 2, "$"),
+    Interval: trade.Interval || "N/A",
+    Stop_Price: safeFixed(trade.Stop_price, 6),
+    Save_Price: safeFixed(trade.Save_price, 6),
+    Min_Comm: safeFixed(trade.Min_comm, 6),
+    Hedge: trade.Hedge ? "✅ Yes" : "❌ No",
+    Hedge_1_1_Bool: trade.Hedge_1_1_bool ? "✅ Yes" : "❌ No",
+    Hedge_Order_Size: trade.Hedge_order_size || "N/A",
+    Min_Comm_After_Hedge: safeFixed(trade.Min_comm_after_hedge, 6),
+    Min_Profit: safeFixed(trade.Min_profit, 2, "$"),
+    Action: trade.Action || "N/A",
+    Buy_Qty: trade.Buy_qty || 0,
+    Buy_Price: safeFixed(trade.Buy_price, 6),
+    Buy_PL: safeFixed(trade.Buy_pl, 6),
+    Added_Qty: trade.Added_qty || "N/A",
+    Sell_Qty: trade.Sell_qty || 0,
+    Sell_Price: safeFixed(trade.Sell_price, 6),
+    Sell_PL: safeFixed(trade.Sell_pl, 6),
+    Close_Price: safeFixed(trade.Close_price, 6),
+    Commission: safeFixed(trade.Commission, 2, "$"),
+    Commision_Journey: trade.Commision_journey ? "✅ Yes" : "❌ No",
+    PL_After_Comm: safeFixed(trade.Pl_after_comm, 2, "$"),
+    Profit_Journey: trade.Profit_journey ? "✅ Yes" : "❌ No",
+    Signal_From: trade.SignalFrom || "N/A",
+    Type: trade.Type || "N/A",
+    Timestamp: trade.SignalFrom || "N/A",
+    Date: trade.Candel_time && !trade.Candel_time.includes("1970")
+      ? trade.Candel_time.split(" ")[0]
+      : "N/A",
+    Min_close: trade.Min_close,
+    Buy_live_active: trade.Buy_live_active || "N/A",
+    Sell_live_active: trade.Sell_live_active || "N/A",
+    Opposite: trade.Opposite,
+  };
+};
+
+
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
   const [selectedBox, setSelectedBox] = useState(null);
@@ -716,8 +780,10 @@ const Dashboard = () => {
       const allSelected = Object.values(parsed).every((val) => val === true);
       return allSelected ? false : true; // If all selected, button should show ❌ Uncheck
     }
+    
     return true; // Default
   });
+  
   const [machineToggleAll, setMachineToggleAll] = useState(true);
   const signalLabels = {
     "2POLE_IN5LOOP": "2P_L",
@@ -849,6 +915,8 @@ if (shadowStatusFilter === "Green") {
   isLiveStatusMatch = opposite === "true" || opposite === "neutral";
 } else if (shadowStatusFilter === "Opposite") {
   isLiveStatusMatch = opposite === "true";
+} else if (shadowStatusFilter === "Comparison") {
+  isLiveStatusMatch = opposite === "true" || opposite === "false";
 }
 
     return isSignalSelected && isMachineSelected && isIntervalSelected && isActionSelected && isDateInRange && isLiveStatusMatch;
@@ -1356,7 +1424,7 @@ return (
   {/* ✅ NEW: Shadow Status Radio Buttons */}
   <div className="flex items-center gap-8">
   <span className="font-semibold text-gray-800">Live Status:</span>
-  {[ "Shadow", "Live", "Green",  "Red",  "Opposite"].map((status) => {
+  {[ "Shadow", "Live", "Green",  "Red",  "Opposite", "Comparison"].map((status) => {
     const isSelected = shadowStatusFilter === status;
     const baseColors = {
       Green: "bg-green-100 text-green-800 border-green-500",
@@ -1385,6 +1453,7 @@ return (
         {status === "Red" && "🔴 Red"}
         {status === "Live" && "\u{1F525} Live"}
         {status === "Opposite" && "\u{1F3AD} Opposite"}
+        {status === "Comparison" && "📊 Comparison"}
       </label>
     );
   })}
