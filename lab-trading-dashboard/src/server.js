@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 10000;
 const allowedOrigins = [
   "http://localhost:5173",                    // Dev (Vite)
   "https://lab-code-lyart.vercel.app",       // ✅ Your Vercel Frontend
-  "https://lab-code-2m2z.onrender.com", 
+  "https://lab-code-37fy.onrender.com", 
   "https://lab-code-nxlc714mf-loveleets-projects-ef26b22c.vercel.app"       // Optional: if your frontend is ever on Render
 ];
 
@@ -96,7 +96,7 @@ const http = require("https");
 
 // ✅ Self-Ping to Prevent Render Sleep (every 14 minutes)
 setInterval(() => {
-  http.get("https://lab-code-95es.onrender.com/api/machines", (res) => {
+  http.get("https://lab-code-37fy.onrender.com/api/machines", (res) => {
     console.log(`📡 Self-ping status: ${res.statusCode}`);
   }).on("error", (err) => {
     console.error("❌ Self-ping failed:", err.message);
