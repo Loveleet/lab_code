@@ -236,9 +236,33 @@ th.datetime-column {
 }
 
 /* 🔹 Apply sticky to first 3 columns */
-.sticky-col-1 { left: 0; z-index: 3; }
-.sticky-col-2 { left: 110px; }
-.sticky-col-3 { left: 240px; }
+.sticky-col-1 {
+  position: sticky;
+  left: 0px;
+  z-index: 4;
+  background: rgb(4, 110, 122);
+  color: white;
+  min-width: 90px;
+  max-width: 90px;
+}
+.sticky-col-2 {
+  position: sticky;
+  left: 90px;
+  z-index: 4;
+  background: rgb(4, 110, 122);
+  color: white;
+  min-width: 100px;
+  max-width: 100px;
+}
+.sticky-col-3 {
+  position: sticky;
+  left: 190px;
+  z-index: 4;
+  background: rgb(4, 110, 122);
+  color: white;
+  min-width: 170px;
+  max-width: 170px;
+}
 
 /* 🔹 Ensure the table scrolls properly */
 .table-container {
@@ -418,18 +442,20 @@ tr.highlighted-row {
 
   const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
   const formatted = data.map((row, rowIndex) => {
-    if (rowIndex === 0) return row; // keep headers
-
-    return row.map((cell, colIndex) => {
-      if (dateColIndexes.includes(colIndex)) {
-        const parsed = new Date(cell);
-        if (!isNaN(parsed.getTime())) {
-          return parsed.toISOString().replace("T", " ").slice(0, 19); // YYYY-MM-DD HH:mm:ss
-        }
-      }
-      return cell;
-    });
+  if (rowIndex === 0) return row; // headers
+  return row.map((cell, colIndex) => {
+    if (dateColIndexes.includes(colIndex)) {
+  const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // Excel starts at 1900-01-01
+  const days = parseFloat(cell);
+  if (!isNaN(days)) {
+    const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
+    return date.toISOString().replace("T", " ").slice(0, 19);
+  }
+  return cell;
+}
+    return cell;
   });
+});
 
   const newWs = XLSX.utils.aoa_to_sheet(formatted);
   XLSX.utils.book_append_sheet(wb, newWs, "Report");
@@ -683,8 +709,12 @@ const safeFixed = (val, digits = 2, prefix = "") => {
 };
 const formatDateTime = (val) => {
   if (!val || val === "N/A") return "N/A";
-  const d = new Date(val);
-  return isNaN(d.getTime()) ? "N/A" : d.toISOString().replace("T", " ").slice(0, 19);
+  try {
+    const parsed = moment(val);
+    return parsed.isValid() ? parsed.format("YYYY-MM-DD HH:mm:ss") : "N/A";
+  } catch {
+    return "N/A";
+  }
 };
 
 const formatTradeData = (trade, index) => ({

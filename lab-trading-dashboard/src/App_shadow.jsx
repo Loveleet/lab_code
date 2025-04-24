@@ -236,9 +236,33 @@ th.datetime-column {
 }
 
 /* 🔹 Apply sticky to first 3 columns */
-.sticky-col-1 { left: 0; z-index: 3; }
-.sticky-col-2 { left: 110px; }
-.sticky-col-3 { left: 240px; }
+.sticky-col-1 {
+  position: sticky;
+  left: 0px;
+  z-index: 4;
+  background: rgb(4, 110, 122);
+  color: white;
+  min-width: 90px;
+  max-width: 90px;
+}
+.sticky-col-2 {
+  position: sticky;
+  left: 90px;
+  z-index: 4;
+  background: rgb(4, 110, 122);
+  color: white;
+  min-width: 100px;
+  max-width: 100px;
+}
+.sticky-col-3 {
+  position: sticky;
+  left: 190px;
+  z-index: 4;
+  background: rgb(4, 110, 122);
+  color: white;
+  min-width: 170px;
+  max-width: 170px;
+}
 
 /* 🔹 Ensure the table scrolls properly */
 .table-container {
@@ -431,12 +455,20 @@ const cleanedData = data.map((row, i) => {
       return ""; // ✅ Don't allow junk timestamps
     }
 
-    const formatted = new Date(cell).toISOString().replace("T", " ").slice(0, 19);
-    return "\u00A0" + formatted; // ✅ Keep Excel from re-parsing
+    const formatted = data.map((row, rowIndex) => {
+  if (rowIndex === 0) return row; // headers
+  return row.map((cell, colIndex) => {
+    if (dateColIndexes.includes(colIndex)) {
+  const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // Excel starts at 1900-01-01
+  const days = parseFloat(cell);
+  if (!isNaN(days)) {
+    const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
+    return date.toISOString().replace("T", " ").slice(0, 19);
   }
-
   return cell;
-});
+}
+    return cell;
+  });
 });
 const newWs = XLSX.utils.aoa_to_sheet(cleanedData);
   XLSX.utils.book_append_sheet(wb, newWs, "Report");
