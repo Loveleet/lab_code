@@ -89,7 +89,11 @@ const TableView = ({ title, tradeData, clientData, logData }) => {
   const [filteredData, setFilteredData] = useState([]);
   const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
   const [selectedRow, setSelectedRow] = useState(null);
+  const [activeFilterPopup, setActiveFilterPopup] = useState(null);
 
+const toggleFilterPopup = (index) => {
+  setActiveFilterPopup(prev => (prev === index ? null : index));
+};
   const sortedData = useMemo(() => {
     if (!sortConfig.key) return filteredData;
     return [...filteredData].sort((a, b) => {
@@ -151,6 +155,38 @@ th, td {
   vertical-align: center;
   max-width: 140px;        /* Prevent super wide columns */
   border-bottom: 2px solid white;
+}
+.filter-popup {
+  position: absolute;
+  background: white;
+  color: black;
+  border: 1px solid #ccc;
+  padding: 10px;
+  z-index: 999;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.filter-popup input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+.filter-popup label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.filter-popup button {
+  margin-top: 10px;
+  padding: 4px 8px;
+  background-color: #f59e0b;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
 }
 <button onclick="exportToExcel()" style="
   background-color: #4caf50;
@@ -333,11 +369,21 @@ tr.highlighted-row {
   📥 Export to Excel
 </button>
         <table id="reportTable">
+        <button onclick="resetAllFilters()" style="background-color: red; color: white; margin-bottom: 10px; padding: 8px 12px; border: none; border-radius: 4px;">
+  ♻️ Reset All Filters
+</button>
           <thead>
             <tr>
             ${tableHeaders.map((key, index) => {
               const stickyClass = index < 3 ? `sticky-col sticky-col-${index + 1}` : "";
-              return `<th onclick="sortTable(${index})" class="${stickyClass}" data-index='${index}'>${key.replace(/_/g, " ")}</th>`;            }).join("")}
+              return `<th class="${stickyClass}" data-index='${index}'>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>${key.replace(/_/g, " ")}</span>
+                  <span onclick="sortTable(${index})" style="cursor:pointer; color:orange;">🔼</span>
+                  <span onclick="showFilterPopup(${index})" style="cursor:pointer; color:green;">🎯</span>
+                </div>
+              </th>`;
+            }).join("")}
             </tr>
           </thead>
         <tbody id="tableBody">
@@ -370,8 +416,48 @@ tr.highlighted-row {
 
 
         </table>
-        
-        <script >
+        {/* ✅ Filter Popup Component */}
+{/* ✅ Filter Popup Component */}
+{activeFilterPopup !== null && (
+  <div className="absolute bg-white text-black p-4 shadow-lg rounded z-50" style={{ top: '100px', left: '300px' }}>
+    <div className="max-h-[200px] overflow-y-auto">
+      <p className="font-bold mb-2">
+        Filter values for {Object.keys(sortedData[0])[activeFilterPopup]}
+      </p>
+      {(Array.from(new Set(filteredData.map(row => row[Object.keys(sortedData[0])[activeFilterPopup]]))))
+        .map((value, idx) => (
+          <div key={idx}>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                defaultChecked
+                onChange={() => {}}
+              />
+              <span>{value}</span>
+            </label>
+          </div>
+        ))}
+    </div>
+    <div className="flex justify-end gap-2 mt-4">
+      <button
+        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
+        onClick={() => {
+          toggleFilterPopup(null);
+        }}
+      >
+        ✅ Apply
+      </button>
+      <button
+        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+        onClick={() => {
+          toggleFilterPopup(null);
+        }}
+      >
+        ♻️ Reset
+      </button>
+    </div>
+  </div>
+)}        <script >
   let currentSortIndex = null;
   let currentSortDirection = "asc";
 
@@ -474,6 +560,109 @@ const newWs = XLSX.utils.aoa_to_sheet(cleanedData);
   XLSX.utils.book_append_sheet(wb, newWs, "Report");
   XLSX.writeFile(wb, "Lab_Trade_Report.xlsx");
 }
+  let activeFilters = {};
+
+function showFilterPopup(columnIndex) {
+  closeFilterPopup();
+
+  const table = document.getElementById("reportTable");
+  const values = Array.from(table.querySelectorAll("tbody tr td:nth-child(" + (columnIndex + 1) + ")"))
+    .map(td => td.textContent.trim());
+
+  const uniqueValues = [...new Set(values)];
+  const counts = uniqueValues.map(function(val) {
+    return {
+      value: val,
+      count: values.filter(function(v) { return v === val; }).length,
+      checked: activeFilters[columnIndex] ? activeFilters[columnIndex].includes(val) : true
+    };
+  });
+
+  const popup = document.createElement("div");
+  popup.className = "filter-popup";
+
+  // ✅ Create master checkbox
+  const masterCheckbox = document.createElement("input");
+  masterCheckbox.type = "checkbox";
+  masterCheckbox.checked = true;
+  masterCheckbox.style.marginBottom = "10px";
+
+  const masterLabel = document.createElement("label");
+  masterLabel.style.display = "block";
+  masterLabel.style.marginBottom = "10px";
+  masterLabel.appendChild(masterCheckbox);
+  masterLabel.appendChild(document.createTextNode(" Select / Deselect All"));
+
+  popup.appendChild(masterLabel);
+
+  // ✅ Apply button
+  const applyBtn = document.createElement("button");
+  applyBtn.textContent = "✅ Apply";
+  applyBtn.style.marginRight = "10px";
+  applyBtn.onclick = function() {
+    const selected = Array.from(popup.querySelectorAll("input[type='checkbox']:not(:first-child):checked"))
+      .map(function(input) { return input.value; });
+    if (selected.length === counts.length) {
+      delete activeFilters[columnIndex];
+    } else {
+      activeFilters[columnIndex] = selected;
+    }
+    filterTable();
+    closeFilterPopup();
+  };
+  popup.appendChild(applyBtn);
+
+  // ✅ Reset button
+  const resetBtn = document.createElement("button");
+  resetBtn.textContent = "♻️ Reset";
+  resetBtn.onclick = function() {
+    delete activeFilters[columnIndex];
+    filterTable();
+    closeFilterPopup();
+  };
+  popup.appendChild(resetBtn);
+
+  // ✅ Then create normal checkboxes
+  counts.forEach(function(obj) {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = obj.value;
+    input.checked = obj.checked;
+
+    label.appendChild(input);
+    const text = " " + obj.value + " (" + obj.count + ")";
+    label.appendChild(document.createTextNode(text));
+    popup.appendChild(label);
+  });
+
+ 
+
+function closeFilterPopup() {
+  document.querySelectorAll(".filter-popup").forEach(popup => popup.remove());
+}
+
+function filterTable() {
+  const table = document.getElementById("reportTable");
+  const rows = table.querySelectorAll("tbody tr");
+
+  rows.forEach(function(row) {
+    let show = true;
+    Object.keys(activeFilters).forEach(function(colIdx) {
+      const cell = row.querySelector("td:nth-child(" + (parseInt(colIdx) + 1) + ")");
+      if (!activeFilters[colIdx].includes(cell.textContent.trim())) {
+        show = false;
+      }
+    });
+    row.style.display = show ? "" : "none";
+  });
+}
+
+function resetAllFilters() {
+  activeFilters = {};
+  filterTable();
+  closeFilterPopup();
+  
 </script>      </body>
     </html>
   `;
@@ -648,25 +837,51 @@ return (
     <div className="overflow-auto max-h-[600px] border border-gray-300 rounded-lg">
       <table className="w-full border-collapse">
       <thead className="sticky top-0 z-30 bg-teal-700 text-white text-sm">
-  <tr>
-    {Object.keys(sortedData[0] || {}).map((key, index) => {
-      const isSticky = index < 3;
-      return (
-              <th
+<tr>
+  {Object.keys(sortedData[0] || {}).map((key, index) => {
+    const isSticky = index < 3;
+    return (
+      <th
         key={key}
-        onClick={() => sortTable(key)}
-        className={`px-4 py-2 text-left border cursor-pointer whitespace-nowrap ${getStickyClass(index)}`}
+        className={`relative px-4 py-2 text-left border cursor-pointer whitespace-nowrap ${getStickyClass(index)}`}
       >
-          {key.replace(/_/g, " ")}{" "}
-          {sortConfig.key === key
-            ? sortConfig.direction === "asc"
-              ? "🔼"
-              : "🔽"
-            : ""}
-        </th>
-      );
-    })}
-  </tr>
+        <div className="flex items-center justify-between">
+          <span>{key.replace(/_/g, " ")}</span>
+
+          {/* Sort Icon */}
+          <span
+            onClick={(e) => {
+              e.stopPropagation(); // 🚫 Prevent triggering filter
+              handleSort(key);
+            }}
+            className="ml-1 cursor-pointer"
+          >
+            {sortConfig.key === key ? (
+              sortConfig.direction === "asc" ? (
+                <span className="text-yellow-300">🔼</span>
+              ) : (
+                <span className="text-yellow-300">🔽</span>
+              )
+            ) : (
+              <span className="opacity-60">⇅</span> // default sort icon
+            )}
+          </span>
+
+          {/* Filter Icon */}
+          <span
+            onClick={(e) => {
+              e.stopPropagation(); // 🚫 Prevent triggering sort
+              toggleFilterPopup(index);
+            }}
+            className="ml-1 cursor-pointer"
+          >
+            <span className="text-green-400">🎯</span>
+          </span>
+        </div>
+      </th>
+    );
+  })}
+</tr>
 </thead>
 <tbody>
   {sortedData.map((item, rowIndex) => (
@@ -688,7 +903,8 @@ return (
       ${colIndex === 1 && "min-w-[100px] max-w-[100px] sticky left-[90px] bg-[#046e7a] text-white z-[5] text-[10px] font-light"}
       ${colIndex === 2 && "min-w-[170px] max-w-[170px] sticky left-[190px] bg-[#046e7a] text-white z-[5] text-[12px] leading-snug"}
       ${["Candle_Time", "Fetcher_Trade_Time", "Operator_Trade_Time", "Operator_Close_Time"].includes(key) ? "text-[11px]" : ""}
-    `}
+      ${["Type", "Action", "Interval", "CJ", "PJ"].includes(key) ? "min-w-[60px] max-w-[60px] text-center" : ""}
+      `}
   >
     {key === "Unique_ID" && typeof val === "string" && val.match(/\d{4}-\d{2}-\d{2}/) ? (
       (() => {
@@ -704,7 +920,7 @@ return (
         );
       })()
     ) : (
-      val
+      key === "PL_After_Comm" && val !== "N/A" ? `$${val}` : val
     )}
   </td>
 ))}
@@ -753,11 +969,17 @@ const formatTradeData = (trade, index) => {
     Candle_Time: formatDateTime(trade.Candel_time),
     Fetcher_Trade_Time: formatDateTime(trade.Fetcher_Trade_time),
     Operator_Trade_Time: formatDateTime(trade.Operator_Trade_time),
-    Operator_Close_Time: formatDateTime(trade.Operator_Close_time),
 
     Pair: trade.Pair || "N/A",
-    Investment: safeFixed(trade.Investment, 2, "$"),
     Interval: trade.Interval || "N/A",
+    Action: trade.Action || "N/A",
+    CJ: trade.Commision_journey ? "✅" : "❌",
+    PL: trade.Pl_after_comm != null ? parseFloat(trade.Pl_after_comm.toFixed(2)) : "N/A",
+    PJ: trade.Profit_journey ? "✅ " : "❌",
+    Type: trade.Type || "N/A",
+    Operator_Close_Time: formatDateTime(trade.Operator_Close_time),
+    Signal_From: trade.SignalFrom || "N/A",
+    Min_close: trade.Min_close,
     Stop_Price: safeFixed(trade.Stop_price, 6),
     Save_Price: safeFixed(trade.Save_price, 6),
     Min_Comm: safeFixed(trade.Min_comm, 6),
@@ -766,7 +988,6 @@ const formatTradeData = (trade, index) => {
     Hedge_Order_Size: trade.Hedge_order_size || "N/A",
     Min_Comm_After_Hedge: safeFixed(trade.Min_comm_after_hedge, 6),
     Min_Profit: safeFixed(trade.Min_profit, 2, "$"),
-    Action: trade.Action || "N/A",
     Buy_Qty: trade.Buy_qty || 0,
     Buy_Price: safeFixed(trade.Buy_price, 6),
     Buy_PL: safeFixed(trade.Buy_pl, 6),
@@ -776,16 +997,10 @@ const formatTradeData = (trade, index) => {
     Sell_PL: safeFixed(trade.Sell_pl, 6),
     Close_Price: safeFixed(trade.Close_price, 6),
     Commission: safeFixed(trade.Commission, 2, "$"),
-    Commision_Journey: trade.Commision_journey ? "✅ Yes" : "❌ No",
-    PL_After_Comm: safeFixed(trade.Pl_after_comm, 2, "$"),
-    Profit_Journey: trade.Profit_journey ? "✅ Yes" : "❌ No",
-    Signal_From: trade.SignalFrom || "N/A",
-    Type: trade.Type || "N/A",
-    Timestamp: trade.SignalFrom || "N/A",
     Date: trade.Candel_time && !trade.Candel_time.includes("1970")
       ? trade.Candel_time.split(" ")[0]
       : "N/A",
-    Min_close: trade.Min_close,
+    Investment: safeFixed(trade.Investment, 2, "$"),
     Buy_live_active: trade.Buy_live_active || "N/A",
     Sell_live_active: trade.Sell_live_active || "N/A",
     Opposite: trade.Opposite,
