@@ -965,6 +965,11 @@ Operator_Trade_Time: formatDateTime(trade.Operator_Trade_time),
   Commission: safeFixed(trade.Commission, 2, "$"),
   Date: trade.Candel_time ? trade.Candel_time.split(" ")[0] : "N/A",
   Investment: safeFixed(trade.Investment, 2, "$"),
+  Swing1: safeFixed(trade.Swing1, 6),
+  Swing2: safeFixed(trade.Swing2, 6),
+  Swing3: safeFixed(trade.Swing3, 6),
+  Swing4: safeFixed(trade.Swing4, 6),
+  Swing5: safeFixed(trade.Swing5, 6)
 });
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
