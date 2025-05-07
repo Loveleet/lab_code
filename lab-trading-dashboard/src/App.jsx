@@ -5,6 +5,7 @@ import { Home, BarChart, Users, FileText, Menu, X, Plus } from "lucide-react";
 import Datetime from 'react-datetime';
 import "react-datetime/css/react-datetime.css";
 import moment from "moment";
+import * as XLSX from "xlsx";
 
 
 
@@ -84,17 +85,310 @@ const [includeMinClose, setIncludeMinClose] = useState(true);
   {/* Sidebar & Content */}
 </div>;
 
+
+
+
 const TableView = ({ title, tradeData, clientData, logData }) => {
 
+  
   const [filteredData, setFilteredData] = useState([]);
   const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
   const [selectedRow, setSelectedRow] = useState(null);
-  const [activeFilterPopup, setActiveFilterPopup] = useState(null);
+  const [activeFilters, setActiveFilters] = useState({});
+  const [activePopupIndex, setActivePopupIndex] = useState(null);
+
+  function updateFilterIndicators() {
+    document.querySelectorAll("th .filter-icon").forEach((icon) => {
+        const index = icon.getAttribute("data-index");
+        if (activeFilters[index]) {
+            icon.innerText = "✅"; // ✅ Or any other indicator
+            icon.style.color = "green";
+        } else {
+            icon.innerText = "🔍";
+            icon.style.color = "";
+        }
+    });
+}
+function showFilterPopup(index, event) {
+  document.querySelectorAll(".filter-popup").forEach(p => p.remove());
+
+  const values = [...document.querySelectorAll("tbody tr td:nth-child(" + (index + 1) + ")")].map(td => td.innerText.trim());
+  const counts = {};
+  values.forEach(v => counts[v] = (counts[v] || 0) + 1);
+  const unique = Object.keys(counts);
+
+  const popup = document.createElement("div");
+  popup.className = "filter-popup";
+
+  // ✅ Apply Proper CSS immediately
+  popup.style.position = "fixed";
+  popup.style.background = "white";
+  popup.style.color = "black";
+  popup.style.padding = "12px";
+  popup.style.borderRadius = "8px";
+  popup.style.zIndex = "999999";
+  popup.style.maxHeight = "500px";
+  popup.style.overflowY = "auto";
+  popup.style.display = "flex";
+  popup.style.flexDirection = "column";
+  popup.style.gap = "8px";
+
+  const checkboxes = [];
+
+  // Reset Button
+  const reset = document.createElement("button");
+  reset.innerText = "♻️ Reset Column";
+  reset.onclick = (e) => {
+    e.stopPropagation();
+    const newFilters = { ...activeFilters };
+    delete newFilters[index];
+    setActiveFilters(newFilters);
+    popup.remove();
+  };
+  popup.appendChild(reset);
+
+  // Apply Button
+  const apply = document.createElement("button");
+  apply.innerText = "✅ Apply";
+  apply.onclick = (e) => {
+    e.stopPropagation();
+    const sel = checkboxes.filter(c => c.checked).map(c => c.value);
+    activeFilters[index] = sel.length === unique.length ? undefined : sel;
+    setActiveFilters({ ...activeFilters });
+    popup.remove();
+    updateFilterIndicators();
+  };
+  popup.appendChild(apply);
+
+  // Select All Button
+  const selectAll = document.createElement("button");
+  selectAll.innerText = "✅ Select All";
+  selectAll.style.backgroundColor = "#4caf50";
+  selectAll.style.color = "white";
+  let allSelected = true;
+  selectAll.onclick = () => {
+    allSelected = !allSelected;
+    checkboxes.forEach(cb => cb.checked = allSelected);
+    selectAll.innerText = allSelected ? "✅ Select All" : "❌ Deselect All";
+    selectAll.style.backgroundColor = allSelected ? "#4caf50" : "#f44336";
+  };
+  popup.appendChild(selectAll);
+
+  // Checkboxes
+  unique.forEach(v => {
+    const label = document.createElement("label");
+
+    // ✅ Force nice vertical + spacing
+    label.style.display = "flex";
+    label.style.alignItems = "center";
+    label.style.gap = "6px";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = v;
+    input.checked = true;
+
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(` ${v} (${counts[v]})`));
+    popup.appendChild(label);
+    checkboxes.push(input);
+  });
+
+  document.body.appendChild(popup);
+
+  // ✅ Proper Popup Placement
+  const icon = event.target;
+  const rect = icon.getBoundingClientRect();
+
+  popup.style.top = `${rect.bottom + 10}px`;
+  popup.style.left = `${rect.left}px`;
+
+  // Close logic
+  setTimeout(() => {
+    const closePopup = (ev) => {
+      if (!popup.contains(ev.target)) {
+        popup.remove();
+        document.removeEventListener("click", closePopup);
+      }
+    };
+    document.addEventListener("click", closePopup);
+  }, 100);
+}
+
+
+function showCopyPopup(text, x, y) {
+  console.log("✅ showCopyPopup fired", text, x, y);
+
+  let popup = document.getElementById("copyPopup");
+  if (!popup) {
+    popup = document.createElement("div");
+    popup.id = "copyPopup";
+    popup.innerText = "📋 Copy Selected";
+
+    popup.style.position = "fixed";
+    popup.style.background = "black";
+    popup.style.color = "white";
+    popup.style.padding = "10px 20px";
+    popup.style.borderRadius = "8px";
+    popup.style.fontSize = "13px";
+    popup.style.fontWeight = "bold";
+    popup.style.cursor = "pointer";
+    popup.style.zIndex = "999999";
+    popup.style.opacity = "1";
+    popup.style.pointerEvents = "auto";
+    popup.style.boxShadow = "0 5px 15px rgba(0,0,0,0.3)";
+    popup.style.userSelect = "none";
+    popup.style.transition = "opacity 0.3s ease, transform 0.2s ease";
+
+    // ✅ Hover effect
+    popup.addEventListener("mouseenter", () => {
+      popup.style.backgroundColor = "#333";
+      popup.style.transform = "scale(1.05)";
+    });
+    popup.addEventListener("mouseleave", () => {
+      popup.style.backgroundColor = "black";
+      popup.style.transform = "scale(1)";
+    });
+
+    // ✅ Click → Copy
+    popup.addEventListener("click", (e) => {
+      e.stopPropagation();  // prevent click outside listener to trigger
+      navigator.clipboard.writeText(text).then(() => {
+        popup.innerText = "✅ Copied!";
+        setTimeout(() => {
+          if (popup) popup.remove();
+        }, 800);
+      });
+    });
+
+    document.body.appendChild(popup);
+    console.log("✅ Popup created and added to DOM", popup);
+  }
+
+  // ✅ Calculate safe position
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+
+  if (x < 10 || x > screenWidth - 10 || y < 10 || y > screenHeight - 10) {
+    console.log("⚡ Invalid Rect detected → Using Mouse position");
+    document.addEventListener("mousemove", (ev) => {
+      popup.style.left = `${ev.clientX}px`;
+      popup.style.top = `${ev.clientY}px`;
+    }, { once: true });
+  } else {
+    popup.style.left = `${x}px`;
+    popup.style.top = `${y}px`;
+  }
+
+  popup.style.display = "block";
+  popup.style.opacity = "1";
+
+  // ✅ Close on outside click
+  const closePopup = (event) => {
+    if (!popup.contains(event.target)) {
+      popup.remove();
+      document.removeEventListener("click", closePopup);
+    }
+  };
+  setTimeout(() => {
+    document.addEventListener("click", closePopup);
+  }, 10);
+}
+
+
+
+useEffect(() => {
+  const handleMouseUp = (e) => {
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    const text = selection.toString().trim();
+    console.log("👉 Selected Text:", text);
+
+    if (!text) {
+      const existingPopup = document.getElementById("copyPopup");
+      if (existingPopup) existingPopup.remove();
+      return;
+    }
+
+    console.log("✅ Proceeding to show popup");
+
+    setTimeout(() => {
+      try {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        const x = window.scrollX + rect.left;
+        const y = window.scrollY + rect.bottom + 10;
+
+        showCopyPopup(text, x, y);
+      } catch (err) {
+        console.log("❌ Error calculating range", err);
+      }
+    }, 0);
+  };
+
+  document.addEventListener("mouseup", handleMouseUp);
+
+  return () => {
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+}, []);
+
+
+
+
+useEffect(() => {
+  const handleClickOutside = (e) => {
+    const popups = document.querySelectorAll(".filter-popup");
+    popups.forEach(popup => {
+      if (!popup.contains(e.target)) {
+        popup.remove();
+        setActivePopupIndex(null);
+      }
+    });
+  };
+
+  document.addEventListener("click", handleClickOutside);
+  return () => document.removeEventListener("click", handleClickOutside);
+}, []);
+
+
 
 const toggleFilterPopup = (index) => {
   setActiveFilterPopup(prev => (prev === index ? null : index));
 };
+const filteredAndSortedData = useMemo(() => {
+  // First apply filters
+  let data = [...filteredData];
 
+  Object.entries(activeFilters).forEach(([index, selectedValues]) => {
+    if (!selectedValues) return;
+
+    const columnIndex = parseInt(index);
+
+    data = data.filter(row => {
+      const keys = Object.keys(row);
+      const key = keys[columnIndex];
+      const value = row[key]?.toString().trim();
+      return selectedValues.includes(value);
+    });
+  });
+
+  // Then apply sorting
+  if (!sortConfig.key) return data;
+
+  return [...data].sort((a, b) => {
+    const aVal = a[sortConfig.key] || "";
+    const bVal = b[sortConfig.key] || "";
+
+    if (!isNaN(aVal) && !isNaN(bVal)) {
+      return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+    }
+    return sortConfig.direction === 'asc'
+      ? aVal.localeCompare(bVal)
+      : bVal.localeCompare(aVal);
+  });
+}, [filteredData, sortConfig, activeFilters]);
   const sortedData = useMemo(() => {
     if (!sortConfig.key) return filteredData;
     return [...filteredData].sort((a, b) => {
@@ -117,544 +411,302 @@ const toggleFilterPopup = (index) => {
     setFilteredData(result);
   }, [title, tradeData]);
 
-const handleOpenReport = (title, sortedData) => {
-  if (!sortedData || sortedData.length === 0) return;
-  const reportWindow = window.open("", "_blank", "width=1200,height=600");
+  const handleOpenReport = (title, sortedData) => {
+    if (!sortedData || sortedData.length === 0) return;
+    const reportWindow = window.open("", "_blank", "width=1200,height=600");
+    const tableHeaders = Object.keys(sortedData[0]);
 
-  if (!sortedData || sortedData.length === 0 || typeof sortedData[0] !== "object") {
-    return ;
+    const reportContent = `
+  <html>
+  <head>
+  <title>${title.replace(/_/g, " ")} Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+  body { font-family: Arial; margin:20px; background:#f2f2f7; }
+  table { width:100%; border-collapse: collapse; cursor:pointer; }
+  th, td { padding:6px 8px; border-bottom:1px solid #ccc; text-align:center; font-size:12px; }
+  th { background:#288994; color:white; position:sticky; top:0; z-index:3; }
+  .sticky-col-1 { position:sticky; left:0; background:#046e7a; color:white; z-index:10; }
+  .sticky-col-2 { position:sticky; left:90px; background:#046e7a; color:white; z-index:10; }
+  .sticky-col-3 { position:sticky; left:190px; background:#046e7a; color:white; z-index:10; }
+  .highlighted-row { background:yellow; font-weight:bold; }
+  .filter-popup { position:absolute; background:white; border:1px solid #ccc; padding:10px; z-index:999; max-height:300px; overflow-y:auto; }
+  .filter-popup label { display:block; margin-bottom:5px; }
+  .filter-popup button { margin-top:8px; padding:4px 8px; background:#4caf50; color:white; border:none; cursor:pointer; }
+  #copyPopup { display:none; position:fixed; background:black; color:white; padding:10px 20px; border-radius:20px; font-size:13px; cursor:pointer; z-index:9999; user-select: none; }
+  #copyPopup:hover { background-color:#333; transform:scale(1.1); transition:all 0.2s ease; }
+  </style>
+  </head>
+  <body>
+
+  <h2>${title.replace(/_/g, " ")} Details</h2>
+  <input type="text" id="searchBox" placeholder="🔍 Type to filter rows..." onkeyup="filterRows()" />
+  <button onclick="exportToExcel()">📥 Export to Excel</button>
+  <button onclick="resetAllFilters()">♻️ Reset All Filters</button>
+
+  <div id="copyPopup">📋 Copy Selected</div>
+
+  <table id="reportTable">
+  <thead id="headerRow"></thead>
+  <tbody id="tableBody"></tbody>
+  </table>
+
+  <script>
+  const tableHeaders = ${JSON.stringify(tableHeaders)};
+  const tableData = ${JSON.stringify(sortedData)};
+  let activeFilters = {};
+  let currentSortIndex = null, currentSortDirection = "asc";
+  let lastSelectedText = "";
+
+  function renderTable(){
+    document.getElementById("headerRow").innerHTML = tableHeaders.map((key,index)=>{
+      const stickyClass = index < 3 ? "sticky-col-"+(index+1) : "";
+      return "<th class='"+stickyClass+"' data-index='"+index+"'><div style='display:flex;justify-content:space-between;align-items:center;'><span>"+key+"</span><span onclick='sortTable("+index+")' style='cursor:pointer;color:orange;'>🔼</span><span class='filter-icon' onclick='showFilterPopup("+index+")' style='cursor:pointer;'>🔍</span></div></th>";
+    }).join("");
+
+    document.getElementById("tableBody").innerHTML = tableData.map(row=>{
+      return "<tr>"+tableHeaders.map((key,index)=>{
+        const stickyClass = index < 3 ? "sticky-col-"+(index+1) : "";
+        return "<td class='"+stickyClass+"'>"+row[key]+"</td>";
+      }).join("")+"</tr>";
+    }).join("");
+
+    filterTable();
   }
-  const tableHeaders = sortedData.length > 0 && typeof sortedData[0] === "object" ? Object.keys(sortedData[0]) : [];
-  
 
-  const reportContent = `
-    <html>
-      <head>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-        <title>${title.replace(/_/g, " ")} Report</title>
-        <style>
-         body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  background-color: #f2f2f7; /* ✅ Light Grayish Background */
-  color: #222; /* ✅ Slightly Softer Text Color */
-}
+  function sortTable(index){
+    const isAsc = currentSortIndex===index && currentSortDirection==="asc"?false:true;
+    currentSortIndex=index;
+    currentSortDirection=isAsc?"asc":"desc";
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  cursor: pointer;
-}
-
-th, td {
-  font-size: clamp(11px, 1vw, 14px);         /* Slightly smaller font */
-  padding: 6px 8px;
-  line-height: 1.2;
-  text-align: center;
-  word-wrap: break-word;   /* Break long text if needed */
-  white-space: normal;     /* Allow wrapping */
-  vertical-align: center;
-  max-width: 140px;        /* Prevent super wide columns */
-  border-bottom: 2px solid white;
-}
-  .filter-popup {
-  position: absolute;
-  background: white;
-  color: black;
-  border: 1px solid #ccc;
-  padding: 10px;
-  z-index: 999;
-  max-height: 300px;
-  overflow-y: auto;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.filter-popup input[type="checkbox"] {
-  margin-right: 5px;
-}
-
-.filter-popup label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 5px;
-}
-
-.filter-popup button {
-  margin-top: 10px;
-  padding: 4px 8px;
-  background-color: #f59e0b;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 12px;
-}
-<button onclick="exportToExcel()" style="
-  background-color: #4caf50;
-  color: white;
-  padding: 8px 16px;
-  margin-bottom: 20px;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-">
-  📥 Export to Excel
-</button> 
-thead th {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: rgb(40, 137, 148);
-  color: white;
-  padding: 8px 10px;
-  font-size: 13px;
-  border-bottom: 2px solid white;
-  text-align: center;
-  vertical-align: middle;
-  white-space: normal;
-}
-
-/* 🔹 Apply sticky to first 3 columns with correct offsets */
-.sticky-col-1 {
-  position: sticky;
-  left: 0px;
-  z-index: 3;
-  background: rgb(4, 110, 122);
-  color: white;
-}
-
-.sticky-col-2 {
-  position: sticky;
-  left: 110px; /* 110px = width of column 1 */
-  z-index: 3;
-  background: rgb(4, 110, 122);
-  color: white;
-}
-
-.sticky-col-3 {
-  position: sticky;
-  left: 240px; /* 110px + 130px = width of col 1 + col 2 */
-  z-index: 3;
-  background: rgb(4, 110, 122);
-  color: white;
-}
-  /* ✅ Reduce font size only for Date/Time columns */
-td.datetime-column, th.datetime-column {
-  font-size: 12px;   /* Make text smaller */
-  white-space: nowrap; /* Prevent text wrapping */
-  text-align: center;  /* Center align for better look */
-  padding: 4px 6px;   /* Reduce padding to save space */
-}
-
-/* ✅ Make headers slightly bigger for readability */
-th.datetime-column {
-  font-size: 13px;  
-  font-weight: bold;
-}
-
-
-/* 🔹 Fix Sticky Column Misalignment */
-.sticky-col {
-  position: sticky;
-  z-index: 2;
-  background: rgb(4, 110, 122);
-  color: white;
-  left: 0;
-  text-align: center;
-  min-width: 110px;     /* Increased from 100px */
-  max-width: 130px;     /* Slightly more breathing room */
-  padding: 4px 8px;     /* Add padding for spacing */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: center;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-}
-
-/* 🔹 Apply sticky to first 3 columns */
-.sticky-col-1 {
-  position: sticky;
-  left: 0px;
-  z-index: 4;
-  background: rgb(4, 110, 122);
-  color: white;
-  min-width: 90px;
-  max-width: 90px;
-}
-.sticky-col-2 {
-  position: sticky;
-  left: 90px;
-  z-index: 4;
-  background: rgb(4, 110, 122);
-  color: white;
-  min-width: 100px;
-  max-width: 100px;
-}
-.sticky-col-3 {
-  position: sticky;
-  left: 190px;
-  z-index: 4;
-  background: rgb(4, 110, 122);
-  color: white;
-  min-width: 170px;
-  max-width: 170px;
-}
-
-/* 🔹 Ensure the table scrolls properly */
-.table-container {
-  overflow: auto;
-  max-width: 100%;
-  max-height: 600px;
-  border: 1px solid #ccc;
-}
-<th class="datetime-column">Candle Time</th>
-<th class="datetime-column">Fetcher Trade Time</th>
-<th class="datetime-column">Operator Trade Time</th>
-<th class="datetime-column">Operator Close Time</th>
-
-<td class="datetime-column">2025-03-21 18:45:00</td>
-<td class="datetime-column">2025-03-21 18:46:30</td>
-<td class="datetime-column">2025-03-21 19:01:10</td>
-<td class="datetime-column">2025-03-21 18:55:45</td>
-  th.sorted-asc::after { content: " 🔼"; }
-  th.sorted-desc::after { content: " 🔽"; }
-  input[type="text"] {
-    margin-bottom: 10px;
-    padding: 6px;
-    width: 100%;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-          }
-    .highlighted-row {
-  background-color:rgb(190, 204, 0) !important;
-  color: black !important;
-  font-weight: bold;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  box-shadow: inset 0 0 0 2px #005fa3, 0 0 5px rgba(0, 0, 0, 0.2);
-}
-  
-tr:hover {
-  background-color: #bbf7d0 !important; /* light green hover */
-  transform: scale(1.003);
-  border-left: 2px solid #3b82f6; /* blue border on hover */
-  transition: all 0.2s ease-in-out;
-}
-
-/* ✨ Stylish selected row effect */
-tr.highlighted-row {
-  background: linear-gradient(to right, #facc15, #f59e0b); /* yellow-300 to yellow-500 */
-  font-weight: 800;
-  color: black;
-  border-left: 4px solid #b45309; /* deep yellow border */
-  border-radius: 6px;
-  transform: scale(1.01);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  font-size: 14px;
-
-        </style>
-      </head>
-      <body>
-        <h2>${title.replace(/_/g, " ")} Details</h2>
-        <input type="text" id="searchBox" placeholder="🔍 Type to filter rows..." onkeyup="filterRows()" />
-<button onclick="exportToExcel()" style="
-  background-color: #4caf50;
-  color: white;
-  padding: 8px 16px;
-  margin-bottom: 20px;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-">
-  📥 Export to Excel
-</button>
-        <table id="reportTable">
-        <button onclick="resetAllFilters()" style="background-color: red; color: white; margin-bottom: 10px; padding: 8px 12px; border: none; border-radius: 4px;">
-  ♻️ Reset All Filters
-</button>
-         <thead>
-<tr>
-${tableHeaders.map((key, index) => {
-  const stickyClass = index < 3 ? `sticky-col sticky-col-${index + 1}` : "";
-  return `<th class="${stickyClass}" data-index='${index}'>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span>${key.replace(/_/g, " ")}</span>
-      <span onclick="sortTable(${index})" style="cursor:pointer; color:orange;">🔼</span>
-      <span onclick="showFilterPopup(${index})" style="cursor:pointer; color:green;">🎯</span>
-    </div>
-  </th>`;
-}).join("")}
-</tr>
-</thead>
-        <tbody id="tableBody">
-            ${sortedData.map(item => `
-              <tr class="transition-all duration-200 hover:bg-yellow-100 hover:shadow hover:scale-[1.01] cursor-pointer">${tableHeaders.map((key, index) => {
-                const stickyClass = index < 3 ? `sticky-col sticky-col-${index + 1}` : "";
-
-                if (key === "Unique_ID" && typeof item[key] === "string") {
-                  const id = item[key];
-                  const match = id.match(/(\d{4}-\d{2}-\d{2})/); // match full date like 2025-03-30
-                  if (match) {
-                    const splitIndex = id.indexOf(match[0]);
-                    const pair = id.slice(0, splitIndex).toUpperCase();
-                    const timestamp = id.slice(splitIndex).replace("T", " ");
-                    return `<td class="${stickyClass}">
-                      <div style="font-weight: bold; font-size: 13px;">${pair}</div>
-                      <div style="font-size: 11px; opacity: 0.8; margin-top: 2px;">${timestamp}</div>
-                    </td>`;
-                  } else {
-                    // ⚠️ If no date found, return raw ID safely
-                    return `<td class="${stickyClass}">${id}</td>`;
-                  }
-                }
-
-                // ✅ Default rendering for all other columns
-                return `<td class="${stickyClass}">${item[key]}</td>`;
-              }).join("")}</tr>
-            `).join("")}
-          </tbody>
-
-
-        </table>
-        {/* ✅ Filter Popup Component */}
-{/* ✅ Filter Popup Component */}
-{activeFilterPopup !== null && (
-  <div className="absolute bg-white text-black p-4 shadow-lg rounded z-50" style={{ top: '200px', left: '400px' }}>
-    <div className="max-h-[300px] overflow-y-auto">
-      <p className="font-bold mb-2">
-        Filter: {Object.keys(sortedData[0])[activeFilterPopup]}
-      </p>
-      {(Array.from(new Set(filteredData.map(row => row[Object.keys(sortedData[0])[activeFilterPopup]])))).map((value, idx) => (
-        <div key={idx}>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              defaultChecked
-              onChange={() => {}}
-            />
-            <span>{value}</span>
-          </label>
-        </div>
-      ))}
-    </div>
-
-    {/* Apply and Reset buttons */}
-    <div className="flex justify-end gap-2 mt-4">
-      <button
-        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
-        onClick={() => {
-          setActiveFilterPopup(null); // ✅ close popup
-        }}
-      >
-        ✅ Apply
-      </button>
-      <button
-        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-        onClick={() => {
-          setActiveFilterPopup(null); // ✅ close popup
-        }}
-      >
-        ♻️ Reset
-      </button>
-    </div>
-  </div>
-)}
-
-        <script >
-  let currentSortIndex = null;
-  let currentSortDirection = "asc";
-
-  function sortTable(columnIndex) {
-    const table = document.getElementById("reportTable");
-    const tbody = table.querySelector("tbody");
-    const rows = Array.from(tbody.rows);
-
-    const isAsc = currentSortIndex === columnIndex && currentSortDirection === "asc" ? false : true;
-    currentSortIndex = columnIndex;
-    currentSortDirection = isAsc ? "asc" : "desc";
-
-    rows.sort((a, b) => {
-      const valA = a.cells[columnIndex].textContent.trim();
-      const valB = b.cells[columnIndex].textContent.trim();
-
-      if (!isNaN(valA) && !isNaN(valB)) {
-        return isAsc ? parseFloat(valA) - parseFloat(valB) : parseFloat(valB) - parseFloat(valA);
-      }
-      return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    tableData.sort((a,b)=>{
+      const valA = a[tableHeaders[index]]+"";
+      const valB = b[tableHeaders[index]]+"";
+      return valA.localeCompare(valB,undefined,{numeric:true}) * (isAsc?1:-1);
     });
 
-    tbody.innerHTML = "";
-    rows.forEach(row => tbody.appendChild(row));
-
-    document.querySelectorAll("th").forEach(th => th.classList.remove("sorted-asc", "sorted-desc"));
-    document.querySelector(\`th[data-index="\${columnIndex}"]\`).classList.add(isAsc ? "sorted-asc" : "sorted-desc");
+    renderTable();
   }
 
-  function filterRows() {
+  function filterRows(){
     const query = document.getElementById("searchBox").value.toLowerCase();
-    const rows = document.querySelectorAll("#tableBody tr");
-
-    rows.forEach(row => {
-      const rowText = row.textContent.toLowerCase();
-      row.style.display = rowText.includes(query) ? "" : "none";
+    document.querySelectorAll("tbody tr").forEach(row=>{
+      row.style.display = row.innerText.toLowerCase().includes(query) ? "" : "none";
     });
   }
 
-  // ✅ Fix: Attach event listeners right away after page loads
-  document.getElementById("tableBody").addEventListener("click", function (e) {
-  const clickedRow = e.target.closest("tr");
-  if (!clickedRow) return;
-
-  // Remove highlight from all rows
-  Array.from(this.rows).forEach(row => row.classList.remove("highlighted-row"));
-
-  // Add highlight to clicked row
-  clickedRow.classList.add("highlighted-row");
-});// Small delay to ensure table renders first
-  
-  function exportToExcel() {
-  const table = document.getElementById("reportTable");
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.table_to_sheet(table);
-
-  // Format all date fields to include full date + time
-  const dateFields = [
-    "Candle Time",
-    "Fetcher Trade Time",
-    "Operator Trade Time",
-    "Operator Close Time"
-  ];
-
-  const headerRow = XLSX.utils.sheet_to_json(ws, { header: 1 })[0];
-
-  const dateColIndexes = dateFields.map(field => headerRow.indexOf(field)).filter(i => i !== -1);
-
-  const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-  const formatted = data.map((row, rowIndex) => {
-  if (rowIndex === 0) return row; // headers
-  return row.map((cell, colIndex) => {
-    if (dateColIndexes.includes(colIndex)) {
-  const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // Excel starts at 1900-01-01
-  const days = parseFloat(cell);
-  if (!isNaN(days)) {
-    const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
-    return date.toISOString().replace("T", " ").slice(0, 19);
+  function resetAllFilters(){
+    activeFilters={};
+    filterTable();
+    document.querySelectorAll(".filter-popup").forEach(p=>p.remove());
   }
-  return cell;
+
+  function filterTable(){
+    document.querySelectorAll("tbody tr").forEach(row=>{
+      row.style.display = Object.keys(activeFilters).every(col=>activeFilters[col].includes(row.children[col].innerText.trim()))?"":"none";
+    });
+  }
+// Store current filter popup globally
+let currentFilterPopup = null;
+
+
+function updateFilterIndicators() {
+    document.querySelectorAll("th").forEach((th, index) => {
+        const icon = th.querySelector(".filter-icon");
+        if (!icon) return;
+
+        if (activeFilters[index]) {
+            icon.innerText = "✅"; // or ✳️ or any indicator you like
+            icon.style.color = "green";
+        } else {
+            icon.innerText = "🔍";
+            icon.style.color = "";
+        }
+    });
 }
-    return cell;
-  });
+
+
+
+function showFilterPopup(index) {
+    // ✅ If already open → close and exit (toggle effect)
+    if (currentFilterPopup) {
+        currentFilterPopup.remove();
+        currentFilterPopup = null;
+        return;
+    }
+
+    document.querySelectorAll(".filter-popup").forEach(p => p.remove());
+
+    const values = [...document.querySelectorAll("tbody tr td:nth-child(" + (index + 1) + ")")].map(td => td.innerText.trim());
+    const counts = {};
+    values.forEach(v => counts[v] = (counts[v] || 0) + 1);
+    const unique = Object.keys(counts);
+
+    const popup = document.createElement("div");
+    popup.className = "filter-popup";
+    currentFilterPopup = popup; // ✅ set as current active popup
+
+    // ✅ Reset Button
+const reset = document.createElement("button");
+reset.innerText = "♻️ Reset Column";
+reset.onclick = () => {
+    delete activeFilters[index];
+    filterTable();
+    popup.remove();
+    currentFilterPopup = null;
+    updateFilterIndicators(); // <-- Add this
+};
+popup.appendChild(reset);
+
+// ✅ Apply Button
+const apply = document.createElement("button");
+apply.innerText = "✅ Apply";
+apply.onclick = () => {
+    const sel = [...popup.querySelectorAll("input[type='checkbox']:checked")].map(i => i.value);
+    activeFilters[index] = sel.length === unique.length ? undefined : sel;
+    filterTable();
+    popup.remove();
+    currentFilterPopup = null;
+    updateFilterIndicators(); // <-- Add this
+};
+popup.appendChild(apply);
+
+    const selectAllButton = document.createElement("button");
+    selectAllButton.innerText = "✅ Select All";
+    let allSelected = true;
+    selectAllButton.onclick = () => {
+        allSelected = !allSelected;
+        popup.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = allSelected);
+        selectAllButton.innerText = allSelected ? "✅ Select All" : "❌ Deselect All";
+    };
+    popup.appendChild(selectAllButton);
+
+    unique.forEach(v => {
+        const label = document.createElement("label");
+        label.innerHTML = '<input type="checkbox" value="' + v + '" checked> ' + v + ' (' + counts[v] + ')';
+        popup.appendChild(label);
+    });
+
+    document.body.appendChild(popup);
+    const th = document.querySelector("th[data-index='" + index + "']");
+    const rect = th.getBoundingClientRect();
+    popup.style.top = rect.bottom + window.scrollY + "px";
+    popup.style.left = rect.left + window.scrollX + "px";
+
+    // ✅ Outside click close logic
+    setTimeout(() => {
+        const closePopup = (event) => {
+            if (!popup.contains(event.target)) {
+                popup.remove();
+                currentFilterPopup = null;
+                document.removeEventListener("click", closePopup);
+            }
+        };
+        document.addEventListener("click", closePopup);
+    }, 50);
+}
+
+// ✅ Copy logic stays SAME → no touch
+document.addEventListener("selectionchange", () => {
+    const text = window.getSelection().toString().trim();
+    const popup = document.getElementById("copyPopup");
+    if (text) {
+        lastSelectedText = text;
+        const rect = window.getSelection().getRangeAt(0).getBoundingClientRect();
+        popup.style.top = (window.scrollY + rect.bottom + 10) + "px";
+        popup.style.left = (window.scrollX + rect.right + 10) + "px";
+        popup.style.display = "block";
+    } else {
+        popup.style.display = "none";
+    }
 });
 
-  const newWs = XLSX.utils.aoa_to_sheet(formatted);
-  XLSX.utils.book_append_sheet(wb, newWs, "Report");
-  XLSX.writeFile(wb, "Lab_Trade_Report.xlsx");
-}
-  let activeFilters = {};
+document.getElementById("copyPopup").addEventListener("click", () => {
+    if (!lastSelectedText) return;
 
-function showFilterPopup(columnIndex) {
-  
-
-  const table = document.getElementById("reportTable");
-  const values = Array.from(table.querySelectorAll("tbody tr td:nth-child(" + (columnIndex + 1) + ")"))
-    .map(td => td.textContent.trim());
-
-  const uniqueValues = [...new Set(values)];
-  const counts = uniqueValues.map(function(val) {
-    return {
-      value: val,
-      count: values.filter(function(v) { return v === val; }).length,
-      checked: activeFilters[columnIndex] ? activeFilters[columnIndex].includes(val) : true
-    };
-  });
-
-  const popup = document.createElement("div");
-  popup.className = "filter-popup";
-  
- 
-
-  const resetBtn = document.createElement("button");
-  resetBtn.textContent = "♻️ Reset Column";
-  resetBtn.onclick = function() {
-    delete activeFilters[columnIndex];
-    filterTable();
-    closeFilterPopup();
-  };
-  popup.appendChild(resetBtn);
-  const applyBtn = document.createElement("button");
-  applyBtn.textContent = "✅ Apply";
-  applyBtn.onclick = function() {
-    const selected = Array.from(popup.querySelectorAll("input:checked")).map(function(input) {
-      return input.value;
+    navigator.clipboard.writeText(lastSelectedText).then(() => {
+        const popup = document.getElementById("copyPopup");
+        popup.innerText = "✅ Copied!";
+        setTimeout(() => {
+            popup.style.display = "none";
+            popup.innerText = "📋 Copy Selected";
+        }, 500);
     });
-    if (selected.length === counts.length) {
-      delete activeFilters[columnIndex];
-    } else {
-      activeFilters[columnIndex] = selected;
-    }
-    filterTable();
-    closeFilterPopup();
-  };
-  popup.appendChild(applyBtn);
+});
 
-  
+  function showCopiedAnimation() {
+    const copiedMessage = document.createElement("div");
+    copiedMessage.innerText = "✅ Copied!";
+    copiedMessage.style.position = "fixed";
+    copiedMessage.style.background = "#4caf50";
+    copiedMessage.style.color = "white";
+    copiedMessage.style.padding = "8px 16px";
+    copiedMessage.style.borderRadius = "6px";
+    copiedMessage.style.top = "50%";
+    copiedMessage.style.left = "50%";
+    copiedMessage.style.transform = "translate(-50%, -50%)";
+    copiedMessage.style.fontSize = "14px";
+    copiedMessage.style.zIndex = "10000";
+    copiedMessage.style.opacity = "0.95";
+    copiedMessage.style.cursor = "pointer";
+    copiedMessage.style.transition = "opacity 0.3s ease";
 
-  counts.forEach(function(obj) {
-    const label = document.createElement("label");
-    label.innerHTML =
-      '<input type="checkbox" value="' + obj.value + '" ' + (obj.checked ? 'checked' : '') + '> ' +
-      '<span>' + obj.value + ' (' + obj.count + ')</span>';
-    popup.appendChild(label);
-  });
-
-  
-
-  
-
-  document.body.appendChild(popup);
-
-  const th = table.querySelector("thead th:nth-child(" + (columnIndex + 1) + ")");
-  const rect = th.getBoundingClientRect();
-  popup.style.top = rect.bottom + window.scrollY + "px";
-  popup.style.left = rect.left + window.scrollX + "px";
-}
-
-function closeFilterPopup() {
-  document.querySelectorAll(".filter-popup").forEach(popup => popup.remove());
-}
-
-function filterTable() {
-  const table = document.getElementById("reportTable");
-  const rows = table.querySelectorAll("tbody tr");
-
-  rows.forEach(function(row) {
-    let show = true;
-    Object.keys(activeFilters).forEach(function(colIdx) {
-      const cell = row.querySelector("td:nth-child(" + (parseInt(colIdx) + 1) + ")");
-      if (!activeFilters[colIdx].includes(cell.textContent.trim())) {
-        show = false;
-      }
+    copiedMessage.addEventListener("click", () => {
+        document.body.removeChild(copiedMessage);
     });
-    row.style.display = show ? "" : "none";
+
+    document.body.appendChild(copiedMessage);
+
+    setTimeout(() => {
+        copiedMessage.style.opacity = "0";
+        setTimeout(() => {
+            if (document.body.contains(copiedMessage)) {
+                document.body.removeChild(copiedMessage);
+            }
+        }, 300);
+    }, 1000);
+}
+
+  document.querySelector("tbody").addEventListener("click",e=>{
+    const row=e.target.closest("tr");
+    if(!row)return;
+    document.querySelectorAll("tbody tr").forEach(r=>r.classList.remove("highlighted-row"));
+    row.classList.add("highlighted-row");
   });
+
+  function exportToExcel(){
+    const wb = XLSX.utils.book_new();
+    
+    const table = document.getElementById("reportTable");
+    const headers = [...table.querySelectorAll("thead th")].map(th => th.innerText.trim());
+    const rows = [...table.querySelectorAll("tbody tr")].map(row => {
+        const cells = [...row.querySelectorAll("td")];
+        const obj = {};
+        cells.forEach((td, idx) => {
+            let val = td.innerText.trim();
+            // ✅ Add dummy time if date found
+            if (headers[idx].includes("Time") && val && !val.includes(":")) {
+                val += " 00:00:00";
+            }
+            obj[headers[idx]] = val;
+        });
+        return obj;
+    });
+    
+    const ws = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, "Report");
+    XLSX.writeFile(wb, "Lab_Trade_Report.xlsx");
 }
 
-function resetAllFilters() {
-  activeFilters = {};
-  filterTable();
-  closeFilterPopup();
-}
+  renderTable();
+  </script>
 
+  </body>
+  </html>
+  `;
 
-  </script>      </body>
-      </html>
-    `;
-
-  reportWindow.document.write(reportContent);
-  
+    reportWindow.document.write(reportContent);
 };
-
 
 
 // ✅ SAFE to render fallback after all hooks
@@ -817,7 +869,47 @@ return (
       >
         Open in New Page
       </button>
+    {/* ✅ SEARCH, EXPORT, RESET FILTER BAR */}
 
+  {/* Search */}
+  <input
+    type="text"
+    placeholder="🔍 Type to search..."
+    onChange={(e) => {
+      const value = e.target.value.toLowerCase();
+      const filtered = tradeData.filter(row =>
+        Object.values(row).some(val =>
+          String(val).toLowerCase().includes(value)
+        )
+      );
+      setFilteredData(filtered);
+    }}
+    className="px-3 py-2 border rounded-md w-64 text-sm"
+  />
+
+  {/* Export to Excel */}
+  <button
+    onClick={() => {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(filteredAndSortedData);
+      XLSX.utils.book_append_sheet(wb, ws, "Dashboard Report");
+      XLSX.writeFile(wb, "Dashboard_Trade_Report.xlsx");
+    }}
+    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+  >
+    📥 Export to Excel
+  </button>
+
+  {/* Reset Filter */}
+  <button
+    onClick={() => {
+      setActiveFilters({});
+      setFilteredData(tradeData);
+    }}
+    className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+  >
+    ♻️ Reset Filters
+  </button>
     {/* ✅ Table with Sorting */}
     <div className="overflow-auto max-h-[600px] border border-gray-300 rounded-lg">
       <table className="w-full border-collapse">
@@ -847,16 +939,19 @@ return (
       )}
     </span>
 
-    {/* 🎯 Filter icon (keep e.stopPropagation() inside only for this) */}
+    {/* &#128269;
+ Filter icon (keep e.stopPropagation() inside only for this) */}
     <span
-      onClick={(e) => {
-        e.stopPropagation(); // 🛑 Prevent sort when clicking 🎯
-        toggleFilterPopup(index);
-      }}
-      className="ml-1 cursor-pointer"
-    >
-      🎯
-    </span>
+  className="ml-1 cursor-pointer filter-icon"
+  data-index={index}
+  onClick={(e) => {
+    e.stopPropagation();
+    showFilterPopup(index, e);
+  }}
+>
+&#128269;
+</span>
+
   </div>
 </th>
     );
@@ -864,7 +959,8 @@ return (
 </tr>
 </thead>
 <tbody>
-  {sortedData.map((item, rowIndex) => (
+{filteredAndSortedData
+  .map((item, rowIndex) => (
    <tr
    key={rowIndex}
    className={`border-b cursor-pointer transition-all duration-200 ${
@@ -878,13 +974,13 @@ return (
   <td
     key={colIndex}
     className={`
-      px-2 py-1 border whitespace-nowrap align-top text-sm
+      px-2 py-1 border whitespace-nowrap align-top text-sm select-text
       ${colIndex === 0 && "min-w-[90px] max-w-[90px] sticky left-0 bg-[#046e7a] text-white z-[5] text-xs"}
       ${colIndex === 1 && "min-w-[100px] max-w-[100px] sticky left-[90px] bg-[#046e7a] text-white z-[5] text-[10px] font-light"}
       ${colIndex === 2 && "min-w-[170px] max-w-[170px] sticky left-[190px] bg-[#046e7a] text-white z-[5] text-[12px] leading-snug"}
       ${["Candle_Time", "Fetcher_Trade_Time", "Operator_Trade_Time", "Operator_Close_Time"].includes(key) ? "text-[11px]" : ""}
       ${["Type", "Action", "Interval", "CJ", "PJ"].includes(key) ? "min-w-[60px] max-w-[60px] text-center" : ""}
-      `}
+    `}
   >
     {key === "Unique_ID" && typeof val === "string" && val.match(/\d{4}-\d{2}-\d{2}/) ? (
       (() => {
