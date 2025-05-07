@@ -7,10 +7,10 @@ const PORT = process.env.PORT || 10000;
 
 // ✅ Allowed Frontend Origins (Local + Vercel + Render)
 const allowedOrigins = [
-  "http://localhost:5173",                    // Dev (Vite)
-  "https://lab-code-lyart.vercel.app",       // ✅ Your Vercel Frontend
-  "https://lab-code-9v3o.onrender.com", 
-  "https://lab-code-nxlc714mf-loveleets-projects-ef26b22c.vercel.app"       // Optional: if your frontend is ever on Render
+  "http://localhost:5174",                    // Dev (Vite)
+  "https://lab-code-4kbs.vercel.app",       // ✅ Your Vercel Frontend
+  "https://lab-code-1.onrender.com", 
+  "https://lab-code-4kbs-qxqvbinls-loveleets-projects-ef26b22c.vercel.app"       // Optional: if your frontend is ever on Render
 ];
 
 // ✅ Proper CORS Handling
@@ -35,7 +35,7 @@ const dbConfig = {
   password: "IndiaNepal1-",
   server: "4.240.115.57",
   port: 1433,
-  database: "labDB",
+  database: "labDB2",
   options: {
     encrypt: false,
     trustServerCertificate: true,
@@ -96,7 +96,7 @@ const http = require("https");
 
 // ✅ Self-Ping to Prevent Render Sleep (every 14 minutes)
 setInterval(() => {
-  http.get("https://lab-code-9v3o.onrender.com/api/machines", (res) => {
+  http.get("https://lab-code-1.onrender.com/api/machines", (res) => {
     console.log(`📡 Self-ping status: ${res.statusCode}`);
   }).on("error", (err) => {
     console.error("❌ Self-ping failed:", err.message);

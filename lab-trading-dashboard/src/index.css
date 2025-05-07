@@ -25,4 +25,5 @@
   .active-link {
     @apply text-activeLink;
   }
+ 
 }
