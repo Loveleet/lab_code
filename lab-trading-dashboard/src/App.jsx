@@ -606,33 +606,114 @@ popup.appendChild(apply);
     }, 50);
 }
 
-// ✅ Copy logic stays SAME → no touch
 document.addEventListener("selectionchange", () => {
-    const text = window.getSelection().toString().trim();
+    const selection = window.getSelection();
+    const text = selection.toString().trim();
+
     const popup = document.getElementById("copyPopup");
-    if (text) {
-        lastSelectedText = text;
-        const rect = window.getSelection().getRangeAt(0).getBoundingClientRect();
+
+    if (!popup) return;
+
+    if (!text) {
+        popup.style.display = "none";
+        return;
+    }
+
+    let rect;
+    try {
+        rect = selection.getRangeAt(0).getBoundingClientRect();
+    } catch {
+        rect = null;
+    }
+
+    // ✅ Decide where to show
+    if (rect && rect.width > 0 && rect.height > 0) {
         popup.style.top = (window.scrollY + rect.bottom + 10) + "px";
         popup.style.left = (window.scrollX + rect.right + 10) + "px";
-        popup.style.display = "block";
     } else {
-        popup.style.display = "none";
+        // ✅ Fallback to mouse position
+        document.addEventListener("mousemove", function handler(e) {
+            popup.style.top = (e.clientY + window.scrollY + 10) + "px";
+            popup.style.left = (e.clientX + window.scrollX + 10) + "px";
+            document.removeEventListener("mousemove", handler);
+        });
     }
+
+    popup.style.display = "block";
+    lastSelectedText = text;
+});
+document.addEventListener("mouseup", (e) => {
+  const selection = window.getSelection();
+  const text = selection.toString().trim();
+
+  if (!text) {
+    const popup = document.getElementById("copyPopup");
+    if (popup) popup.remove();
+    return;
+  }
+
+  showCopyPopup(text, e.pageX, e.pageY);  // ✅ Pass mouse position
 });
 
-document.getElementById("copyPopup").addEventListener("click", () => {
-    if (!lastSelectedText) return;
+function positionCopyPopup(popup, selection) {
+    try {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
 
-    navigator.clipboard.writeText(lastSelectedText).then(() => {
-        const popup = document.getElementById("copyPopup");
-        popup.innerText = "✅ Copied!";
-        setTimeout(() => {
-            popup.style.display = "none";
-            popup.innerText = "📋 Copy Selected";
-        }, 500);
-    });
-});
+      popup.style.left = (rect.left + window.scrollX + 10) + "px";
+popup.style.top = (rect.bottom + window.scrollY + 10) + "px";
+    } catch (err) {
+        console.error("Error positioning popup", err);
+    }
+}
+
+function showCopyPopup(text) {
+    let popup = document.getElementById("copyPopup");
+
+    if (!popup) {
+        popup = document.createElement("div");
+        popup.id = "copyPopup";
+        popup.innerText = "📋 Copy Selected";
+
+        popup.style.position = "absolute";
+        popup.style.background = "black";
+        popup.style.color = "white";
+        popup.style.padding = "10px 20px";
+        popup.style.borderRadius = "8px";
+        popup.style.fontSize = "13px";
+        popup.style.fontWeight = "bold";
+        popup.style.cursor = "pointer";
+        popup.style.zIndex = "9999";
+        popup.style.pointerEvents = "auto";
+        popup.style.userSelect = "none";
+
+        popup.addEventListener("click", () => {
+            navigator.clipboard.writeText(text).then(() => {
+                popup.innerText = "✅ Copied!";
+                setTimeout(() => popup.remove(), 800);
+            });
+        });
+
+        document.body.appendChild(popup);
+    }
+
+    const selection = window.getSelection();
+    positionCopyPopup(popup, selection);
+
+    popup.style.display = "block";
+
+    const scrollHandler = () => {
+        const newSelection = window.getSelection();
+        if (!newSelection || newSelection.toString().trim() === "") {
+            popup.remove();
+            window.removeEventListener("scroll", scrollHandler);
+        } else {
+            positionCopyPopup(popup, newSelection);
+        }
+    };
+
+    window.addEventListener("scroll", scrollHandler);
+}
 
   function showCopiedAnimation() {
     const copiedMessage = document.createElement("div");
