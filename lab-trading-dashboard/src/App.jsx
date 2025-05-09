@@ -1369,6 +1369,25 @@ const getFilteredForTitle = useMemo(() => {
             .filter(trade => trade.Type === "close")
             .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const runningProfit = totalProfit - closedProfit;
+        const hedgePlusRunning = filteredTradeData
+        .filter(trade => trade.Pl_after_comm > 0 & trade.Hedge === true & trade.Type === "running") // ✅ Correct field reference
+        .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
+        const hedgeMinusRunning = filteredTradeData
+          .filter(trade => trade.Pl_after_comm < 0 & trade.Hedge === true & trade.Type === "running")
+          .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0); 
+          const hedgePlusClose = filteredTradeData
+          .filter(trade => trade.Pl_after_comm > 0 & trade.Hedge === true & trade.Type === "close") // ✅ Correct field reference
+          .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
+          const hedgeMinusClose = filteredTradeData
+            .filter(trade => trade.Pl_after_comm < 0 & trade.Hedge === true & trade.Type === "close")
+            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0); 
+          const hedgeClosedProfit = filteredTradeData
+            .filter(trade => trade.Type === "close" & trade.Hedge === true & trade.Type === "close")
+            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
+          const hedgeRunningProfit = filteredTradeData
+            .filter(trade => trade.Type === "running" & trade.Hedge === true & trade.Type === "running")
+            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
+  
 
        
         
@@ -1408,25 +1427,30 @@ const getFilteredForTitle = useMemo(() => {
           "Assign_/_Running_/_Closed Count": `${filteredTradeData.filter(trade => trade.Type === "assign").length} / ${filteredTradeData.filter(trade => trade.Type === "running").length} / ${filteredTradeData.filter(trade => trade.Type === "close").length}`,
           // yesterdays_count: trades.filter(trade => trade.Candle_time && trade.Candle_time.startsWith(yesterdayDate)).length, // ✅ FIXED
           // Comission_Journey_Crossed : filteredTradeData.filter(trade => trade.Commision_journey === true  ).length,
-          Comission_Point_Crossed: filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length,
           Profit_Journey_Crossed: filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running"  ).length,
+          Comission_Point_Crossed: filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length,
           Below_Commision_Point: filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running" ).length,
           Closed_After_Comission_Point: filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Type === "close" && trade.Profit_journey === false ).length,
           Close_in_Loss : filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length,
+          Close_in_Profit : filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length,
           Close_After_Profit_Journey: filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close" ).length,
           // Hedge_Count: trades.filter(trade => trade.Hedge).length,
-          Total_Hedge: `${filteredTradeData.filter(trade => trade.Hedge === true &&  trade.Type === "running").length} / ${filteredTradeData.filter(trade => trade.Hedge === true && trade.Type === "close").length}`,
-          // Hedge_pl : `${filteredTradeData.filter}/${}`,
-          // Total_Investment: isNaN(totalInvestment) ? "$0" : `$${totalInvestment.toFixed(2)}`,
-          // Investment_Available: isNaN(investmentAvailable) ? "$0" : `$${investmentAvailable.toFixed(2)}`,
-          Close_in_Profit : filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length,
-          Close_Curve_in_Loss : `${filteredTradeData.filter(trade => trade.Pl_after_comm < 0  &&  trade.Type === "close" && trade.Commision_journey === true).length} / $${filteredTradeData
-            .filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close" && trade.Commision_journey === true)// ✅ Correct field reference
-            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
+          
           Min_Close_Profit : `${filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0).length} 
           = $${filteredTradeData
             .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0)
             .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
+          Total_Hedge: `${filteredTradeData.filter(trade => trade.Hedge === true &&  trade.Type === "running").length} / ${filteredTradeData.filter(trade => trade.Hedge === true && trade.Type === "close").length}`,
+          Hedge_Running_pl : `${hedgePlusRunning.toFixed(2)} + ${hedgeMinusRunning.toFixed(2)} = ${hedgeRunningProfit.toFixed(2)}`,
+          Hedge_Closed_pl : `${hedgePlusClose.toFixed(2)} + ${hedgeMinusClose.toFixed(2)} = ${hedgeClosedProfit.toFixed(2)}`,
+          
+          // Hedge_Close_pl: `${hedgePlusClose.toFixed(2)} + ${hedgeMinusClose.toFixed(2)} = ${hedgeRunningClose.toFixed(2)}`,
+          // Total_Investment: isNaN(totalInvestment) ? "$0" : `$${totalInvestment.toFixed(2)}`,
+          // Investment_Available: isNaN(investmentAvailable) ? "$0" : `$${investmentAvailable.toFixed(2)}`,
+          // Close_Curve_in_Loss : `${filteredTradeData.filter(trade => trade.Pl_after_comm < 0  &&  trade.Type === "close" && trade.Commision_journey === true).length} / $${filteredTradeData
+          //   .filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close" && trade.Commision_journey === true)// ✅ Correct field reference
+          //   .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
+          
           Min_Close_Loss : `${filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0).length} 
           = $${filteredTradeData
             .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0)
