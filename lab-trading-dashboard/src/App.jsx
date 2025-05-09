@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Home, BarChart, Users, FileText, Menu, X, Plus } from "lucide-react";
+import { Home, BarChart, Users, FileText, Menu, X, Plus, Space } from "lucide-react";
 import Datetime from 'react-datetime';
 import "react-datetime/css/react-datetime.css";
 import moment from "moment";
@@ -1825,7 +1825,7 @@ return (
     ))}
   </div>
 </div>
-<div className="flex items-center mb-4">
+<div className="flex items-center mb-4 gap-x-8">
   <button
     onClick={() => setIncludeMinClose(prev => !prev)}
     className={`text-white px-3 py-2 rounded text-sm transition-all ${
@@ -1834,10 +1834,9 @@ return (
   >
     {includeMinClose ? "✅ Min Close ON" : "❌ Min Close OFF"}
   </button>
-</div>
-<div></div>
-<div className="flex flex-wrap items-center gap-4 my-4">
-  <div className="flex flex-col">
+  
+  <div className="flex flex-wrap items-center gap-4 my-4">
+  <div className="flex flex-col ">
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 From Date & Time</label>
     <Datetime
     key={`from-${dateKey}`}
@@ -1881,11 +1880,13 @@ return (
     setDateKey(prev => prev + 1); // 🔁 Force calendar re-render
   }}
   className="bg-yellow-600 text-white px-4 py-2 rounded mt-auto"
->
-  ❌ Clear
+> Reset
 </button>
   </div>
 </div>
+</div>
+
+
 </div>
         
         
