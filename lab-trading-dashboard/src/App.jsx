@@ -893,6 +893,19 @@ function showCopyPopup(text) {
           .map((trade, index) => formatTradeData(trade, index));
         break;
 
+        case "Hedge_Running_pl":
+        result = tradeData
+          .filter(trade => trade.Hedge === true && trade.Type === "running")
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+
+        case "Hedge_Closed_pl":
+        result = tradeData
+          .filter(trade => trade.Hedge === true && trade.Type === "close")
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+
+
         case "Close_in_Profit":
           result = tradeData
             .filter(trade => trade.Type === "close" && trade.Pl_after_comm > 0)
@@ -1152,7 +1165,10 @@ Operator_Trade_Time: formatDateTime(trade.Operator_Trade_time),
   Swing2: safeFixed(trade.Swing2, 6),
   Swing3: safeFixed(trade.Swing3, 6),
   Swing4: safeFixed(trade.Swing4, 6),
-  Swing5: safeFixed(trade.Swing5, 6)
+  Swing5: safeFixed(trade.Swing5, 6),
+  HSHighP : safeFixed(trade.Hedge_Swing_High_Point, 6),
+  HSLowP : safeFixed(trade.Hedge_Swing_Low_Point, 6)  
+
 });
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
@@ -1323,6 +1339,9 @@ const getFilteredForTitle = useMemo(() => {
     if (trade.Type === "close" && trade.Commision_journey && !trade.Profit_journey) pushTo("Closed_After_Comission_Point");
     if (trade.Type === "close" && trade.Pl_after_comm < 0) pushTo("Close_in_Loss");
     if (trade.Hedge) pushTo("Total_Hedge");
+    if (trade.Hedge && trade.Type === "running") pushTo("Hedge_Running_pl");
+    if (trade.Hedge && trade.Type === "close") pushTo("Hedge_Closed_pl");
+
 
     if (trade.Type === "close" && trade.Pl_after_comm > 0) pushTo("Close_in_Profit");
     if (trade.Type === "close" && trade.Profit_journey) pushTo("Close_After_Profit_Journey");
