@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Home, BarChart, Users, FileText, Menu, X, Plus, Space } from "lucide-react";
 import Datetime from 'react-datetime';
 import "react-datetime/css/react-datetime.css";
@@ -37,45 +37,47 @@ const SidebarItem = ({ icon: Icon, text, isOpen }) => (
   </li>
 );
 
-const DashboardCard = ({ title, value, isSelected, onClick, filteredTradeData }) =>  {
+const DashboardCard = ({ title, value, isSelected, onClick }) =>  {
 
-const [actionRadioMode, setActionRadioMode] = useState(false);
-const [selectedActions, setSelectedActions] = useState({
-  BUY: true,
-  SELL: true,
-});
-const [includeMinClose, setIncludeMinClose] = useState(true);
-
-  const formatValue = (val) => {
-    return val.split(/([+-]?[\d.]+)/g).map((part) => {
-      if (!isNaN(part) && part.trim() !== "") {
-        // ✅ Number Formatting
-        const num = parseFloat(part);
-        const colorClass = num < 0 ? "text-red-400" : "text-green-300";
-        return `<span class="${colorClass}">${part}</span>`; // ✅ Return as STRING
-      } else if (["+", "=", "$", "/"].includes(part.trim())) {
-        // ✅ Signs/Operators Formatting
-        return `<span class="text-white">${part}</span>`;
-      } else {
-        return part;
-      }
-    }).join(""); // ✅ Join into one string
-  };
+  const [actionRadioMode, setActionRadioMode] = useState(false);
+  const [selectedActions, setSelectedActions] = useState({
+    BUY: true,
+    SELL: true,
+  });
+  const [includeMinClose, setIncludeMinClose] = useState(true);
+  
+    const formatValue = (val) => {
+      return val.split(/([+-]?[\d.]+)/g).map((part) => {
+        if (!isNaN(part) && part.trim() !== "") {
+          // ✅ Number Formatting
+          const num = parseFloat(part);
+          const colorClass = num < 0 ? "text-red-400" : "text-green-300";
+          return `<span class="${colorClass}">${part}</span>`; // ✅ Return as STRING
+        } else if (["+", "=", "$", "/"].includes(part.trim())) {
+          // ✅ Signs/Operators Formatting
+          return `<span class="text-white">${part}</span>`;
+        } else {
+          return part;
+        }
+      }).join(""); // ✅ Join into one string
+    };
  
   return (
     <div
-  className={`cursor-pointer p-6 rounded-2xl border transition-all duration-300 transform
-    ${isSelected
-      ? "bg-gradient-to-br from-blue-900 to-green-500 scale-[1.03] shadow-lg ring-4 ring-yellow-600 border-yellow-700 text-gray-900"
-      : "bg-gradient-to-br from-blue-800 to-indigo-900 hover:scale-[1.03] hover:shadow-xl hover:ring-4 hover:ring-yellow-400/60 hover:border-yellow-500/70 text-white"}`}
-  onClick={onClick}
->
+      className={`cursor-pointer p-6 rounded-2xl border transition-all duration-300 transform
+        ${isSelected
+          ? "bg-gradient-to-br from-blue-900 to-green-500 scale-[1.03] shadow-lg ring-4 ring-yellow-600 border-yellow-700 text-gray-900"
+          : "bg-gradient-to-br from-blue-800 to-indigo-900 hover:scale-[1.03] hover:shadow-xl hover:ring-4 hover:ring-yellow-400/60 hover:border-yellow-500/70 text-white"}`}
+      onClick={onClick}
+    >
       {/* ✅ Title with sky blue color */}
       <h2 className="text-lg font-semibold text-center text-blue-400">{title.replace(/_/g, " ")}</h2>
-      
-        
       {/* ✅ Properly formatted value using dangerouslySetInnerHTML */}
-      <p className="text-2xl font-bold text-center" dangerouslySetInnerHTML={{ __html: formatValue(String(value)) }}></p>
+      <p className="text-base font-semibold text-center">
+        {typeof value === "string"
+          ? <span dangerouslySetInnerHTML={{ __html: formatValue(value) }} />
+          : value}
+      </p>
     </div>
   );
 };
@@ -88,14 +90,29 @@ const [includeMinClose, setIncludeMinClose] = useState(true);
 
 
 
-const TableView = ({ title, tradeData, clientData, logData }) => {
+const TableView = ({ title, tradeData, clientData, logData, activeSubReport, setActiveSubReport }) => {
+  // Optimized sub-report click handler
+  const handleSubReportClick = useCallback((type, normalizedTitle) => {
+    if (normalizedTitle === "Client_Stats") {
+      const filtered = clientData.filter(c => c.MachineId === type);
+      setFilteredData(filtered.map((client, index) => ({
+        "S No": index + 1,
+        "Machine ID": client.MachineId || "N/A",
+        "Client Name": client.Name || "N/A",
+        "Active": client.Active ? "✅" : "❌",
+        "Last Ping": client.LastPing || "N/A",
+        "Region": client.Region || "N/A",
+      })));
+    } else {
+      setActiveSubReport(type);
+    }
+  }, [clientData]);
 
   
   const [filteredData, setFilteredData] = useState([]);
   const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
   const [selectedRow, setSelectedRow] = useState(null);
   const [activeFilters, setActiveFilters] = useState({});
-  const [activePopupIndex, setActivePopupIndex] = useState(null);
 
   function updateFilterIndicators() {
     document.querySelectorAll("th .filter-icon").forEach((icon) => {
@@ -134,7 +151,6 @@ function showFilterPopup(index, event) {
   popup.style.gap = "8px";
 
   const checkboxes = [];
-
   // Reset Button
   const reset = document.createElement("button");
   reset.innerText = "♻️ Reset Column";
@@ -217,7 +233,6 @@ function showFilterPopup(index, event) {
 
 
 function showCopyPopup(text, x, y) {
-  console.log("✅ showCopyPopup fired", text, x, y);
 
   let popup = document.getElementById("copyPopup");
   if (!popup) {
@@ -262,7 +277,6 @@ function showCopyPopup(text, x, y) {
     });
 
     document.body.appendChild(popup);
-    console.log("✅ Popup created and added to DOM", popup);
   }
 
   // ✅ Calculate safe position
@@ -270,7 +284,6 @@ function showCopyPopup(text, x, y) {
   const screenHeight = window.innerHeight;
 
   if (x < 10 || x > screenWidth - 10 || y < 10 || y > screenHeight - 10) {
-    console.log("⚡ Invalid Rect detected → Using Mouse position");
     document.addEventListener("mousemove", (ev) => {
       popup.style.left = `${ev.clientX}px`;
       popup.style.top = `${ev.clientY}px`;
@@ -303,7 +316,6 @@ useEffect(() => {
     if (!selection) return;
 
     const text = selection.toString().trim();
-    console.log("👉 Selected Text:", text);
 
     if (!text) {
       const existingPopup = document.getElementById("copyPopup");
@@ -311,7 +323,6 @@ useEffect(() => {
       return;
     }
 
-    console.log("✅ Proceeding to show popup");
 
     setTimeout(() => {
       try {
@@ -322,7 +333,6 @@ useEffect(() => {
 
         showCopyPopup(text, x, y);
       } catch (err) {
-        console.log("❌ Error calculating range", err);
       }
     }, 0);
   };
@@ -354,9 +364,6 @@ useEffect(() => {
 
 
 
-const toggleFilterPopup = (index) => {
-  setActiveFilterPopup(prev => (prev === index ? null : index));
-};
 const filteredAndSortedData = useMemo(() => {
   // First apply filters
   let data = [...filteredData];
@@ -409,14 +416,14 @@ const filteredAndSortedData = useMemo(() => {
   
     const result = tradeData.map((trade, index) => formatTradeData(trade, index));
     setFilteredData(result);
-  }, [title, tradeData]);
+  }, [title, tradeData, activeSubReport]);
 
   const handleOpenReport = (title, sortedData) => {
     if (!sortedData || sortedData.length === 0) return;
     const reportWindow = window.open("", "_blank", "width=1200,height=600");
     const tableHeaders = Object.keys(sortedData[0]);
 
-    const reportContent = `
+     const reportContent = `
   <html>
   <head>
   <title>${title.replace(/_/g, " ")} Report</title>
@@ -460,8 +467,12 @@ const filteredAndSortedData = useMemo(() => {
 
   function renderTable(){
     document.getElementById("headerRow").innerHTML = tableHeaders.map((key,index)=>{
+      let stickyStyle = "";
+      if (index === 0) stickyStyle = "min-width:80px;max-width:80px;";
+      if (index === 1) stickyStyle = "min-width:100px;max-width:100px;";
+      if (index === 2) stickyStyle = "min-width:220px;max-width:220px;";
       const stickyClass = index < 3 ? "sticky-col-"+(index+1) : "";
-      return "<th class='"+stickyClass+"' data-index='"+index+"'><div style='display:flex;justify-content:space-between;align-items:center;'><span>"+key+"</span><span onclick='sortTable("+index+")' style='cursor:pointer;color:orange;'>🔼</span><span class='filter-icon' onclick='showFilterPopup("+index+")' style='cursor:pointer;'>🔍</span></div></th>";
+      return "<th class='"+stickyClass+"' data-index='"+index+"' style='"+stickyStyle+"'><div style='display:flex;justify-content:space-between;align-items:center;'><span>"+key+"</span><span onclick='sortTable("+index+")' style='cursor:pointer;color:orange;'>🔼</span><span class='filter-icon' onclick='showFilterPopup("+index+")' style='cursor:pointer;'>🔍</span></div></th>";
     }).join("");
 
     document.getElementById("tableBody").innerHTML = tableData.map(row=>{
@@ -790,19 +801,6 @@ function showCopyPopup(text) {
 };
 
 
-// ✅ SAFE to render fallback after all hooks
-// if (!tradeData || tradeData.length === 0) {
-//   return <p className="text-center text-gray-500 mt-4">⚠️ No data available for {title}</p>;
-// }
-
-
-  // ✅ SORT FUNCTION
-  const sortTable = (key) => {
-    setSortConfig((prevConfig) => {
-      const direction = prevConfig.key === key && prevConfig.direction === "asc" ? "desc" : "asc";
-      return { key, direction };
-    });
-  };
   
 
   const handleSort = (key) => {
@@ -815,134 +813,97 @@ function showCopyPopup(text) {
   
   useEffect(() => {
     if (!tradeData || tradeData.length === 0) return;
-  
-    let result = [];
     
+    let result = [];
+
     switch (title) {
-
-      case "Profit_+_Loss_=_Total_Profit $":
-      result = tradeData
-        .map((trade, index) => formatTradeData(trade, index));
-      break;
-
-    case "Profit_+_Loss_=_Closed_Profit $":
-      result = tradeData
-      .filter(trade => trade.Type === "close")
-        .map((trade, index) => formatTradeData(trade, index));
-      break;
-      
-    case "Profit_+_Loss_=_Running_Profit $":
-      result = tradeData
-      .filter(trade => trade.Type === "running")
-        .map((trade, index) => formatTradeData(trade, index));
-      break;
-      
-      case "Total_Trades":
-        result = tradeData.map((trade, index) => formatTradeData(trade, index));
-        break;
-  
-      case "Running_/_Total_Buy":
+      case "Profit_Stats":
         result = tradeData
-          .filter(trade => trade.Action === "BUY" && trade.Type === "running")
+          .filter((trade) => {
+            if (activeSubReport === "running") return trade.Type === "running";
+            if (activeSubReport === "close") return trade.Type === "close";
+            return true;
+          })
           .map((trade, index) => formatTradeData(trade, index));
         break;
-  
-      case "Running_/_Total_Sell":
+      case "Count_Stats":
         result = tradeData
-          .filter(trade => trade.Action === "SELL" && trade.Type === "running")
+          .filter((trade) => {
+            if (activeSubReport === "loss") return trade.Type === "close" && trade.Pl_after_comm < 0;
+            if (activeSubReport === "profit") return trade.Type === "close" && trade.Pl_after_comm > 0;
+            if (activeSubReport === "pj") return trade.Type === "close" && trade.Profit_journey === true;
+            return true;
+          })
           .map((trade, index) => formatTradeData(trade, index));
         break;
-  
-      case "Assign_/_Running_/_Closed Count":
-        result = tradeData.map((trade, index) => formatTradeData(trade, index));
-        break;
-  
-      case "Comission_Point_Crossed":
+      case "Hedge_Stats":
         result = tradeData
-          .filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Profit_journey === false && trade.Type === "running" )
+          .filter((trade) => {
+            if (!trade.Hedge) return false;
+            if (activeSubReport === "running") return trade.Hedge_1_1_bool === false && trade.Type === "running";
+            if (activeSubReport === "holding") return trade.Hedge_1_1_bool === true && trade.Type === "running";
+            if (activeSubReport === "closed") return trade.Type === "hedge_close";
+            return true;
+          })
           .map((trade, index) => formatTradeData(trade, index));
         break;
-  
-      case "Profit_Journey_Crossed":
+      case "Buy_Sell_Stats":
         result = tradeData
-          .filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" )
+          .filter((trade) => {
+            if (!["BUY", "SELL"].includes(trade.Action)) return false;
+            if (activeSubReport === "buy") return trade.Action === "BUY";
+            if (activeSubReport === "sell") return trade.Action === "SELL";
+            return true;
+          })
           .map((trade, index) => formatTradeData(trade, index));
         break;
-  
-      case "Below_Commision_Point":
+      case "Journey_Stats":
         result = tradeData
-          .filter(trade =>  trade.Pl_after_comm < 0 && trade.Type === "running" )
+          .filter((trade) => {
+            if (activeSubReport === "pj") return trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running";
+            if (activeSubReport === "cj") return trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && !trade.Profit_journey;
+            if (activeSubReport === "bc") return trade.Pl_after_comm < 0 && trade.Type === "running";
+            return true;
+          })
           .map((trade, index) => formatTradeData(trade, index));
         break;
-  
-      case "Closed_After_Comission_Point":
-        result = tradeData
-          .filter(trade => trade.Type === "close" && trade.Commision_journey === true)
-          .map((trade, index) => formatTradeData(trade, index));
+      case "Client_Stats":
+        result = clientData.map((client, index) => ({
+          "S No": index + 1,
+          "Machine ID": client.MachineId || "N/A",
+          "Client Name": client.Name || "N/A",
+          "Active": client.Active ? "✅" : "❌",
+          "Last Ping": client.LastPing || "N/A",
+          "Region": client.Region || "N/A",
+        }));
         break;
-  
-      case "Close_in_Loss":
-        result = tradeData
-          .filter(trade => trade.Type === "close" && trade.Pl_after_comm < 0)
-          .map((trade, index) => formatTradeData(trade, index));
-        break;
-
-        case "Total_Hedge":
-        result = tradeData
-          .filter(trade => trade.Hedge === true)
-          .map((trade, index) => formatTradeData(trade, index));
-        break;
-
-        case "Hedge_Running_pl":
-        result = tradeData
-          .filter(trade => trade.Hedge === true && trade.Type === "running")
-          .map((trade, index) => formatTradeData(trade, index));
-        break;
-
-        case "Hedge_Closed_pl":
-        result = tradeData
-          .filter(trade => trade.Hedge === true && trade.Type === "close")
-          .map((trade, index) => formatTradeData(trade, index));
-        break;
-
-
-        case "Close_in_Profit":
-          result = tradeData
-            .filter(trade => trade.Type === "close" && trade.Pl_after_comm > 0)
-            .map((trade, index) => formatTradeData(trade, index));
-          break;
-  
-      case "Close_After_Profit_Journey":
-        result = tradeData
-          .filter(trade => trade.Type === "close" && trade.Profit_journey === true)
-          .map((trade, index) => formatTradeData(trade, index));
-        break;
-
-
-      case "Close_Curve_in_Loss":
-        result = tradeData
-        .filter(trade => trade.Type === "close" && trade.Commision_journey === true && trade.Pl_after_comm < 0 )
-        .map((trade, index) => formatTradeData(trade, index));
-      break;
       case "Min_Close_Profit":
         result = tradeData
-        .filter(trade => trade.Type === "close" && trade.Min_close === "Min_close" && trade.Pl_after_comm > 0 )
-        .map((trade, index) => formatTradeData(trade, index));
-      break;
+          .filter(
+            (trade) =>
+              trade.Type === "close" &&
+              trade.Min_close === "Min_close" &&
+              trade.Pl_after_comm > 0
+          )
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
       case "Min_Close_Loss":
         result = tradeData
-        .filter(trade => trade.Type === "close" && trade.Min_close === "Min_close" && trade.Pl_after_comm < 0 )
-        .map((trade, index) => formatTradeData(trade, index));
-      break;
-
-  
+          .filter(
+            (trade) =>
+              trade.Type === "close" &&
+              trade.Min_close === "Min_close" &&
+              trade.Pl_after_comm < 0
+          )
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
       default:
         result = [];
     }
-  
     setFilteredData(result);
-  }, [title, tradeData]);
+  }, [title, tradeData, activeSubReport, clientData]);
 
+  // Add conditional early return to prevent unnecessary rendering
   if (!tradeData || tradeData.length === 0) {
     return <p className="text-center text-gray-500 mt-4">⚠️ No data available for {title}</p>;
   }
@@ -987,7 +948,7 @@ return (
     className="px-3 py-2 border rounded-md w-64 text-sm"
   />
 
-  {/* Export to Excel */}
+{/* <div className="flex items-center gap-4 mb-4"> */}
   <button
     onClick={() => {
       const wb = XLSX.utils.book_new();
@@ -1000,7 +961,6 @@ return (
     📥 Export to Excel
   </button>
 
-  {/* Reset Filter */}
   <button
     onClick={() => {
       setActiveFilters({});
@@ -1010,6 +970,53 @@ return (
   >
     ♻️ Reset Filters
   </button>
+{(() => {
+  const normalizedTitle = title.replace(/\s+/g, "_").trim();
+  let options = [];
+
+  switch (normalizedTitle) {
+    case "Profit_Stats":
+      options = ["running", "close", "total"];
+      break;
+    case "Hedge_Stats":
+      options = ["running", "holding", "closed"];
+      break;
+    case "Count_Stats":
+      options = ["loss", "profit", "pj"];
+      break;
+    case "Buy_Sell_Stats":
+      options = ["buy", "sell"];
+      break;
+    case "Journey_Stats":
+      options = ["pj", "cj", "bc"];
+      break;
+    case "Client_Stats":
+      options = machines.map(machine => machine.MachineId);
+      break;
+    default:
+      options = [];
+  }
+
+  return options.length > 0 ? (
+    <div className="flex gap-2 mb-2">
+      {options.map((type) => (
+        <button
+          key={type}
+          onClick={() => handleSubReportClick(type, normalizedTitle)}
+          className={`px-3 py-1 text-sm rounded transition-all duration-150 ease-in-out ${
+            activeSubReport === type
+              ? "bg-yellow-600 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          {type.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  ) : null;
+})()}
+  
+{/* </div> */}
     {/* ✅ Table with Sorting */}
     <div className="overflow-auto max-h-[600px] border border-gray-300 rounded-lg">
       <table className="w-full border-collapse">
@@ -1126,29 +1133,29 @@ const formatDateTime = (val) => {
 
 const formatTradeData = (trade, index) => ({
   "S No": index + 1,
-  MachineId: trade.MachineId || "N/A",
+  "M.Id": trade.MachineId || "N/A",
   Unique_ID: trade.Unique_id || "N/A",
 
-  Candle_Time: formatDateTime(trade.Candel_time),
-Fetcher_Trade_Time: formatDateTime(trade.Fetcher_Trade_time),
-Operator_Trade_Time: formatDateTime(trade.Operator_Trade_time),
+  "Candle_🕒": formatDateTime(trade.Candel_time),
+"Fetcher_🕒": formatDateTime(trade.Fetcher_Trade_time),
+"Operator_🕒": formatDateTime(trade.Operator_Trade_time),
   Pair: trade.Pair || "N/A",
-  Interval: trade.Interval || "N/A",
-  Action: trade.Action || "N/A",
+  "⏱️": trade.Interval || "N/A",
+  "💼": trade.Action || "N/A",
   CJ: trade.Commision_journey ? "✅" : "❌",
   PL: trade.Pl_after_comm != null ? parseFloat(trade.Pl_after_comm.toFixed(2)) : "N/A",
   PJ: trade.Profit_journey ? "✅" : "❌",
   Type: trade.Type || "N/A",
-  Operator_Close_Time: formatDateTime(trade.Operator_Close_time),
-  Signal_From: trade.SignalFrom || "N/A",
-  Min_close: trade.Min_close,
+  "Operator_🕒": formatDateTime(trade.Operator_Close_time),
+  "📡": trade.SignalFrom || "N/A",
+  Min: trade.Min_close,
   Stop_Price: safeFixed(trade.Stop_price, 6),
   Save_Price: safeFixed(trade.Save_price, 6),
   Min_Comm: safeFixed(trade.Min_comm, 6),
-  Hedge: trade.Hedge ? "✅ Yes" : "❌ No",
-  Hedge_1_1_Bool: trade.Hedge_1_1_bool ? "✅ Yes" : "❌ No",
-  Hedge_Order_Size: trade.Hedge_order_size || "N/A",
-  Min_Comm_After_Hedge: safeFixed(trade.Min_comm_after_hedge, 6),
+  "🛡️": trade.Hedge ? "✅ Yes" : "❌ No",
+  "🛡️1-1": trade.Hedge_1_1_bool ? "✅ Yes" : "❌ No",
+  "🛡️_Order_Size": trade.Hedge_order_size || "N/A",
+  "Min_Comm_After_🛡️": safeFixed(trade.Min_comm_after_hedge, 6),
   Min_Profit: safeFixed(trade.Min_profit, 2, "$"),
   Buy_Qty: trade.Buy_qty || 0,
   Buy_Price: safeFixed(trade.Buy_price, 6),
@@ -1181,6 +1188,7 @@ const Dashboard = () => {
   const [signalRadioMode, setSignalRadioMode] = useState(false);
   const [machineRadioMode, setMachineRadioMode] = useState(false);
   const [includeMinClose, setIncludeMinClose] = useState(true);
+  const [activeSubReport, setActiveSubReport] = useState("running");
   const [signalToggleAll, setSignalToggleAll] = useState(() => {
     const saved = localStorage.getItem("selectedSignals");
     if (saved) {
@@ -1228,6 +1236,19 @@ const [selectedActions, setSelectedActions] = useState({
   BUY: true,
   SELL: true,
 });
+
+// Sync selectedActions when actionRadioMode changes (radio-mode behavior)
+useEffect(() => {
+  if (actionRadioMode) {
+    const selected = Object.keys(selectedActions).find((key) => selectedActions[key]);
+    if (selected) {
+      const updated = { BUY: false, SELL: false };
+      updated[selected] = true;
+      setSelectedActions(updated);
+      localStorage.setItem("selectedActions", JSON.stringify(updated));
+    }
+  }
+}, [actionRadioMode]);
 const [selectedIntervals, setSelectedIntervals] = useState({
   "1m": true,
   "3m": true,
@@ -1342,7 +1363,6 @@ const getFilteredForTitle = useMemo(() => {
     if (trade.Hedge && trade.Type === "running") pushTo("Hedge_Running_pl");
     if (trade.Hedge && trade.Type === "close") pushTo("Hedge_Closed_pl");
 
-
     if (trade.Type === "close" && trade.Pl_after_comm > 0) pushTo("Close_in_Profit");
     if (trade.Type === "close" && trade.Profit_journey) pushTo("Close_After_Profit_Journey");
     if (trade.Type === "close" && trade.Commision_journey && trade.Pl_after_comm < 0) pushTo("Close_Curve_in_Loss");
@@ -1352,7 +1372,17 @@ const getFilteredForTitle = useMemo(() => {
       if (trade.Pl_after_comm < 0) pushTo("Min_Close_Loss");
     }
 
-    pushTo("Profit_+_Loss_=_Total_Profit $");
+    pushTo("Profit_Stats");
+    pushTo("Count_Stats");
+    if (trade.Hedge === true) pushTo("Hedge_Stats");
+
+    // --- ADD: Buy_Sell_Stats logic
+    if (["BUY", "SELL"].includes(trade.Action)) pushTo("Buy_Sell_Stats");
+
+    // --- ADD: Journey_Stats logic (fix missing)
+    if (trade.Type === "running" && trade.Pl_after_comm > 0 && trade.Profit_journey === true) pushTo("Journey_Stats");
+    if (trade.Type === "running" && trade.Pl_after_comm > 0 && trade.Commision_journey === true && !trade.Profit_journey) pushTo("Journey_Stats");
+    if (trade.Type === "running" && trade.Pl_after_comm < 0) pushTo("Journey_Stats");
   });
 
   return memo;
@@ -1388,40 +1418,89 @@ const getFilteredForTitle = useMemo(() => {
             .filter(trade => trade.Type === "close")
             .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const runningProfit = totalProfit - closedProfit;
+
+        const buyRunning = filteredTradeData.filter(t => t.Action === "BUY" && t.Type === "running").length;
+        const buyTotal = filteredTradeData.filter(t => t.Action === "BUY").length;
+        const sellRunning = filteredTradeData.filter(t => t.Action === "SELL" && t.Type === "running").length;
+        const sellTotal = filteredTradeData.filter(t => t.Action === "SELL").length;
+
         const hedgePlusRunning = filteredTradeData
-        .filter(trade => trade.Pl_after_comm > 0 & trade.Hedge === true & trade.Type === "running") // ✅ Correct field reference
+        .filter(trade => trade.Pl_after_comm > 0 & trade.Hedge === true & trade.Hedge_1_1_bool === true) // ✅ Correct field reference
         .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const hedgeMinusRunning = filteredTradeData
-          .filter(trade => trade.Pl_after_comm < 0 & trade.Hedge === true & trade.Type === "running")
-          .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0); 
-          const hedgePlusClose = filteredTradeData
-          .filter(trade => trade.Pl_after_comm > 0 & trade.Hedge === true & trade.Type === "close") // ✅ Correct field reference
-          .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
-          const hedgeMinusClose = filteredTradeData
-            .filter(trade => trade.Pl_after_comm < 0 & trade.Hedge === true & trade.Type === "close")
-            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0); 
-          const hedgeClosedProfit = filteredTradeData
-            .filter(trade => trade.Type === "close" & trade.Hedge === true & trade.Type === "close")
+          .filter(trade => trade.Pl_after_comm < 0 & trade.Hedge === true & trade.Hedge_1_1_bool === true)
+          .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);   
+        const hedgeRunningProfit = filteredTradeData
+            .filter(trade => trade.Type === "running" & trade.Hedge === true & trade.Hedge_1_1_bool === true)
             .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
-          const hedgeRunningProfit = filteredTradeData
-            .filter(trade => trade.Type === "running" & trade.Hedge === true & trade.Type === "running")
-            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
-  
 
-       
+        const hedgeActiveRunningPlus = filteredTradeData
+        .filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === false & trade.Pl_after_comm > 0)
+        .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
+        const hedgeActiveRunningMinus = filteredTradeData 
+        .filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === false & trade.Pl_after_comm < 0)
+        .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
+        const hedgeActiveRunningTotal = filteredTradeData
+        .filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === false)
+        .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
+
+        const hedgeClosedPlus = filteredTradeData
+        .filter(trade => trade.Type === "hedge_close" & trade.Pl_after_comm > 0)
+        .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
+        const hedgeClosedMinus = filteredTradeData
+        .filter(trade => trade.Type === "hedge_close" & trade.Hedge_1_1_bool === false & trade.Pl_after_comm < 0)
+        .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
+        const hedgeClosedTotal = filteredTradeData
+        .filter(trade => trade.Type === "hedge_close" & trade.Hedge_1_1_bool === false )
+        .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         
-        // console.log("Trades Data:", trades);
-        // console.log("Total profit : ", totalProfit);
-        // console.log("Total Investment Calculation:", totalInvestment);
-        // console.log("Total profit journey:", trades.filter(trade => trade.Profit_journey === false ).length);
-        // console.log("Profit after closing trades:", closedProfit); // ✅ DEBUG LOG
-        // console.log("Profit after closing trades:", runningProfit); // ✅ DEBUG LOG
-        // console.log("🔍 Selected Signals:", selectedSignals);
-        // console.log("🔍 Selected Machines:", selectedMachines);
-// Min_close
-// : 
-// "Min_close"
-        console.log("🔍 Filtered Trade Data:", filteredTradeData);  
+        const runningTotalDisplay = (
+          <>
+            Buy =&gt; {buyRunning} / {buyTotal} <br />
+            Sell =&gt; {sellRunning} / {sellTotal} <br />
+            </>
+            );
+
+        const pj_cj_bc = (
+          <>
+          <span className="text-xs font-semibold opacity-40">PJ-</span>
+<span className="text-green-300">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
+<span className="text-xs font-semibold opacity-40"> / CJ-</span>
+<span className="text-yellow-300">{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
+<span className="text-xs font-semibold opacity-40"> / BC-</span>
+<span className="text-red-400">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
+          </>
+        );
+
+        const totalClient = (
+          <>
+          Clients : {machines.filter(machine => machine.Active).length} / {machines.length}
+          </>
+        );
+
+        const minCloseProfitVlaue = filteredTradeData
+          .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0)
+          .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)
+        
+        const minCloseProfit = (
+          <>
+          Min Close Profit: <span className="text-green-300">{filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
+           = $ <span className={`${minCloseProfitVlaue >= 0 ? "text-green-300" : "text-red-400"}`}>{minCloseProfitVlaue}</span>
+          </>
+        );
+        
+        const minCloseLossVlaue = filteredTradeData
+          .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0)
+          .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)
+        
+        const minCloseLoss = (
+          <>
+          Min Close Loss: <span className="text-red-400">{filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
+           = $ <span className={`${minCloseLossVlaue >= 0 ? "text-green-300" : "text-red-400"}`}>{minCloseLossVlaue}</span>
+          </>
+        );
+
+        // console.log("🔍 Filtered Trade Data:", filteredTradeData);  
 
 
         // 🔹 Format dates for comparison
@@ -1434,49 +1513,38 @@ const getFilteredForTitle = useMemo(() => {
         setMetrics(prevMetrics => ({
           ...prevMetrics, 
 
-          "Profit_+_Loss_=_Total_Profit $": `${plus.toFixed(2)} + ${minus.toFixed(2)} = ${totalProfit.toFixed(2)}`,
-          "Profit_+_Loss_=_Closed_Profit $": `${closePlus.toFixed(2)} + ${closeMinus.toFixed(2)} = ${closedProfit.toFixed(2)}`, // ✅ NEW DATA ADDED
-          "Profit_+_Loss_=_Running_Profit $": `${runningPlus.toFixed(2)} + ${runningMinus.toFixed(2)} = ${runningProfit.toFixed(2)}`, // ✅ NEW DATA ADDE
-          Total_Clients: `${machines.filter(machine => machine.Active).length} / ${machines.length}`,
-          Total_Trades: filteredTradeData.length,
-          "Running_/_Total_Buy": `${filteredTradeData.filter(trade => trade.Action === "BUY" && trade.Type === "running").length} / ${filteredTradeData.filter(trade => trade.Action === "BUY").length}`,
-          "Running_/_Total_Sell": `${filteredTradeData.filter(trade => trade.Action === "SELL" && trade.Type === "running").length}  /  ${filteredTradeData.filter(trade => trade.Action === "SELL").length}`,
-          // profit_journey: trades.filter(trade => trade.Profit_journey).length,
-           // todays_count: trades.filter(trade => trade.Candle_time && trade.Candle_time.startsWith(today)).length, // ✅ FIXED
-          "Assign_/_Running_/_Closed Count": `${filteredTradeData.filter(trade => trade.Type === "assign").length} / ${filteredTradeData.filter(trade => trade.Type === "running").length} / ${filteredTradeData.filter(trade => trade.Type === "close").length}`,
-          // yesterdays_count: trades.filter(trade => trade.Candle_time && trade.Candle_time.startsWith(yesterdayDate)).length, // ✅ FIXED
-          // Comission_Journey_Crossed : filteredTradeData.filter(trade => trade.Commision_journey === true  ).length,
-          Profit_Journey_Crossed: filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running"  ).length,
-          Comission_Point_Crossed: filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length,
-          Below_Commision_Point: filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running" ).length,
-          Closed_After_Comission_Point: filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Type === "close" && trade.Profit_journey === false ).length,
-          Close_in_Loss : filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length,
-          Close_in_Profit : filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length,
-          Close_After_Profit_Journey: filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close" ).length,
-          // Hedge_Count: trades.filter(trade => trade.Hedge).length,
+       
           
-          Min_Close_Profit : `${filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0).length} 
-          = $${filteredTradeData
-            .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0)
-            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
-          Total_Hedge: `${filteredTradeData.filter(trade => trade.Hedge === true &&  trade.Type === "running").length} / ${filteredTradeData.filter(trade => trade.Hedge === true && trade.Type === "close").length}`,
-          Hedge_Running_pl : `${hedgePlusRunning.toFixed(2)} + ${hedgeMinusRunning.toFixed(2)} = ${hedgeRunningProfit.toFixed(2)}`,
-          Hedge_Closed_pl : `${hedgePlusClose.toFixed(2)} + ${hedgeMinusClose.toFixed(2)} = ${hedgeClosedProfit.toFixed(2)}`,
           
-          // Hedge_Close_pl: `${hedgePlusClose.toFixed(2)} + ${hedgeMinusClose.toFixed(2)} = ${hedgeRunningClose.toFixed(2)}`,
-          // Total_Investment: isNaN(totalInvestment) ? "$0" : `$${totalInvestment.toFixed(2)}`,
-          // Investment_Available: isNaN(investmentAvailable) ? "$0" : `$${investmentAvailable.toFixed(2)}`,
-          // Close_Curve_in_Loss : `${filteredTradeData.filter(trade => trade.Pl_after_comm < 0  &&  trade.Type === "close" && trade.Commision_journey === true).length} / $${filteredTradeData
-          //   .filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close" && trade.Commision_journey === true)// ✅ Correct field reference
-          //   .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
-          
-          Min_Close_Loss : `${filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0).length} 
-          = $${filteredTradeData
-            .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0)
-            .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)}`,
-        }));
-        
-   
+     "Profit_Stats": (
+            <>
+              {filteredTradeData.filter(trade => trade.Type === "assign").length}✨{filteredTradeData.filter(trade => trade.Type === "running").length}🏃‍♂️  : <span className="text-green-300">{runningPlus.toFixed(2)}</span> + <span className="text-red-400">{runningMinus.toFixed(2)}</span> = <span className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{runningProfit.toFixed(2)}</span><br />
+              {filteredTradeData.filter(trade => trade.Type === "close").length}🔒  : <span className="text-green-300">{closePlus.toFixed(2)}</span> + <span className="text-red-400">{closeMinus.toFixed(2)}</span> = <span className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{closedProfit.toFixed(2)}</span><br />
+              {filteredTradeData.length}📈  : <span className="text-green-300">{plus.toFixed(2)}</span> + <span className="text-red-400">{minus.toFixed(2)}</span> = <span className={`${totalProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{totalProfit.toFixed(2)}</span>
+            </>
+          ),
+           "Hedge_Stats": (
+              <>
+                  {filteredTradeData.filter(trade => trade.Hedge_1_1_bool === false & trade.Hedge === true & trade.Type === "running" ).length}🏃‍♂️ : <span className="text-green-300">{hedgeActiveRunningPlus.toFixed(2)}</span> + <span className="text-red-400">{hedgeActiveRunningMinus.toFixed(2)}</span> = <span className={`${hedgeActiveRunningTotal >= 0 ? "text-green-300" : "text-red-400"}`}>{hedgeActiveRunningTotal.toFixed(2)}</span><br />
+                 {filteredTradeData.filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === true).length}🔒  : <span className="text-green-300">{hedgePlusRunning.toFixed(2)}</span> + <span className="text-red-400">{hedgeMinusRunning.toFixed(2)}</span> = <span className={`${hedgeRunningProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{hedgeRunningProfit.toFixed(2)}</span><br />
+                  {filteredTradeData.filter(trade => trade.Hedge === true & trade.Type === "hedge_close").length }📈  : <span className="text-green-300">{hedgeClosedPlus.toFixed(2)}</span> + <span className="text-red-400">{hedgeClosedMinus.toFixed(2)}</span> = <span className={`${hedgeClosedTotal >= 0 ? "text-green-300" : "text-red-400"}`}>{hedgeClosedTotal.toFixed(2)}</span>
+              </>
+            ),
+      "Buy_Sell_Stats": runningTotalDisplay ,
+
+      "Count_Stats": (
+              <>
+                ❌ Loss Count : {filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}<br />
+                ✅ Profit Count : {filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}<br />
+                🚀 After PJ Count : {filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}
+              </>
+            ), 
+     
+      "Journey_Stats" : pj_cj_bc,
+      "Client_Stats" : totalClient,
+      "Min_Close_Profit": minCloseProfit,
+      "Min_Close_Loss": minCloseLoss,
+        }));  
 }, [tradeData, selectedSignals, selectedMachines, selectedIntervals, selectedActions, fromDate, toDate, includeMinClose]);
 
 useEffect(() => {
@@ -1507,31 +1575,45 @@ useEffect(() => {
     setSelectedMachines(JSON.parse(savedMachines));
   }
 }, []);
-const toggleInterval = (interval) => {
+// Optimized toggle handlers
+const toggleMachine = useCallback((machineId) => {
+  setSelectedMachines(prev => {
+    const updated = { ...prev, [machineId]: !prev[machineId] };
+    localStorage.setItem("selectedMachines", JSON.stringify(updated));
+    return updated;
+  });
+}, []);
+
+const toggleInterval = useCallback((interval) => {
   setSelectedIntervals(prev => {
     const updated = { ...prev, [interval]: !prev[interval] };
     localStorage.setItem("selectedIntervals", JSON.stringify(updated));
     return updated;
   });
-};
+}, []);
 
-  const toggleBox = (title) => {
-                                    setSelectedBox(selectedBox === title ? null : title);
-                                        };
-  const toggleSignal = (signal) => {
+const toggleAction = useCallback((action) => {
+  setSelectedActions(prev => {
+    const updated = { ...prev, [action]: !prev[action] };
+    localStorage.setItem("selectedActions", JSON.stringify(updated));
+    return updated;
+  });
+}, []);
+
+const toggleBox = (cardTitle) => {
+  const normalized = cardTitle.trim().replace(/\s+/g, "_");
+  const data = getFilteredForTitle[normalized];
+
+  setSelectedBox((prevSelected) => {
+    const normalizedPrev = (prevSelected || "").trim().replace(/\s+/g, "_");
+    return normalizedPrev === normalized || !data ? null : normalized;
+  });
+};
+const toggleSignal = (signal) => {
   setSelectedSignals(prev => {
     const updatedSignals = { ...prev, [signal]: !prev[signal] };
     localStorage.setItem("selectedSignals", JSON.stringify(updatedSignals)); // ✅ Save instantly
     return updatedSignals;
-  });
-  };
-
-  
-const toggleMachine = (machineId) => {
-  setSelectedMachines(prev => {
-      const updatedMachines = { ...prev, [machineId]: !prev[machineId] };
-      localStorage.setItem("selectedMachines", JSON.stringify(updatedMachines)); // ✅ Save instantly
-      return updatedMachines;
   });
 };
 useEffect(() => {
@@ -1546,7 +1628,8 @@ useEffect(() => {
       localStorage.setItem("selectedSignals", JSON.stringify(updated));
     }
   }
-}, [signalRadioMode]);      
+}, [signalRadioMode]);   
+
 useEffect(() => {
   if (intervalRadioMode) {
     const selected = Object.keys(selectedIntervals).find(key => selectedIntervals[key]);
@@ -1633,7 +1716,7 @@ return (
   
 </div>
         </div>
-       {/* ✅ Machine Filter with Mode Toggle */}
+       
 <div className="flex flex-col space-y-2 mb-4">
   <div className="flex items-center space-x-2">
     <span className="font-semibold text-gray-800">Machine :</span>
@@ -1893,29 +1976,58 @@ return (
         {/* ✅ Dashboard Cards */}
         {metrics && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Object.entries(metrics).map(([title, value]) => (
-              <DashboardCard 
-              key={title} 
-              title={title} 
-              value={value} 
-              isSelected={selectedBox === title} 
-              onClick={() => toggleBox(title)} 
-              filteredTradeData={filteredTradeData} // ✅ Add this line if DashboardCard uses it!
-            />
-            ))}
+            {Object.entries(metrics).map(([title, value]) => {
+              const normalizedKey = title.trim().replace(/\s+/g, "_");
+              return (
+                <DashboardCard
+                  key={normalizedKey}
+                  title={title}
+                  value={value}
+                  isSelected={selectedBox === normalizedKey}
+                  onClick={() => {
+                    const hasData = getFilteredForTitle[normalizedKey];
+                    setSelectedBox(prev =>
+                      prev === normalizedKey || !hasData ? null : normalizedKey
+                    );
+                  }}
+                  filteredTradeData={filteredTradeData}
+                />
+              );
+            })}
           </div>
         )}
+        {/* ✅ Machine Filter with Mode Toggle */}
         
+        {/* --- Render metrics/cards here as before --- */}
+        {/* ✅ TableView always rendered below dashboard, default to Total Profit if nothing selected */}
+        <div className="mt-6">
+        {selectedBox && (() => {
+          const normalizedKey = selectedBox?.trim().replace(/\s+/g, "_");
+          const data = getFilteredForTitle[normalizedKey];
+          if (data && data.length > 0) {
+            return (
+              <div className="mt-6">
+                <TableView
+  title={selectedBox}
+  tradeData={data}
+  clientData={clientData}
+  logData={logData}
+  activeSubReport={activeSubReport}
+  setActiveSubReport={setActiveSubReport}
+/>
+              </div>
+            );
+          } else {
+            return (
+              <p className="text-center text-gray-500 mt-4">
+                ⚠️ No relevant data available for {selectedBox.replace(/_/g, " ")}
+              </p>
+            );
+          }
+        })()}
+        </div>
         {/* ✅ Data Table */}
-        
-        {selectedBox && (
-  <TableView 
-    title={selectedBox} 
-    tradeData={getFilteredForTitle[selectedBox] || []}
-    clientData={clientData || []}
-    logData={logData || []}
-  />
-)}
+        {/* (removed duplicate TableView block) */}
 
       </div>
     </div>
@@ -1924,3 +2036,4 @@ return (
 };
 
 export default Dashboard;
+  
