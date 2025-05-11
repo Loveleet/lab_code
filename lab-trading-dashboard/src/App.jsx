@@ -64,7 +64,7 @@ const DashboardCard = ({ title, value, isSelected, onClick }) =>  {
  
   return (
     <div
-      className={`cursor-pointer p-6 rounded-2xl border transition-all duration-300 transform
+      className={`cursor-pointer p-8 rounded-2xl border transition-all duration-300 transform
         ${isSelected
           ? "bg-gradient-to-br from-blue-900 to-green-500 scale-[1.03] shadow-lg ring-4 ring-yellow-600 border-yellow-700 text-gray-900"
           : "bg-gradient-to-br from-blue-800 to-indigo-900 hover:scale-[1.03] hover:shadow-xl hover:ring-4 hover:ring-yellow-400/60 hover:border-yellow-500/70 text-white"}`}
@@ -1530,7 +1530,7 @@ const getFilteredForTitle = useMemo(() => {
                   {filteredTradeData.filter(trade => trade.Hedge === true & trade.Type === "hedge_close").length }📈  : <span className="text-green-300">{hedgeClosedPlus.toFixed(2)}</span> + <span className="text-red-400">{hedgeClosedMinus.toFixed(2)}</span> = <span className={`${hedgeClosedTotal >= 0 ? "text-green-300" : "text-red-400"}`}>{hedgeClosedTotal.toFixed(2)}</span>
               </>
             ),
-      "Buy_Sell_Stats": runningTotalDisplay ,
+      
 
       "Count_Stats": (
               <>
@@ -1539,7 +1539,7 @@ const getFilteredForTitle = useMemo(() => {
                 🚀 After PJ Count : {filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}
               </>
             ), 
-     
+     "Buy_Sell_Stats": runningTotalDisplay ,
       "Journey_Stats" : pj_cj_bc,
       "Client_Stats" : totalClient,
       "Min_Close_Profit": minCloseProfit,
@@ -1975,7 +1975,7 @@ return (
         
         {/* ✅ Dashboard Cards */}
         {metrics && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {Object.entries(metrics).map(([title, value]) => {
               const normalizedKey = title.trim().replace(/\s+/g, "_");
               return (
