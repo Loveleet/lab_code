@@ -2056,7 +2056,7 @@ return (
   </div>
   
 </div>
-  <span className="text-green-600 text-[25px] font-bold block text-center mb-1">
+  <span className="text-green-600 text-[20px] font-bold block text-center mb-1">
                 ➤ Assigned New: {filteredTradeData.filter(trade => trade.Type === "assign").length}
               </span>
 </div>
