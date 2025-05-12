@@ -1518,9 +1518,9 @@ const getFilteredForTitle = useMemo(() => {
           
      "Profit_Stats": (
             <>
-              {filteredTradeData.filter(trade => trade.Type === "assign").length}-✨&nbsp;&nbsp;&nbsp;{filteredTradeData.filter(trade => trade.Type === "running").length}-🏃‍♂️&nbsp; <span className="text-green-300">{runningPlus.toFixed(2)}</span> &nbsp;&nbsp;+ &nbsp;&nbsp;<span className="text-red-400">{runningMinus.toFixed(2)}</span>&nbsp;&nbsp; = &nbsp;&nbsp;<span className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{runningProfit.toFixed(2)}</span><br />
-              {filteredTradeData.filter(trade => trade.Type === "close").length}-🔒&nbsp;&nbsp;&nbsp;<span className="text-green-300">{closePlus.toFixed(2)}</span> &nbsp;&nbsp;+&nbsp;&nbsp; <span className="text-red-400">{closeMinus.toFixed(2)}</span> &nbsp;&nbsp;=&nbsp;&nbsp; <span className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{closedProfit.toFixed(2)}</span><br />
-              {filteredTradeData.length}-📈 &nbsp;&nbsp;&nbsp; <span className="text-green-300">{plus.toFixed(2)}</span> &nbsp;&nbsp;+ &nbsp;&nbsp;<span className="text-red-400">{minus.toFixed(2)}</span> &nbsp;&nbsp;=&nbsp;&nbsp; <span className={`${totalProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{totalProfit.toFixed(2)}</span>
+              {filteredTradeData.filter(trade => trade.Type === "assign").length}-✨&nbsp;&nbsp;&nbsp;{filteredTradeData.filter(trade => trade.Type === "running").length}-🏃‍♂️&nbsp; <span className="text-green-300">{runningPlus.toFixed(2)}</span> &nbsp;+ &nbsp;<span className="text-red-400">{runningMinus.toFixed(2)}</span>&nbsp;&nbsp; = &nbsp;&nbsp;<span className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{runningProfit.toFixed(2)}</span><br />
+              {filteredTradeData.filter(trade => trade.Type === "close").length}-🔒&nbsp;&nbsp;&nbsp;<span className="text-green-300">{closePlus.toFixed(2)}</span> &nbsp;+&nbsp; <span className="text-red-400">{closeMinus.toFixed(2)}</span> &nbsp;&nbsp;=&nbsp;&nbsp; <span className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{closedProfit.toFixed(2)}</span><br />
+              {filteredTradeData.length}-📈 &nbsp;&nbsp;&nbsp; <span className="text-green-300">{plus.toFixed(2)}</span> &nbsp;+ &nbsp;<span className="text-red-400">{minus.toFixed(2)}</span> &nbsp;&nbsp;=&nbsp;&nbsp; <span className={`${totalProfit >= 0 ? "text-green-300" : "text-red-400"}`}>{totalProfit.toFixed(2)}</span>
             </>
           ),
            "Hedge_Stats": (
