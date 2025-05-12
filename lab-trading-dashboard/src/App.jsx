@@ -879,8 +879,8 @@ function showCopyPopup(text) {
       case "Profit_Stats":
         result = tradeData
           .filter((trade) => {
-            if (activeSubReport === "running") return trade.Type === "running";
-            if (activeSubReport === "close") return trade.Type === "close";
+            if (activeSubReport === "running") return trade.Type === "running" & trade.Hedge === false;
+            if (activeSubReport === "close") return trade.Type === "close" || trade.Type === "hedge_close";
             if (activeSubReport === "assign") return trade.Type === "assign";
             
             return true;
@@ -1308,6 +1308,7 @@ const Dashboard = () => {
   const [machineRadioMode, setMachineRadioMode] = useState(false);
   const [includeMinClose, setIncludeMinClose] = useState(true);
   const [activeSubReport, setActiveSubReport] = useState("running");
+  const [layoutOption, setLayoutOption] = useState(3); // default 3 cards per row
   const [signalToggleAll, setSignalToggleAll] = useState(() => {
     const saved = localStorage.getItem("selectedSignals");
     if (saved) {
@@ -1522,21 +1523,23 @@ const getFilteredForTitle = useMemo(() => {
           .filter(trade => trade.Pl_after_comm < 0) // ✅ Correct field reference
           .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0); // ✅ Consistent field usage
         const closePlus = filteredTradeData
-          .filter(trade => trade.Pl_after_comm > 0 & trade.Type === "close") // ✅ Correct field reference
+          .filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close" ) // ✅ Correct field reference
           .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const closeMinus = filteredTradeData
-          .filter(trade => trade.Pl_after_comm < 0 & trade.Type === "close") // ✅ Correct field reference
+          .filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close"  ) // ✅ Correct field reference
           .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const runningPlus = filteredTradeData
-          .filter(trade => trade.Pl_after_comm > 0 & trade.Type === "running") // ✅ Correct field reference
+          .filter(trade => trade.Pl_after_comm > 0 & trade.Type === "running" & trade.Hedge === false) // ✅ Correct field reference
           .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const runningMinus = filteredTradeData
-          .filter(trade => trade.Pl_after_comm < 0 & trade.Type === "running") // ✅ Correct field reference
+          .filter(trade => trade.Pl_after_comm < 0 & trade.Type === "running" & trade.Hedge === false) // ✅ Correct field reference
           .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const closedProfit = filteredTradeData
             .filter(trade => trade.Type === "close")
             .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
-        const runningProfit = totalProfit - closedProfit;
+        const runningProfit = filteredTradeData
+        .filter(trade => trade.Hedge === false & trade.Type === "running")
+        .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
 
         const buyRunning = filteredTradeData.filter(t => t.Action === "BUY" && t.Type === "running").length;
         const buyTotal = filteredTradeData.filter(t => t.Action === "BUY").length;
@@ -1554,7 +1557,7 @@ const getFilteredForTitle = useMemo(() => {
             .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
 
         const hedgeActiveRunningPlus = filteredTradeData
-        .filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === false & trade.Pl_after_comm > 0)
+        .filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === false & trade.Pl_after_comm > 0 & trade.Type === "running")
         .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const hedgeActiveRunningMinus = filteredTradeData 
         .filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === false & trade.Pl_after_comm < 0)
@@ -1567,7 +1570,7 @@ const getFilteredForTitle = useMemo(() => {
         .filter(trade => trade.Type === "hedge_close" & trade.Pl_after_comm > 0)
         .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const hedgeClosedMinus = filteredTradeData
-        .filter(trade => trade.Type === "hedge_close" & trade.Hedge_1_1_bool === false & trade.Pl_after_comm < 0)
+        .filter(trade => trade.Type === "hedge_close" & trade.Pl_after_comm < 0)
         .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const hedgeClosedTotal = filteredTradeData
         .filter(trade => trade.Type === "hedge_close" & trade.Hedge_1_1_bool === false )
@@ -1638,7 +1641,7 @@ const getFilteredForTitle = useMemo(() => {
           Profit_Stats: (
             <>
               <span title="Running Count" className="text-[28px]">
-                {filteredTradeData.filter(trade => trade.Type === "running").length}
+                {filteredTradeData.filter(trade => trade.Type === "running" & trade.Hedge === false).length}
               </span>
               <span className="text-[18px] font-semibold opacity-70">-🏃‍♂️</span>&nbsp;
               <span title="Running Profit +" className="text-green-300 text-[28px]">
@@ -1657,22 +1660,22 @@ const getFilteredForTitle = useMemo(() => {
               </span>
               <br />
               <span title="Closed Count" className="text-[28px]">
-                {filteredTradeData.filter(trade => trade.Type === "close").length}
+                {filteredTradeData.filter(trade => trade.Type === "close" || trade.Type === "hedge_close").length}
               </span>
               <span className="text-[18px] font-semibold opacity-70">-🔒</span>&nbsp;&nbsp;&nbsp;
               <span title="Closed Profit +" className="text-green-300 text-[28px]">
-                {closePlus.toFixed(2)}
+                {(closePlus + hedgeClosedPlus).toFixed(2)}
               </span>
               &nbsp;+&nbsp;
               <span title="Closed Profit -" className="text-red-400 text-[28px]">
-                {closeMinus.toFixed(2)}
+                {(closeMinus + hedgeClosedMinus).toFixed(2)}
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
                 className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}
                 title="Closed Profit Total"
               >
-                {closedProfit.toFixed(2)}
+                {((closePlus + hedgeClosedPlus)+(closeMinus + hedgeClosedMinus)).toFixed(2)}
               </span>
               <br />
               <span title="Total Trades Count" className="text-[28px]">
@@ -1680,18 +1683,18 @@ const getFilteredForTitle = useMemo(() => {
               </span>
               <span className="text-[18px] font-semibold opacity-70">-📈</span> &nbsp;&nbsp;&nbsp;
               <span title="Total Profit +" className="text-green-300 text-[28px]">
-                {plus.toFixed(2)}
+                {(plus + hedgeClosedPlus + hedgePlusRunning ).toFixed(2)}
               </span>
               &nbsp;+&nbsp;
               <span title="Total Profit -" className="text-red-400 text-[28px]">
-                {minus.toFixed(2)}
+                {(minus + hedgeClosedMinus + hedgeMinusRunning).toFixed(2)}
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
                 className={`${totalProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}
                 title="Total Profit Sum"
               >
-                {totalProfit.toFixed(2)}
+                {(((plus + hedgeClosedPlus + hedgePlusRunning )+(minus + hedgeClosedMinus + hedgeMinusRunning))).toFixed(2)}
               </span>
             </>
           ),
@@ -2123,6 +2126,7 @@ return (
             : "bg-green-600 hover:bg-green-700"
         }`}
       >
+        
         {Object.values(selectedActions).every(val => val) ? "❌ Uncheck" : "✅>------All"}
       </button>
     )}
@@ -2227,7 +2231,21 @@ return (
   </div>
   
 </div>
- 
+ <div className="flex items-left ml-6 space-x-3">
+  <span className="font-semibold text-gray-800">Layout:</span>
+  {[1, 2, 3, 4].map((num) => (
+    <label key={num} className="flex items-center space-x-1">
+      <input
+        type="radio"
+        name="layout"
+        checked={layoutOption === num}
+        onChange={() => setLayoutOption(num)}
+        className="form-radio h-4 w-4 text-blue-500"
+      />
+      <span className="text-sm text-gray-800">{num}</span>
+    </label>
+  ))}
+</div>
 </div>
  
 
@@ -2236,7 +2254,7 @@ return (
         
         {/* ✅ Dashboard Cards */}
         {metrics && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className={`grid gap-8 ${layoutOption === 1 ? "grid-cols-1" : layoutOption === 2 ? "grid-cols-2" : layoutOption === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
             {Object.entries(metrics).map(([title, value]) => {
               const normalizedKey = title.trim().replace(/\s+/g, "_");
               return (
