@@ -958,6 +958,7 @@ return (
   </button>
 
   <button
+  
     onClick={() => {
       setActiveFilters({});
       setFilteredData(tradeData);
@@ -965,7 +966,10 @@ return (
     className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
   >
     ♻️ Reset Filters
+    
   </button>
+
+  
 {(() => {
   const normalizedTitle = title.replace(/\s+/g, "_").trim();
   let options = [];
@@ -992,6 +996,9 @@ return (
     default:
       options = [];
   }
+  
+
+  
 
   return options.length > 0 ? (
     <div className="flex gap-2 mb-2">
@@ -1504,14 +1511,17 @@ const getFilteredForTitle = useMemo(() => {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayDate = yesterday.toISOString().split("T")[0];
+        // const Assigned = <><span className="text-[36px]">{filteredTradeData.filter(trade => trade.Type === "assign").length}</span>
+        //      <span className="text-[25px] font-semibold opacity-70">-✨</span>&nbsp;&nbsp;&nbsp;</>
 
         // 🔹 Set Metrics (Dashboard Data)
+        // ... existing code above remains unchanged
+
         setMetrics(prevMetrics => ({
-          ...prevMetrics, 
-          "Profit_Stats": (
+          ...prevMetrics,
+          Profit_Stats: (
             <>
-              <span className="text-[36px]">{filteredTradeData.filter(trade => trade.Type === "assign").length}</span>
-             <span className="text-[25px] font-semibold opacity-70">-✨</span>&nbsp;&nbsp;&nbsp;
+              
               <span className="text-[36px]">{filteredTradeData.filter(trade => trade.Type === "running").length}</span>
               <span className="text-[25px] font-semibold opacity-70">-🏃‍♂️</span>&nbsp;
               <span className="text-green-300 text-[36px]">{runningPlus.toFixed(2)}</span>
@@ -1537,7 +1547,7 @@ const getFilteredForTitle = useMemo(() => {
               <span className={`${totalProfit >= 0 ? "text-green-300" : "text-red-400"} text-[36px]`}>{totalProfit.toFixed(2)}</span>
             </>
           ),
-          "Hedge_Stats": (
+          Hedge_Stats: (
             <>
               <span className="text-[36px]">{filteredTradeData.filter(trade => trade.Hedge_1_1_bool === false & trade.Hedge === true & trade.Type === "running" ).length}</span>
               <span className="text-[25px] font-semibold opacity-70">-🏃‍♂️</span> &nbsp;&nbsp;&nbsp;
@@ -1564,7 +1574,7 @@ const getFilteredForTitle = useMemo(() => {
               <span className={`${hedgeClosedTotal >= 0 ? "text-green-300" : "text-red-400"} text-[36px]`}>{hedgeClosedTotal.toFixed(2)}</span>
             </>
           ),
-          "Count_Stats": (
+          Count_Stats: (
             <>
               <span className="text-[25px] font-semibold opacity-70">❌ &nbsp;&nbsp;Loss&nbsp;&nbsp; Count :&nbsp;&nbsp;</span> <span className="text-[36px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}</span>
               <br />
@@ -1573,7 +1583,7 @@ const getFilteredForTitle = useMemo(() => {
              <span className="text-[25px] font-semibold opacity-70"> 🚀 &nbsp;&nbsp;After&nbsp;&nbsp; PJ&nbsp;&nbsp; Count :&nbsp;&nbsp;</span><span className="text-[36px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
             </>
           ),
-          "Buy_Sell_Stats": (
+          Buy_Sell_Stats: (
             <>
               <span className="text-[25px] font-semibold opacity-70">Buy &nbsp;&nbsp;=&gt;&nbsp;&nbsp;</span>
               <span className="text-[36px]">{buyRunning}</span>
@@ -1587,7 +1597,7 @@ const getFilteredForTitle = useMemo(() => {
               <br />
             </>
           ),
-          "Journey_Stats": (
+          Journey_Stats: (
             <>
               <span className="text-[28px] font-semibold opacity-70">PJ -</span>
               <span className="text-green-300 text-[36px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
@@ -1597,7 +1607,7 @@ const getFilteredForTitle = useMemo(() => {
               <span className="text-red-400 text-[36px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
             </>
           ),
-          "Client_Stats": (
+          Client_Stats: (
             <>
              <span className="text-[25px] font-semibold opacity-70"> Clients&nbsp;&nbsp; : &nbsp;&nbsp;</span>
               <span className="text-[36px]">{machines.filter(machine => machine.Active).length}</span>
@@ -1605,7 +1615,7 @@ const getFilteredForTitle = useMemo(() => {
               <span className="text-[36px]">{machines.length}</span>
             </>
           ),
-          "Min_Close_Profit": (
+          Min_Close_Profit: (
             <>
              <span className="text-[25px] font-semibold opacity-70"> Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp;</span>
               <span className="text-green-300 text-[36px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
@@ -1613,7 +1623,7 @@ const getFilteredForTitle = useMemo(() => {
               <span className={`${minCloseProfitVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[36px]`}>{minCloseProfitVlaue}</span>
             </>
           ),
-          "Min_Close_Loss": (
+          Min_Close_Loss: (
             <>
              <span className="text-[25px] font-semibold opacity-70"> Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp;</span>
               <span className="text-red-400 text-[36px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
@@ -2042,8 +2052,13 @@ return (
   className="bg-yellow-600 text-white px-4 py-2 rounded mt-auto"
 > Reset
 </button>
+
   </div>
+  
 </div>
+  <span className="text-green-600 text-[30px] font-bold block text-center mb-1">
+                ➤ Assigned New: {filteredTradeData.filter(trade => trade.Type === "assign").length}
+              </span>
 </div>
 
 
