@@ -37,25 +37,82 @@ const SidebarItem = ({ icon: Icon, text, isOpen }) => (
   </li>
 );
 
+import { useRef } from "react";
 const DashboardCard = ({ title, value, isSelected, onClick }) =>  {
-  const [actionRadioMode, setActionRadioMode] = useState(false);
-  const [selectedActions, setSelectedActions] = useState({
-    BUY: true,
-    SELL: true,
-  });
-  const [includeMinClose, setIncludeMinClose] = useState(true);
-
-  // Remove any hardcoded font-size like text-[120px] from here
+  // Remove localHovered state, useRef instead if needed in future
+  // Use title attribute for tooltips on number spans
   const formatValue = (val) => {
-    return val.split(/([+-]?[\d.]+)/g).map((part) => {
+    let numberIndex = 0;
+    return val.split(/([+-]?[\d.]+)/g).map((part, index) => {
       if (!isNaN(part) && part.trim() !== "") {
         const num = parseFloat(part);
         const colorClass = num < 0 ? "text-red-400" : "text-green-300";
-        return `<span class="${colorClass} px-[3px] font-semibold text-[38px]">${part}</span>`;
+        numberIndex++;
+        // Tooltip mapping for number spans (running, closed, total)
+        // Handlers for single tooltip reuse
+        return (
+          <span
+            key={index}
+            className={`relative px-[3px] font-semibold text-[46px] ${colorClass}`}
+            onMouseEnter={(e) => {
+              const tooltipMap = ["Running", "Closed", "Total"];
+              let tooltip = window.dashboardTooltip;
+
+              if (!tooltip) {
+                tooltip = document.createElement("div");
+                tooltip.id = "dashboardTooltip";
+                tooltip.style.cssText = `
+                  position: fixed;
+                  background: #222;
+                  color: #fff;
+                  padding: 6px 12px;
+                  border-radius: 5px;
+                  font-size: 18px;
+                  font-weight: 600;
+                  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                  z-index: 9999;
+                  pointer-events: none;
+                  opacity: 0;
+                  transition: opacity 0.1s ease;
+                `;
+                document.body.appendChild(tooltip);
+                window.dashboardTooltip = tooltip;
+              }
+
+              tooltip.innerText = tooltipMap[numberIndex - 1] || "";
+              tooltip.style.left = `${e.clientX + 10}px`;
+              tooltip.style.top = `${e.clientY + 10}px`;
+              tooltip.style.opacity = "0";
+              requestAnimationFrame(() => {
+                tooltip.style.display = "block";
+                requestAnimationFrame(() => {
+                  tooltip.style.opacity = "1";
+                });
+              });
+            }}
+            onMouseMove={(e) => {
+              if (window.dashboardTooltip) {
+                window.dashboardTooltip.style.left = `${e.clientX + 10}px`;
+                window.dashboardTooltip.style.top = `${e.clientY + 10}px`;
+              }
+            }}
+            onMouseLeave={() => {
+              if (window.dashboardTooltip) {
+                window.dashboardTooltip.style.display = "none";
+              }
+            }}
+          >
+            {part}
+          </span>
+        );
       } else {
-        return `<span class="text-white text-sm px-[1px] opacity-80">${part}</span>`;
+        return (
+          <span key={index} className="text-white text-sm px-[1px] opacity-80">
+            {part}
+          </span>
+        );
       }
-    }).join("");
+    });
   };
 
   return (
@@ -68,10 +125,16 @@ const DashboardCard = ({ title, value, isSelected, onClick }) =>  {
     >
       {/* ✅ Title with sky blue color */}
       <h2 className="text-lg font-semibold text-center text-blue-400">{title.replace(/_/g, " ")}</h2>
-      {/* ✅ Properly formatted value using dangerouslySetInnerHTML */}
+      {/* ✅ Properly formatted value using JSX with tooltips */}
       <p className="text-2xl font-bold text-center leading-snug whitespace-nowrap overflow-x-auto">
         {typeof value === "string"
-          ? <span className="text-[22px] leading-snug inline-block min-w-full"><span dangerouslySetInnerHTML={{ __html: formatValue(value) }} /></span>
+          ? (
+            <span className="text-[22px] leading-snug inline-block min-w-full pointer-events-none">
+              <div className="flex flex-wrap justify-end gap-[3px] pointer-events-auto" style={{ pointerEvents: "auto" }}>
+                {formatValue(value)}
+              </div>
+            </span>
+          )
           : value}
       </p>
     </div>
@@ -818,6 +881,8 @@ function showCopyPopup(text) {
           .filter((trade) => {
             if (activeSubReport === "running") return trade.Type === "running";
             if (activeSubReport === "close") return trade.Type === "close";
+            if (activeSubReport === "assign") return trade.Type === "assign";
+            
             return true;
           })
           .map((trade, index) => formatTradeData(trade, index));
@@ -910,7 +975,7 @@ function showCopyPopup(text) {
 
   switch (normalizedTitle) {
     case "Profit_Stats":
-      options = ["running", "close", "total"];
+      options = ["running", "close", "total", "assign"];
       break;
     case "Hedge_Stats":
       options = ["running", "holding", "closed"];
@@ -1027,7 +1092,7 @@ return (
 
   switch (normalizedTitle) {
     case "Profit_Stats":
-      options = ["running", "close", "total"];
+      options = ["running", "close", "total", "assign"];
       break;
     case "Hedge_Stats":
       options = ["running", "holding", "closed"];
@@ -1572,57 +1637,104 @@ const getFilteredForTitle = useMemo(() => {
           ...prevMetrics,
           Profit_Stats: (
             <>
-              
-              <span className="text-[28px]">{filteredTradeData.filter(trade => trade.Type === "running").length}</span>
+              <span title="Running Count" className="text-[28px]">
+                {filteredTradeData.filter(trade => trade.Type === "running").length}
+              </span>
               <span className="text-[18px] font-semibold opacity-70">-🏃‍♂️</span>&nbsp;
-              <span className="text-green-300 text-[28px]">{runningPlus.toFixed(2)}</span>
+              <span title="Running Profit +" className="text-green-300 text-[28px]">
+                {runningPlus.toFixed(2)}
+              </span>
               &nbsp;+&nbsp;
-              <span className="text-red-400 text-[28px]">{runningMinus.toFixed(2)}</span>
+              <span title="Running Profit -" className="text-red-400 text-[28px]">
+                {runningMinus.toFixed(2)}
+              </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
-              <span className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}>{runningProfit.toFixed(2)}</span>
+              <span
+                className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}
+                title="Running Profit Total"
+              >
+                {runningProfit.toFixed(2)}
+              </span>
               <br />
-              <span className="text-[28px]">{filteredTradeData.filter(trade => trade.Type === "close").length}</span>
+              <span title="Closed Count" className="text-[28px]">
+                {filteredTradeData.filter(trade => trade.Type === "close").length}
+              </span>
               <span className="text-[18px] font-semibold opacity-70">-🔒</span>&nbsp;&nbsp;&nbsp;
-              <span className="text-green-300 text-[28px]">{closePlus.toFixed(2)}</span>
+              <span title="Closed Profit +" className="text-green-300 text-[28px]">
+                {closePlus.toFixed(2)}
+              </span>
               &nbsp;+&nbsp;
-              <span className="text-red-400 text-[28px]">{closeMinus.toFixed(2)}</span>
+              <span title="Closed Profit -" className="text-red-400 text-[28px]">
+                {closeMinus.toFixed(2)}
+              </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
-              <span className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}>{closedProfit.toFixed(2)}</span>
+              <span
+                className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}
+                title="Closed Profit Total"
+              >
+                {closedProfit.toFixed(2)}
+              </span>
               <br />
-              <span className="text-[28px]">{filteredTradeData.length}</span>
+              <span title="Total Trades Count" className="text-[28px]">
+                {filteredTradeData.length}
+              </span>
               <span className="text-[18px] font-semibold opacity-70">-📈</span> &nbsp;&nbsp;&nbsp;
-              <span className="text-green-300 text-[28px]">{plus.toFixed(2)}</span>
+              <span title="Total Profit +" className="text-green-300 text-[28px]">
+                {plus.toFixed(2)}
+              </span>
               &nbsp;+&nbsp;
-              <span className="text-red-400 text-[28px]">{minus.toFixed(2)}</span>
+              <span title="Total Profit -" className="text-red-400 text-[28px]">
+                {minus.toFixed(2)}
+              </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
-              <span className={`${totalProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}>{totalProfit.toFixed(2)}</span>
+              <span
+                className={`${totalProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}
+                title="Total Profit Sum"
+              >
+                {totalProfit.toFixed(2)}
+              </span>
             </>
           ),
           Hedge_Stats: (
             <>
-              <span className="text-[28px]">{filteredTradeData.filter(trade => trade.Hedge_1_1_bool === false & trade.Hedge === true & trade.Type === "running" ).length}</span>
+              <span
+                className="text-[28px]"
+                title="Running Hedge Count"
+              >
+                {filteredTradeData.filter(trade => trade.Hedge_1_1_bool === false & trade.Hedge === true & trade.Type === "running").length}
+              </span>
               <span className="text-[18px] font-semibold opacity-70">-🏃‍♂️</span> &nbsp;&nbsp;&nbsp;
-              <span className="text-green-300 text-[28px]">{hedgeActiveRunningPlus.toFixed(2)}</span>
+              <span className="text-green-300 text-[28px]" title="Running Hedge Profit +">{hedgeActiveRunningPlus.toFixed(2)}</span>
               &nbsp;+&nbsp;
-              <span className="text-red-400 text-[28px]">{hedgeActiveRunningMinus.toFixed(2)}</span>
+              <span className="text-red-400 text-[28px]" title="Running Hedge Profit -">{hedgeActiveRunningMinus.toFixed(2)}</span>
               &nbsp;&nbsp;= &nbsp;&nbsp;
-              <span className={`${hedgeActiveRunningTotal >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}>{hedgeActiveRunningTotal.toFixed(2)}</span>
+              <span className={`${hedgeActiveRunningTotal >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`} title="Running Hedge Profit Total">{hedgeActiveRunningTotal.toFixed(2)}</span>
               <br />
-              <span className="text-[28px]">{filteredTradeData.filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === true).length}</span>
-             <span className="text-[18px] font-semibold opacity-70">-🔒</span>  &nbsp;&nbsp;&nbsp;
-              <span className="text-green-300 text-[28px]">{hedgePlusRunning.toFixed(2)}</span>
+              <span
+                className="text-[28px]"
+                title="Hedge 1-1 Count"
+              >
+                {filteredTradeData.filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === true).length}
+              </span>
+              <span className="text-[18px] font-semibold opacity-70">-🔒</span>  &nbsp;&nbsp;&nbsp;
+              <span className="text-green-300 text-[28px]" title="Hedge 1-1 Profit +">{hedgePlusRunning.toFixed(2)}</span>
               &nbsp;+&nbsp;
-              <span className="text-red-400 text-[28px]">{hedgeMinusRunning.toFixed(2)}</span>
+              <span className="text-red-400 text-[28px]" title="Hedge 1-1 Profit -">{hedgeMinusRunning.toFixed(2)}</span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
-              <span className={`${hedgeRunningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}>{hedgeRunningProfit.toFixed(2)}</span>
+              <span className={`${hedgeRunningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`} title="Hedge 1-1 Profit Total">{hedgeRunningProfit.toFixed(2)}</span>
               <br />
-              <span className="text-[28px]">{filteredTradeData.filter(trade => trade.Hedge === true & trade.Type === "hedge_close").length}</span>
+              <span
+                className="text-[28px]"
+                title="Closed Hedge Count"
+              >
+                {filteredTradeData.filter(trade => trade.Hedge === true & trade.Type === "hedge_close").length}
+              </span>
               <span className="text-[18px] font-semibold opacity-70">-📈</span> &nbsp;&nbsp;&nbsp;
-              <span className="text-green-300 text-[28px]">{hedgeClosedPlus.toFixed(2)}</span>
+              <span className="text-green-300 text-[28px]" title="Closed Hedge Profit +">{hedgeClosedPlus.toFixed(2)}</span>
               &nbsp;+&nbsp;
-              <span className="text-red-400 text-[28px]">{hedgeClosedMinus.toFixed(2)}</span>
+              <span className="text-red-400 text-[28px]" title="Closed Hedge Profit -">{hedgeClosedMinus.toFixed(2)}</span>
               &nbsp;&nbsp;= &nbsp;&nbsp;
-              <span className={`${hedgeClosedTotal >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}>{hedgeClosedTotal.toFixed(2)}</span>
+              <span className={`${hedgeClosedTotal >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`} title="Closed Hedge Profit Total">{hedgeClosedTotal.toFixed(2)}</span>
             </>
           ),
           Count_Stats: (
@@ -2048,9 +2160,9 @@ return (
       </label>
     ))}
     
-    <span className="text-green-600 text-[18px] font-bold block text-left mb-1">
-                ➤ Assigned New: {filteredTradeData.filter(trade => trade.Type === "assign").length}
-              </span>
+    <span className="text-green-600 text-[16px] font-bold block text-left mb-1">
+                ➤ Assigned New:</span> <span className="text-red-600 text-[28px] font-bold block text-left mb-1">{filteredTradeData.filter(trade => trade.Type === "assign").length}</span>
+              
   </div>
   
 </div>
