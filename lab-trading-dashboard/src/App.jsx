@@ -1990,10 +1990,15 @@ return (
             className="form-checkbox h-5 w-5 text-pink-600"
           />
         )}
+        
         <span className="text-gray-700 font-semibold">{action}</span>
       </label>
     ))}
+    <span className="text-green-600 text-[25px] font-bold block text-left mb-1">
+                ➤ Assigned New: {filteredTradeData.filter(trade => trade.Type === "assign").length}
+              </span>
   </div>
+  
 </div>
 <div className="flex items-center mb-4 gap-x-8">
   <button
@@ -2056,11 +2061,9 @@ return (
   </div>
   
 </div>
-  <span className="text-green-600 text-[20px] font-bold block text-center mb-1">
-                ➤ Assigned New: {filteredTradeData.filter(trade => trade.Type === "assign").length}
-              </span>
+ 
 </div>
-
+ 
 
 </div>
         
