@@ -1588,12 +1588,12 @@ const getFilteredForTitle = useMemo(() => {
 
         const pj_cj_bc = (
           <>
-            <span className="text-[28px] font-semibold opacity-70">PJ -</span>
-            <span className="text-green-300 text-[28px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
-            <span className="text-[28px] font-semibold opacity-70"> / CJ -</span>
+            <span className="text-[35px] font-semibold opacity-70">PJ -</span>
+            <span className="text-green-300 text-[35px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
+            <span className="text-[35px] font-semibold opacity-70"> / CJ -</span>
             <span className="text-yellow-300 text-[28px]">{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
-            <span className="text-[28px] font-semibold opacity-70"> / BC -</span>
-            <span className="text-red-400 text-[28px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
+            <span className="text-[35px] font-semibold opacity-70"> / BC -</span>
+            <span className="text-red-400 text-[35px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
           </>
         );
 
@@ -1633,8 +1633,8 @@ const getFilteredForTitle = useMemo(() => {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayDate = yesterday.toISOString().split("T")[0];
-        // const Assigned = <><span className="text-[28px]">{filteredTradeData.filter(trade => trade.Type === "assign").length}</span>
-        //      <span className="text-[18px] font-semibold opacity-70">-✨</span>&nbsp;&nbsp;&nbsp;</>
+        // const Assigned = <><span className="text-[35px]">{filteredTradeData.filter(trade => trade.Type === "assign").length}</span>
+        //      <span className="text-[30px] font-semibold opacity-70">-✨</span>&nbsp;&nbsp;&nbsp;</>
 
         // 🔹 Set Metrics (Dashboard Data)
         // ... existing code above remains unchanged
@@ -1643,25 +1643,25 @@ const getFilteredForTitle = useMemo(() => {
           ...prevMetrics,
           Profit_Stats: (
           <>
-            <span title="Running Count (only Direct)" className="text-[28px]">
+            <span title="Running Count (only Direct)" className="text-[35px]">
                 {filteredTradeData.filter(trade => trade.Type === "running" & trade.Hedge === false).length}
               </span>
               
 &nbsp;&nbsp;
-            <span title="Running Count (only Direct)" className="text-[20px] text-yellow-300 font-semibold opacity-80">Running Trades&nbsp;</span>
-             <span title="Running Count (only Direct)" className="text-[20px] font-semibold ">👇</span>
+            <span title="Running Count (only Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Running Trades&nbsp;</span>
+             <span title="Running Count (only Direct)" className="text-[26px] font-semibold ">👇</span>
            <br/>
               &nbsp;
-              <span title="Running Profit (only Direct)" className="text-green-300 text-[28px]">
+              <span title="Running Profit (only Direct)" className="text-green-300 text-[35px]">
                 {runningPlus.toFixed(2)}
               </span>
               &nbsp;+&nbsp;
-              <span title="Running Loss (only Direct)" className="text-red-400 text-[28px]">
+              <span title="Running Loss (only Direct)" className="text-red-400 text-[35px]">
                 {runningMinus.toFixed(2)}
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
-                className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}
+                className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
                 title="Running Total (only Direct)"
               >
                 {runningProfit.toFixed(2)}
@@ -1669,23 +1669,23 @@ const getFilteredForTitle = useMemo(() => {
               <br />
               <br />
 
-              <span title="Closed Count" className="text-[28px]">
+              <span title="Closed Count" className="text-[35px]">
                 {filteredTradeData.filter(trade => trade.Type === "close" || trade.Type === "hedge_close").length}
               </span>
 &nbsp;&nbsp;
-              <span title="Closed Count (Hedge + Direct)" className="text-[20px] text-yellow-300 font-semibold opacity-80">Closed Trades&nbsp;</span>
-              <span title="Closed Count (Hedge + Direct)" className="text-[20px] font-semibold ">👇&nbsp;</span>
+              <span title="Closed Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Closed Trades&nbsp;</span>
+              <span title="Closed Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
               <br/>
-              <span title="Closed Profit (Hedge + Direct) " className="text-green-300 text-[28px]">
+              <span title="Closed Profit (Hedge + Direct) " className="text-green-300 text-[35px]">
                 {(closePlus + hedgeClosedPlus).toFixed(2)}
               </span>
               &nbsp;+&nbsp;
-              <span title="Closed Loss (Hedge + Direct)" className="text-red-400 text-[28px]">
+              <span title="Closed Loss (Hedge + Direct)" className="text-red-400 text-[35px]">
                 {(closeMinus + hedgeClosedMinus).toFixed(2)}
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
-                className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}
+                className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
                 title="Closed Total (Hedge + Direct)"
               >
                 {((closePlus + hedgeClosedPlus)+(closeMinus + hedgeClosedMinus)).toFixed(2)}
@@ -1693,23 +1693,23 @@ const getFilteredForTitle = useMemo(() => {
                <br />
               <br />
               
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[28px]">
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[35px]">
                 {filteredTradeData.length}
               </span>
              &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[20px] text-yellow-300 font-semibold opacity-80">Total Trades&nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[20px] font-semibold ">👇&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Total Trades&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
               <br />
-              <span title="Total Profit (Hedge + Direct) " className="text-green-300 text-[28px]">
+              <span title="Total Profit (Hedge + Direct) " className="text-green-300 text-[35px]">
                 {(plus + hedgeClosedPlus + hedgePlusRunning ).toFixed(2)}
               </span>
               &nbsp;+&nbsp;
-              <span title="Total Loss (Hedge + Direct)" className="text-red-400 text-[28px]">
+              <span title="Total Loss (Hedge + Direct)" className="text-red-400 text-[35px]">
                 {(minus + hedgeClosedMinus + hedgeMinusRunning).toFixed(2)}
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
-                className={`${(((plus + hedgeClosedPlus + hedgePlusRunning )+(minus + hedgeClosedMinus + hedgeMinusRunning))).toFixed(2) >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}
+                className={`${(((plus + hedgeClosedPlus + hedgePlusRunning )+(minus + hedgeClosedMinus + hedgeMinusRunning))).toFixed(2) >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
                 title="Total (Hedge + Direct)"
               >
                 {(((plus + hedgeClosedPlus + hedgePlusRunning )+(minus + hedgeClosedMinus + hedgeMinusRunning))).toFixed(2)}
@@ -1719,114 +1719,114 @@ const getFilteredForTitle = useMemo(() => {
           Hedge_Stats: (
             <>
               <span
-                className="text-[28px]"
+                className="text-[35px]"
                 title="Running Hedge Count"
               >
                 {filteredTradeData.filter(trade => trade.Hedge_1_1_bool === false & trade.Hedge === true & trade.Type === "running").length}
               </span>
              &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[20px] text-yellow-300 font-semibold opacity-80">Running for profit&nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[20px] font-semibold ">👇&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Running for profit&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
 
 <br/>
-              <span className="text-green-300 text-[28px]" title="Running Hedge in Profit">{hedgeActiveRunningPlus.toFixed(2)}</span>
+              <span className="text-green-300 text-[35px]" title="Running Hedge in Profit">{hedgeActiveRunningPlus.toFixed(2)}</span>
               &nbsp;+&nbsp;
-              <span className="text-red-400 text-[28px]" title="Running Hedge in Loss ">{hedgeActiveRunningMinus.toFixed(2)}</span>
+              <span className="text-red-400 text-[35px]" title="Running Hedge in Loss ">{hedgeActiveRunningMinus.toFixed(2)}</span>
               &nbsp;&nbsp;= &nbsp;&nbsp;
-              <span className={`${hedgeActiveRunningTotal >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`} title="Running Hedge Total">{hedgeActiveRunningTotal.toFixed(2)}</span>
+              <span className={`${hedgeActiveRunningTotal >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`} title="Running Hedge Total">{hedgeActiveRunningTotal.toFixed(2)}</span>
               <br />
               <br />
               <span
-                className="text-[28px]"
+                className="text-[35px]"
                 title="Hedge 1-1 Count"
               >
                 {filteredTradeData.filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === true).length}
               </span>
               &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[20px] text-yellow-300 font-semibold opacity-80">Hedge on hold  1-1 &nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[20px] font-semibold ">👇&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Hedge on hold  1-1 &nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
 <br/>
-              <span className="text-green-300 text-[28px]" title="Hedge 1-1 Profit">{hedgePlusRunning.toFixed(2)}</span>
+              <span className="text-green-300 text-[35px]" title="Hedge 1-1 Profit">{hedgePlusRunning.toFixed(2)}</span>
               &nbsp;+&nbsp;
-              <span className="text-red-400 text-[28px]" title="Hedge 1-1 Loss">{hedgeMinusRunning.toFixed(2)}</span>
+              <span className="text-red-400 text-[35px]" title="Hedge 1-1 Loss">{hedgeMinusRunning.toFixed(2)}</span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
-              <span className={`${hedgeRunningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`} title="Hedge 1-1 Total">{hedgeRunningProfit.toFixed(2)}</span>
+              <span className={`${hedgeRunningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`} title="Hedge 1-1 Total">{hedgeRunningProfit.toFixed(2)}</span>
               <br />
               <br />
 
               <span
-                className="text-[28px]"
+                className="text-[35px]"
                 title="Closed Hedge Count"
               >
                 {filteredTradeData.filter(trade => trade.Hedge === true & trade.Type === "hedge_close").length}
               </span>
             &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[20px] text-yellow-300 font-semibold opacity-80">Closed Hedge &nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[20px] font-semibold ">👇&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Closed Hedge &nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
 <br/>
-              <span className="text-green-300 text-[28px]" title="Closed Hedge Profit +">{hedgeClosedPlus.toFixed(2)}</span>
+              <span className="text-green-300 text-[35px]" title="Closed Hedge Profit +">{hedgeClosedPlus.toFixed(2)}</span>
               &nbsp;+&nbsp;
-              <span className="text-red-400 text-[28px]" title="Closed Hedge Profit -">{hedgeClosedMinus.toFixed(2)}</span>
+              <span className="text-red-400 text-[35px]" title="Closed Hedge Profit -">{hedgeClosedMinus.toFixed(2)}</span>
               &nbsp;&nbsp;= &nbsp;&nbsp;
-              <span className={`${hedgeClosedTotal >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`} title="Closed Hedge Profit Total">{hedgeClosedTotal.toFixed(2)}</span>
+              <span className={`${hedgeClosedTotal >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`} title="Closed Hedge Profit Total">{hedgeClosedTotal.toFixed(2)}</span>
             </>
           ),
           Count_Stats: (
             <>
-              <span className="text-[18px] font-semibold opacity-70"> 🚀 &nbsp;&nbsp;After&nbsp;&nbsp; PJ&nbsp;&nbsp; Count :&nbsp;&nbsp;</span><span className="text-[28px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
+              <span className="text-[30px] font-semibold opacity-70"> 🚀 &nbsp;&nbsp;After&nbsp;&nbsp; PJ&nbsp;&nbsp; Count :&nbsp;&nbsp;</span><span className="text-[35px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
               <br />
-              <span className="text-[18px] font-semibold opacity-70">✅ &nbsp;&nbsp;Profit&nbsp;&nbsp; Count :&nbsp;&nbsp;</span> <span className="text-[28px]">{filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}</span>
+              <span className="text-[30px] font-semibold opacity-70">✅ &nbsp;&nbsp;Profit&nbsp;&nbsp; Count :&nbsp;&nbsp;</span> <span className="text-[35px]">{filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}</span>
               <br />
-              <span className="text-[18px] font-semibold opacity-70">❌ &nbsp;&nbsp;Loss&nbsp;&nbsp; Count :&nbsp;&nbsp;</span> <span className="text-[28px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}</span>
+              <span className="text-[30px] font-semibold opacity-70">❌ &nbsp;&nbsp;Loss&nbsp;&nbsp; Count :&nbsp;&nbsp;</span> <span className="text-[35px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}</span>
               
             </>
           ),
           Buy_Sell_Stats: (
             <>
-              <span className="text-[18px] font-semibold opacity-70">Buy &nbsp;&nbsp;=&gt;&nbsp;&nbsp;</span>
-              <span className="text-[28px]">{buyRunning}</span>
-              &nbsp;&nbsp;/&nbsp;&nbsp;
-              <span className="text-[28px]">{buyTotal}</span>
+              <span className="text-[30px] font-semibold opacity-70">Buy running&nbsp;&nbsp;</span>
+              <span className="text-[35px] text-green-300">{buyRunning}</span>
+              &nbsp;&nbsp;out of&nbsp;&nbsp;
+              <span className="text-[35px] text-green-300">{buyTotal}</span>
               <br />
-              <span className="text-[18px] font-semibold opacity-70">Sell&nbsp;&nbsp; =&gt;&nbsp;&nbsp;</span>
-              <span className="text-[28px]">{sellRunning}</span>
-              &nbsp;&nbsp;/&nbsp;&nbsp;
-              <span className="text-[28px]">{sellTotal}</span>
+              <span className="text-[30px] font-semibold opacity-70">Sell running&nbsp;&nbsp;</span>
+              <span className="text-[35px] text-green-300">{sellRunning}</span>
+              &nbsp;&nbsp;out of&nbsp;&nbsp;
+              <span className="text-[35px] text-green-300">{sellTotal}</span>
               <br />
             </>
           ),
           Journey_Stats: (
             <>
-              <span className="text-[18px] font-semibold opacity-70">PJ -</span>
-              <span className="text-green-300 text-[28px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
-              <span className="text-[18px] font-semibold opacity-70"> / CJ -</span>
+              <span className="text-[30px] font-semibold opacity-70">PJ -</span>
+              <span className="text-green-300 text-[35px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
+              <span className="text-[30px] font-semibold opacity-70"> / CJ -</span>
               <span className="text-yellow-300 text-[28px]">{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
-              <span className="text-[18px] font-semibold opacity-70"> / BC -</span>
-              <span className="text-red-400 text-[28px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
+              <span className="text-[30px] font-semibold opacity-70"> / BC -</span>
+              <span className="text-red-400 text-[35px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
             </>
           ),
           Client_Stats: (
             <>
-             <span className="text-[18px] font-semibold opacity-70"> Clients&nbsp;&nbsp; : &nbsp;&nbsp;</span>
-              <span className="text-[28px]">{machines.filter(machine => machine.Active).length}</span>
+             <span className="text-[30px] font-semibold opacity-70"> Clients&nbsp;&nbsp; : &nbsp;&nbsp;</span>
+              <span className="text-[35px]">{machines.filter(machine => machine.Active).length}</span>
               &nbsp;&nbsp;/&nbsp;&nbsp;
-              <span className="text-[28px]">{machines.length}</span>
+              <span className="text-[35px]">{machines.length}</span>
             </>
           ),
           Min_Close_Profit: (
             <>
-             <span className="text-[18px] font-semibold opacity-70"> Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp;</span>
-              <span className="text-green-300 text-[28px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
+             <span className="text-[30px] font-semibold opacity-70"> Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+              <span className="text-green-300 text-[35px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
               &nbsp;&nbsp;=&nbsp;&nbsp;$&nbsp;&nbsp;
-              <span className={`${minCloseProfitVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}>{minCloseProfitVlaue}</span>
+              <span className={`${minCloseProfitVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}>{minCloseProfitVlaue}</span>
             </>
           ),
           Min_Close_Loss: (
             <>
-             <span className="text-[18px] font-semibold opacity-70"> Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp;</span>
-              <span className="text-red-400 text-[28px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
+             <span className="text-[30px] font-semibold opacity-70"> Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+              <span className="text-red-400 text-[35px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
               &nbsp;&nbsp; = &nbsp;&nbsp;$&nbsp;&nbsp;
-              <span className={`${minCloseLossVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[28px]`}>{minCloseLossVlaue}</span>
+              <span className={`${minCloseLossVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}>{minCloseLossVlaue}</span>
             </>
           ),
         }));
