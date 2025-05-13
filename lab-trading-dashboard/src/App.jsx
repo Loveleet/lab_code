@@ -1841,6 +1841,9 @@ Buy_Sell_Stats: (
           ),
 Journey_Stats_Running: (
             <>
+            <span title="Journey Detail" className="text-[21px] text-yellow-300 font-semibold opacity-80">Journey Stats&nbsp;</span>
+              <span title="Journey Detail" className="text-[21px] font-semibold ">👇&nbsp;</span>
+              <br></br>
               <span className="text-[20px] font-semibold opacity-70">PJ -</span>
               <span className="text-green-300 text-[30px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
               <span className="text-[20px] font-semibold opacity-70"> / CJ -</span>
