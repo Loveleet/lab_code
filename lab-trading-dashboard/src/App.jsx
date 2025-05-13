@@ -1701,18 +1701,18 @@ const getFilteredForTitle = useMemo(() => {
               <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
               <br />
               <span title="Total Profit (Hedge + Direct) " className="text-green-300 text-[35px]">
-                {(plus + hedgeClosedPlus + hedgePlusRunning ).toFixed(2)}
+                {(runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus ).toFixed(2)}
               </span>
               &nbsp;+&nbsp;
               <span title="Total Loss (Hedge + Direct)" className="text-red-400 text-[35px]">
-                {(minus + hedgeClosedMinus + hedgeMinusRunning).toFixed(2)}
+                {(runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus).toFixed(2)}
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
                 className={`${(((plus + hedgeClosedPlus + hedgePlusRunning )+(minus + hedgeClosedMinus + hedgeMinusRunning))).toFixed(2) >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
                 title="Total (Hedge + Direct)"
               >
-                {(((plus + hedgeClosedPlus + hedgePlusRunning )+(minus + hedgeClosedMinus + hedgeMinusRunning))).toFixed(2)}
+                {((runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2)}
               </span>
             </>
           ),
@@ -1797,11 +1797,11 @@ const getFilteredForTitle = useMemo(() => {
           ),
           Journey_Stats: (
             <>
-              <span className="text-[30px] font-semibold opacity-70">PJ -</span>
+              <span className="text-[25px] font-semibold opacity-70">PJ -</span>
               <span className="text-green-300 text-[35px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
-              <span className="text-[30px] font-semibold opacity-70"> / CJ -</span>
-              <span className="text-yellow-300 text-[28px]">{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
-              <span className="text-[30px] font-semibold opacity-70"> / BC -</span>
+              <span className="text-[25px] font-semibold opacity-70"> / CJ -</span>
+              <span className="text-yellow-300 text-[35px]">{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
+              <span className="text-[25px] font-semibold opacity-70"> / BC -</span>
               <span className="text-red-400 text-[35px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
             </>
           ),
@@ -2212,7 +2212,7 @@ return (
     ))}
     
     <span className="text-green-600 text-[16px] font-bold block text-left mb-1">
-                ➤ Assigned New:</span> <span className="text-red-600 text-[28px] font-bold block text-left mb-1">{filteredTradeData.filter(trade => trade.Type === "assign").length}</span>
+                ➤ Assigned New:</span> <span className="text-red-600 text-[34px] font-bold block text-left mb-1">{filteredTradeData.filter(trade => trade.Type === "assign").length}</span>
               
   </div>
   
