@@ -1839,20 +1839,7 @@ Closed_Count_Stats: (
               
             </>
           ),
-Buy_Sell_Stats: (
-            <>
-              <span className="text-[25px] font-semibold opacity-70">Buy running&nbsp;&nbsp;</span>
-              <span className="text-[30px] text-green-300">{buyRunning}</span>
-              &nbsp;&nbsp;out of&nbsp;&nbsp;
-              <span className="text-[30px] text-green-300">{buyTotal}</span>
-              <br />
-              <span className="text-[25px] font-semibold opacity-70">Sell running&nbsp;&nbsp;</span>
-              <span className="text-[30px] text-green-300">{sellRunning}</span>
-              &nbsp;&nbsp;out of&nbsp;&nbsp;
-              <span className="text-[30px] text-green-300">{sellTotal}</span>
-              <br />
-            </>
-          ),
+          
 Journey_Stats_Running: (
             <>
             <span title="Journey Detail" className="text-[21px] text-yellow-300 font-semibold opacity-80">Journey Stats&nbsp;</span>
