@@ -1612,7 +1612,7 @@ Total_Closed_Stats: (
               </span>
              
                 &nbsp;&nbsp;
-              <span title="Closed Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Total Closed Trades&nbsp;</span>
+              <span title="Closed Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Total Closed Trades &nbsp;</span>
               <span title="Closed Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
               <div style={{ height: '4px' }} />
               <span title="Closed Profit (Hedge + Direct) " className="text-green-300 text-[30px]">
@@ -1670,7 +1670,7 @@ Hedge_Closed_Stats: (
                 {filteredTradeData.filter(trade => trade.Hedge === true & trade.Type === "hedge_close").length}
               </span>
             &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Closed Hedge &nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Hedge Closed  &nbsp;</span>
               <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
               <div style={{ height: '4px' }} />
               <span className="text-green-300 text-[30px]" title="Closed Hedge Profit +">{hedgeClosedPlus.toFixed(2)}</span>
@@ -1717,7 +1717,7 @@ Total_Running_Stats: (
               </span>
               
               &nbsp;&nbsp;
-            <span title="Running Count (only Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Running Trades&nbsp;</span>
+            <span title="Running Count (only Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Direct Running Trades&nbsp;</span>
              <span title="Running Count (only Direct)" className="text-[21px] font-semibold ">👇</span>
            <div style={{ height: '4px' }} />
               &nbsp;
@@ -1747,7 +1747,7 @@ Total_Running_Stats: (
                 {filteredTradeData.filter(trade => trade.Hedge_1_1_bool === false & trade.Hedge === true & trade.Type === "running").length}
               </span>
              &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Running for profit&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Hedge Running&nbsp;</span>
               <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
 
               <div style={{ height: '4px' }} />
@@ -1759,7 +1759,36 @@ Total_Running_Stats: (
               </>
           ),
 
-Hedge_on_Hold: (
+
+Total_Stats: (
+          <>
+               <div style={{ height: '4px' }} />
+
+              
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[30px] text-yellow-400">
+                {filteredTradeData.length}
+              </span>
+             &nbsp;&nbsp;
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">All Total Trades&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
+              <div style={{ height: '4px' }} />
+              <span title="Total Profit (Hedge + Direct) " className="text-green-300 text-[30px]">
+                {(runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus ).toFixed(2)}
+              </span>
+              &nbsp;+&nbsp;
+              <span title="Total Loss (Hedge + Direct)" className="text-red-400 text-[30px]">
+                {(runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus).toFixed(2)}
+              </span>
+              &nbsp;&nbsp;=&nbsp;&nbsp;
+              <span
+                className={`${((runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2) >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
+                title="Total (Hedge + Direct)"
+              >
+                {((runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2)}
+              </span>
+            </>
+          ),
+  Hedge_on_Hold: (
             <>
               <div style={{ height: '4px' }} />
 
@@ -1782,37 +1811,12 @@ Hedge_on_Hold: (
               <span className={`${hedgeRunningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`} title="Hedge 1-1 Total">{hedgeRunningProfit.toFixed(2)}</span>
               </>
           ),
-Total_Stats: (
-          <>
-               <div style={{ height: '4px' }} />
-
-              
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[30px] text-yellow-400">
-                {filteredTradeData.length}
-              </span>
-             &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Total Trades&nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
-              <div style={{ height: '4px' }} />
-              <span title="Total Profit (Hedge + Direct) " className="text-green-300 text-[30px]">
-                {(runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus ).toFixed(2)}
-              </span>
-              &nbsp;+&nbsp;
-              <span title="Total Loss (Hedge + Direct)" className="text-red-400 text-[30px]">
-                {(runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus).toFixed(2)}
-              </span>
-              &nbsp;&nbsp;=&nbsp;&nbsp;
-              <span
-                className={`${((runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2) >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
-                title="Total (Hedge + Direct)"
-              >
-                {((runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2)}
-              </span>
-            </>
-          ),
 
 Closed_Count_Stats: (
             <>
+            <span title="Closed Trades Count" className="text-[21px] text-yellow-300 font-semibold opacity-80">Closed Trades Count&nbsp;</span>
+              <span title="Closed Trade Count" className="text-[21px] font-semibold ">👇&nbsp;</span>
+              <br></br>
               <span className="text-[25px] font-semibold opacity-70"> PJ -&nbsp;</span><span className="text-[30px] text-green-300" >{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
            
               <span className="text-[25px] font-semibold opacity-70">, &nbsp;&nbsp;&nbsp;Profit -</span> <span className="text-[30px] text-green-300">{filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}</span>
