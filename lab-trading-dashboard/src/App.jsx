@@ -124,7 +124,7 @@ const DashboardCard = ({ title, value, isSelected, onClick }) =>  {
       onClick={onClick}
     >
       {/* ✅ Title with sky blue color */}
-      <h2 className="text-lg font-semibold text-center text-blue-400">{title.replace(/_/g, " ")}</h2>
+      {/* <h2 className="text-lg font-semibold text-center text-blue-400">{title.replace(/_/g, " ")}</h2> */}
       {/* ✅ Properly formatted value using JSX with tooltips */}
       <p className="text-2xl font-bold text-center leading-snug whitespace-nowrap overflow-x-auto">
         {typeof value === "string"
@@ -470,12 +470,11 @@ const filteredAndSortedData = useMemo(() => {
     });
   }, [filteredData, sortConfig]);
 
-  useEffect(() => {
-    if (!tradeData || tradeData.length === 0) return;
-  
-    const result = tradeData.map((trade, index) => formatTradeData(trade, index));
-    setFilteredData(result);
-  }, [title, tradeData, activeSubReport]);
+useEffect(() => {
+  if (!title || !tradeData || tradeData.length === 0) return;
+  const result = tradeData.map((trade, index) => formatTradeData(trade, index));
+  setFilteredData(result);
+}, [title, tradeData, activeSubReport]);
 
   const handleOpenReport = (title, sortedData) => {
     if (!sortedData || sortedData.length === 0) return;
@@ -871,39 +870,62 @@ function showCopyPopup(text) {
 
   
   useEffect(() => {
-    if (!tradeData || tradeData.length === 0) return;
-    
+    if (!Array.isArray(tradeData) || tradeData.length === 0 || !title) {
+      setFilteredData([]);
+      return;
+    }
     let result = [];
-
+    // Updated switch block for new box titles and filter logic
     switch (title) {
-      case "Profit_Stats":
+      case "Total_Closed_Stats":
         result = tradeData
-          .filter((trade) => {
-            if (activeSubReport === "running") return trade.Type === "running" & trade.Hedge === false;
-            if (activeSubReport === "close") return trade.Type === "close" || trade.Type === "hedge_close";
-            if (activeSubReport === "assign") return trade.Type === "assign";
-            
-            return true;
-          })
+          .filter(trade => trade.Type === "close" || trade.Type === "hedge_close")
           .map((trade, index) => formatTradeData(trade, index));
         break;
-      case "Count_Stats":
+      case "Direct_Closed_Stats":
+        result = tradeData
+          .filter(trade => trade.Type === "close")
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+      case "Hedge_Closed_Stats":
+        result = tradeData
+          .filter(trade => trade.Type === "hedge_close" && trade.Hedge === true)
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+      case "Total_Running_Stats":
+        result = tradeData
+          .filter(trade => trade.Type === "running" & trade.Hedge_1_1_bool === false)
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+      case "Assigned_New":
+        result = tradeData
+          .filter(trade => trade.Type === "assign" & trade.Hedge_1_1_bool === false)
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+      case "Direct_Running_Stats":
+        result = tradeData
+          .filter(trade => trade.Type === "running" && trade.Hedge === false)
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+      case "Hedge_Running_Stats":
+        result = tradeData
+          .filter(trade => trade.Type === "running" && trade.Hedge === true && trade.Hedge_1_1_bool === false)
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+      case "Hedge_on_Hold":
+        result = tradeData
+          .filter(trade => trade.Type === "running" && trade.Hedge === true && trade.Hedge_1_1_bool === true)
+          .map((trade, index) => formatTradeData(trade, index));
+        break;
+      case "Total_Stats":
+        result = tradeData.map((trade, index) => formatTradeData(trade, index));
+        break;
+       case "Closed_Count_Stats":
         result = tradeData
           .filter((trade) => {
             if (activeSubReport === "loss") return trade.Type === "close" && trade.Pl_after_comm < 0;
             if (activeSubReport === "profit") return trade.Type === "close" && trade.Pl_after_comm > 0;
             if (activeSubReport === "pj") return trade.Type === "close" && trade.Profit_journey === true;
-            return true;
-          })
-          .map((trade, index) => formatTradeData(trade, index));
-        break;
-      case "Hedge_Stats":
-        result = tradeData
-          .filter((trade) => {
-            if (!trade.Hedge) return false;
-            if (activeSubReport === "running") return trade.Hedge_1_1_bool === false && trade.Type === "running";
-            if (activeSubReport === "holding") return trade.Hedge_1_1_bool === true && trade.Type === "running";
-            if (activeSubReport === "closed") return trade.Type === "hedge_close";
             return true;
           })
           .map((trade, index) => formatTradeData(trade, index));
@@ -918,7 +940,7 @@ function showCopyPopup(text) {
           })
           .map((trade, index) => formatTradeData(trade, index));
         break;
-      case "Journey_Stats":
+      case "Journey_Stats_Running":
         result = tradeData
           .filter((trade) => {
             if (activeSubReport === "pj") return trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running";
@@ -940,53 +962,37 @@ function showCopyPopup(text) {
         break;
       case "Min_Close_Profit":
         result = tradeData
-          .filter(
-            (trade) =>
-              trade.Type === "close" &&
-              trade.Min_close === "Min_close" &&
-              trade.Pl_after_comm > 0
-          )
+          .filter(trade => trade.Type === "close" && trade.Min_close === "Min_close" && trade.Pl_after_comm > 0)
           .map((trade, index) => formatTradeData(trade, index));
         break;
       case "Min_Close_Loss":
         result = tradeData
-          .filter(
-            (trade) =>
-              trade.Type === "close" &&
-              trade.Min_close === "Min_close" &&
-              trade.Pl_after_comm < 0
-          )
+          .filter(trade => trade.Type === "close" && trade.Min_close === "Min_close" && trade.Pl_after_comm < 0)
           .map((trade, index) => formatTradeData(trade, index));
         break;
       default:
-        result = [];
+        result = tradeData.map((trade, index) => formatTradeData(trade, index));
     }
     setFilteredData(result);
   }, [title, tradeData, activeSubReport, clientData]);
 
   // Add conditional early return to prevent unnecessary rendering
-  if (!tradeData || tradeData.length === 0) {
-    return <p className="text-center text-gray-500 mt-4">⚠️ No data available for {title}</p>;
-  }
+  // (Moved subReportButtons below to allow always showing buttons even if no data)
 
   // --- Sub-report filter button logic, always above early return for filteredData ---
   const normalizedTitle = title.replace(/\s+/g, "_").trim();
   let options = [];
 
   switch (normalizedTitle) {
-    case "Profit_Stats":
-      options = ["running", "close", "total", "assign"];
-      break;
-    case "Hedge_Stats":
-      options = ["running", "holding", "closed"];
-      break;
-    case "Count_Stats":
+    
+    
+    case "Closed_Count_Stats":
       options = ["loss", "profit", "pj"];
       break;
     case "Buy_Sell_Stats":
       options = ["buy", "sell"];
       break;
-    case "Journey_Stats":
+    case "Journey_Stats_Running":
       options = ["pj", "cj", "bc"];
       break;
     case "Client_Stats":
@@ -1091,19 +1097,14 @@ return (
   let options = [];
 
   switch (normalizedTitle) {
-    case "Profit_Stats":
-      options = ["running", "close", "total", "assign"];
-      break;
-    case "Hedge_Stats":
-      options = ["running", "holding", "closed"];
-      break;
-    case "Count_Stats":
+    
+    case "Closed_Count_Stats":
       options = ["loss", "profit", "pj"];
       break;
     case "Buy_Sell_Stats":
       options = ["buy", "sell"];
       break;
-    case "Journey_Stats":
+    case "Journey_Stats_Running":
       options = ["pj", "cj", "bc"];
       break;
     case "Client_Stats":
@@ -1495,17 +1496,29 @@ const getFilteredForTitle = useMemo(() => {
       if (trade.Pl_after_comm < 0) pushTo("Min_Close_Loss");
     }
 
-    pushTo("Profit_Stats");
-    pushTo("Count_Stats");
+    pushTo("Total_Closed_Stats");
+    pushTo("Direct_Closed_Stats");
+    pushTo("Hedge_Closed_Stats");
+    pushTo("Total_Running_Stats");
+    pushTo("Direct_Running_Stats");
+    pushTo("Hedge_Running_Stats");
+    pushTo("Hedge_on_Hold");
+    pushTo("Total_Stats");
+    pushTo("Closed_Count_Stats");
+    pushTo("Assigned_New");
+    
+
+
+
     if (trade.Hedge === true) pushTo("Hedge_Stats");
 
     // --- ADD: Buy_Sell_Stats logic
     if (["BUY", "SELL"].includes(trade.Action)) pushTo("Buy_Sell_Stats");
 
     // --- ADD: Journey_Stats logic (fix missing)
-    if (trade.Type === "running" && trade.Pl_after_comm > 0 && trade.Profit_journey === true) pushTo("Journey_Stats");
-    if (trade.Type === "running" && trade.Pl_after_comm > 0 && trade.Commision_journey === true && !trade.Profit_journey) pushTo("Journey_Stats");
-    if (trade.Type === "running" && trade.Pl_after_comm < 0) pushTo("Journey_Stats");
+    if (trade.Type === "running" && trade.Pl_after_comm > 0 && trade.Profit_journey === true) pushTo("Journey_Stats_Running");
+    if (trade.Type === "running" && trade.Pl_after_comm > 0 && trade.Commision_journey === true && !trade.Profit_journey) pushTo("Journey_Stats_Running");
+    if (trade.Type === "running" && trade.Pl_after_comm < 0) pushTo("Journey_Stats_Running");
   });
 
   return memo;
@@ -1517,14 +1530,6 @@ const getFilteredForTitle = useMemo(() => {
         let investmentAvailable = 50000 - totalInvestment;
         investmentAvailable = investmentAvailable < 0 ? 0 : investmentAvailable; // ✅ Prevent negative values
 
-        // 🔹 Ensure grand_total is handled safely
-        const totalProfit = filteredTradeData.reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
-        const plus = filteredTradeData
-          .filter(trade => trade.Pl_after_comm > 0) // ✅ Correct field reference
-          .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0); // ✅ Consistent field usage
-        const minus = filteredTradeData
-          .filter(trade => trade.Pl_after_comm < 0) // ✅ Correct field reference
-          .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0); // ✅ Consistent field usage
         const closePlus = filteredTradeData
           .filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close" ) // ✅ Correct field reference
           .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
@@ -1566,7 +1571,7 @@ const getFilteredForTitle = useMemo(() => {
         .filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === false & trade.Pl_after_comm < 0 & trade.Type === "running")
         .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const hedgeActiveRunningTotal = filteredTradeData
-        .filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === false)
+        .filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === false & trade.Type === "running")
         .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
 
         const hedgeClosedPlus = filteredTradeData
@@ -1576,257 +1581,292 @@ const getFilteredForTitle = useMemo(() => {
         .filter(trade => trade.Type === "hedge_close" & trade.Pl_after_comm < 0)
         .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         const hedgeClosedTotal = filteredTradeData
-        .filter(trade => trade.Type === "hedge_close" & trade.Hedge_1_1_bool === false )
+        .filter(trade => trade.Type === "hedge_close"  )
         .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
         
-        const runningTotalDisplay = (
-          <>
-            Buy &nbsp;&nbsp;=&gt;&nbsp;&nbsp; {buyRunning}&nbsp;&nbsp; / &nbsp;&nbsp;{buyTotal} <br />
-            Sell&nbsp;&nbsp; =&gt;&nbsp;&nbsp; {sellRunning} &nbsp;&nbsp;/ &nbsp;&nbsp;{sellTotal} <br />
-            </>
-            );
-
-        const pj_cj_bc = (
-          <>
-            <span className="text-[35px] font-semibold opacity-70">PJ -</span>
-            <span className="text-green-300 text-[35px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
-            <span className="text-[35px] font-semibold opacity-70"> / CJ -</span>
-            <span className="text-yellow-300 text-[28px]">{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
-            <span className="text-[35px] font-semibold opacity-70"> / BC -</span>
-            <span className="text-red-400 text-[35px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
-          </>
-        );
-
-        const totalClient = (
-          <>
-          Clients&nbsp;&nbsp; : &nbsp;&nbsp;{machines.filter(machine => machine.Active).length}&nbsp;&nbsp; / &nbsp;&nbsp;{machines.length}
-          </>
-        );
-
         const minCloseProfitVlaue = filteredTradeData
           .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0)
           .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)
         
-        const minCloseProfit = (
-          <>
-          Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp; <span className="text-green-300">{filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
-           &nbsp;&nbsp;=&nbsp;&nbsp; $&nbsp;&nbsp; <span className={`${minCloseProfitVlaue >= 0 ? "text-green-300" : "text-red-400"}`}>{minCloseProfitVlaue}</span>
-          </>
-        );
-        
         const minCloseLossVlaue = filteredTradeData
           .filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0)
           .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0).toFixed(2)
-        
-        const minCloseLoss = (
-          <>
-          Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp; <span className="text-red-400">{filteredTradeData.filter(trade => trade.Min_close === "Min_close"  &&  trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
-          &nbsp;&nbsp; = &nbsp;&nbsp;$&nbsp;&nbsp; <span className={`${minCloseLossVlaue >= 0 ? "text-green-300" : "text-red-400"}`}>{minCloseLossVlaue}</span>
-          </>
-        );
-
-        // console.log("🔍 Filtered Trade Data:", filteredTradeData);  
-
+    
+        console.log("🔍 Filtered Trade Data:", filteredTradeData);  
 
         // 🔹 Format dates for comparison
-        const today = new Date().toISOString().split("T")[0];
+        // const today = new Date().toISOString().split("T")[0];
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayDate = yesterday.toISOString().split("T")[0];
-        // const Assigned = <><span className="text-[35px]">{filteredTradeData.filter(trade => trade.Type === "assign").length}</span>
-        //      <span className="text-[30px] font-semibold opacity-70">-✨</span>&nbsp;&nbsp;&nbsp;</>
-
-        // 🔹 Set Metrics (Dashboard Data)
-        // ... existing code above remains unchanged
+        // const yesterdayDate = yesterday.toISOString().split("T")[0];
 
         setMetrics(prevMetrics => ({
           ...prevMetrics,
-          Profit_Stats: (
+Total_Closed_Stats: (
           <>
-            <span title="Running Count (only Direct)" className="text-[35px]">
-                {filteredTradeData.filter(trade => trade.Type === "running" & trade.Hedge === false).length}
-              </span>
-              
-&nbsp;&nbsp;
-            <span title="Running Count (only Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Running Trades&nbsp;</span>
-             <span title="Running Count (only Direct)" className="text-[26px] font-semibold ">👇</span>
-           <br/>
-              &nbsp;
-              <span title="Running Profit (only Direct)" className="text-green-300 text-[35px]">
-                {runningPlus.toFixed(2)}
-              </span>
-              &nbsp;+&nbsp;
-              <span title="Running Loss (only Direct)" className="text-red-400 text-[35px]">
-                {runningMinus.toFixed(2)}
-              </span>
-              &nbsp;&nbsp;=&nbsp;&nbsp;
-              <span
-                className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
-                title="Running Total (only Direct)"
-              >
-                {runningProfit.toFixed(2)}
-              </span>
-              <br />
-              <br />
+              <div style={{ height: '4px' }} />
 
-              <span title="Closed Count" className="text-[35px]">
+
+              <span title="Closed Count" className="text-[30px] text-yellow-400">
                 {filteredTradeData.filter(trade => trade.Type === "close" || trade.Type === "hedge_close").length}
               </span>
-&nbsp;&nbsp;
-              <span title="Closed Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Closed Trades&nbsp;</span>
-              <span title="Closed Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
-              <br/>
-              <span title="Closed Profit (Hedge + Direct) " className="text-green-300 text-[35px]">
+             
+                &nbsp;&nbsp;
+              <span title="Closed Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Total Closed Trades&nbsp;</span>
+              <span title="Closed Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
+              <div style={{ height: '4px' }} />
+              <span title="Closed Profit (Hedge + Direct) " className="text-green-300 text-[30px]">
                 {(closePlus + hedgeClosedPlus).toFixed(2)}
               </span>
               &nbsp;+&nbsp;
-              <span title="Closed Loss (Hedge + Direct)" className="text-red-400 text-[35px]">
+              <span title="Closed Loss (Hedge + Direct)" className="text-red-400 text-[30px]">
                 {(closeMinus + hedgeClosedMinus).toFixed(2)}
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
-                className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
+                className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`}
                 title="Closed Total (Hedge + Direct)"
               >
                 {((closePlus + hedgeClosedPlus)+(closeMinus + hedgeClosedMinus)).toFixed(2)}
               </span>
-               <br />
-              <br />
+              </>),
+Direct_Closed_Stats: (
+          <>
+              <div style={{ height: '4px' }} />
+
+
+              <span title="Closed Count" className="text-[30px] text-yellow-400">
+                {filteredTradeData.filter(trade => trade.Type === "close" ).length}
+              </span>
+             
+                &nbsp;&nbsp;
+              <span title="Closed Count (Only Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Direct Closed Trades&nbsp;</span>
+              <span title="Closed Count (Only Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
+              <div style={{ height: '4px' }} />
+              <span title="Closed Profit (Only Direct) " className="text-green-300 text-[30px]">
+                {(closePlus).toFixed(2)}
+              </span>
+              &nbsp;+&nbsp;
+              <span title="Closed Loss (Only Direct)" className="text-red-400 text-[30px]">
+                {(closeMinus).toFixed(2)}
+              </span>
+              &nbsp;&nbsp;=&nbsp;&nbsp;
+              <span
+                className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`}
+                title="Closed Total (Only Direct)"
+              >
+                {(closePlus + closeMinus ).toFixed(2)}
+              </span>
+              </>),
+Hedge_Closed_Stats: (
+            <>
+              <div style={{ height: '4px' }} />
+
+
+              <span
+                className="text-[30px] text-yellow-400"
+                title="Closed Hedge Count"
+              >
+                {filteredTradeData.filter(trade => trade.Hedge === true & trade.Type === "hedge_close").length}
+              </span>
+            &nbsp;&nbsp;
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Closed Hedge &nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
+              <div style={{ height: '4px' }} />
+              <span className="text-green-300 text-[30px]" title="Closed Hedge Profit +">{hedgeClosedPlus.toFixed(2)}</span>
+              &nbsp;+&nbsp;
+              <span className="text-red-400 text-[30px]" title="Closed Hedge Profit -">{hedgeClosedMinus.toFixed(2)}</span>
+              &nbsp;&nbsp;= &nbsp;&nbsp;
+              <span className={`${hedgeClosedTotal >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`} title="Closed Hedge Profit Total">{hedgeClosedTotal.toFixed(2)}</span>
+            </>
+          ),
+Total_Running_Stats: (
+          <>
+          <div style={{ height: '4px' }} />
+
+            <span title="Running Count (Hedge + Direct)" className="text-[30px] text-yellow-400">
+                {filteredTradeData.filter(trade => trade.Type === "running" & trade.Hedge_1_1_bool === false).length}
+              </span>
               
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[35px]">
+              &nbsp;&nbsp;
+            <span title="Running Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Total Running Trades&nbsp;</span>
+             <span title="Running Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇</span>
+           <div style={{ height: '4px' }} />
+              &nbsp;
+              <span title="Running Profit (Hedge + Direct)" className="text-green-300 text-[30px]">
+                {(runningPlus+hedgeActiveRunningPlus).toFixed(2)}
+              </span>
+              &nbsp;+&nbsp;
+              <span title="Running Loss (Hedge + Direct)" className="text-red-400 text-[30px]">
+                {(runningMinus + hedgeActiveRunningMinus).toFixed(2)}
+              </span>
+              &nbsp;&nbsp;=&nbsp;&nbsp;
+              <span
+                className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`}
+                title="Running Total (Hedge + Direct)"
+              >
+                {((runningProfit + hedgeActiveRunningTotal)).toFixed(2)}
+              </span>
+               </>),
+ Direct_Running_Stats: (
+          <>
+          <div style={{ height: '4px' }} />
+
+            <span title="Running Count (only Direct)" className="text-[30px] text-yellow-400">
+                {filteredTradeData.filter(trade => trade.Type === "running" & trade.Hedge === false).length}
+              </span>
+              
+              &nbsp;&nbsp;
+            <span title="Running Count (only Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Running Trades&nbsp;</span>
+             <span title="Running Count (only Direct)" className="text-[21px] font-semibold ">👇</span>
+           <div style={{ height: '4px' }} />
+              &nbsp;
+              <span title="Running Profit (only Direct)" className="text-green-300 text-[30px]">
+                {runningPlus.toFixed(2)}
+              </span>
+              &nbsp;+&nbsp;
+              <span title="Running Loss (only Direct)" className="text-red-400 text-[30px]">
+                {runningMinus.toFixed(2)}
+              </span>
+              &nbsp;&nbsp;=&nbsp;&nbsp;
+              <span
+                className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`}
+                title="Running Total (only Direct)"
+              >
+                {runningProfit.toFixed(2)}
+              </span>
+               </>),
+ Hedge_Running_Stats: (
+            <>
+             <div style={{ height: '4px' }} />
+              
+              <span
+                className="text-[30px] text-yellow-400"
+                title="Running Hedge Count"
+              >
+                {filteredTradeData.filter(trade => trade.Hedge_1_1_bool === false & trade.Hedge === true & trade.Type === "running").length}
+              </span>
+             &nbsp;&nbsp;
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Running for profit&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
+
+              <div style={{ height: '4px' }} />
+              <span className="text-green-300 text-[30px]" title="Running Hedge in Profit">{hedgeActiveRunningPlus.toFixed(2)}</span>
+              &nbsp;+&nbsp;
+              <span className="text-red-400 text-[30px]" title="Running Hedge in Loss ">{hedgeActiveRunningMinus.toFixed(2)}</span>
+              &nbsp;&nbsp;= &nbsp;&nbsp;
+              <span className={`${hedgeActiveRunningTotal >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`} title="Running Hedge Total">{hedgeActiveRunningTotal.toFixed(2)}</span>
+              </>
+          ),
+
+Hedge_on_Hold: (
+            <>
+              <div style={{ height: '4px' }} />
+
+              
+              <span
+                className="text-[30px] text-yellow-400"
+                title="Hedge 1-1 Count"
+              >
+                {filteredTradeData.filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === true).length}
+              </span>
+              &nbsp;&nbsp;
+              
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Hedge on hold  1-1 &nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
+              <div style={{ height: '4px' }} />
+              <span className="text-green-300 text-[30px]" title="Hedge 1-1 Profit">{hedgePlusRunning.toFixed(2)}</span>
+              &nbsp;+&nbsp;
+              <span className="text-red-400 text-[30px]" title="Hedge 1-1 Loss">{hedgeMinusRunning.toFixed(2)}</span>
+              &nbsp;&nbsp;=&nbsp;&nbsp;
+              <span className={`${hedgeRunningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`} title="Hedge 1-1 Total">{hedgeRunningProfit.toFixed(2)}</span>
+              </>
+          ),
+Total_Stats: (
+          <>
+               <div style={{ height: '4px' }} />
+
+              
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[30px] text-yellow-400">
                 {filteredTradeData.length}
               </span>
              &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Total Trades&nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
-              <br />
-              <span title="Total Profit (Hedge + Direct) " className="text-green-300 text-[35px]">
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] text-yellow-300 font-semibold opacity-80">Total Trades&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className="text-[21px] font-semibold ">👇&nbsp;</span>
+              <div style={{ height: '4px' }} />
+              <span title="Total Profit (Hedge + Direct) " className="text-green-300 text-[30px]">
                 {(runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus ).toFixed(2)}
               </span>
               &nbsp;+&nbsp;
-              <span title="Total Loss (Hedge + Direct)" className="text-red-400 text-[35px]">
+              <span title="Total Loss (Hedge + Direct)" className="text-red-400 text-[30px]">
                 {(runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus).toFixed(2)}
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
-                className={`${(((plus + hedgeClosedPlus + hedgePlusRunning )+(minus + hedgeClosedMinus + hedgeMinusRunning))).toFixed(2) >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
+                className={`${((runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2) >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}
                 title="Total (Hedge + Direct)"
               >
                 {((runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2)}
               </span>
             </>
           ),
-          Hedge_Stats: (
-            <>
-              <span
-                className="text-[35px]"
-                title="Running Hedge Count"
-              >
-                {filteredTradeData.filter(trade => trade.Hedge_1_1_bool === false & trade.Hedge === true & trade.Type === "running").length}
-              </span>
-             &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Running for profit&nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
 
-<br/>
-              <span className="text-green-300 text-[35px]" title="Running Hedge in Profit">{hedgeActiveRunningPlus.toFixed(2)}</span>
-              &nbsp;+&nbsp;
-              <span className="text-red-400 text-[35px]" title="Running Hedge in Loss ">{hedgeActiveRunningMinus.toFixed(2)}</span>
-              &nbsp;&nbsp;= &nbsp;&nbsp;
-              <span className={`${hedgeActiveRunningTotal >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`} title="Running Hedge Total">{hedgeActiveRunningTotal.toFixed(2)}</span>
-              <br />
-              <br />
-              <span
-                className="text-[35px]"
-                title="Hedge 1-1 Count"
-              >
-                {filteredTradeData.filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === true).length}
-              </span>
-              &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Hedge on hold  1-1 &nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
-<br/>
-              <span className="text-green-300 text-[35px]" title="Hedge 1-1 Profit">{hedgePlusRunning.toFixed(2)}</span>
-              &nbsp;+&nbsp;
-              <span className="text-red-400 text-[35px]" title="Hedge 1-1 Loss">{hedgeMinusRunning.toFixed(2)}</span>
-              &nbsp;&nbsp;=&nbsp;&nbsp;
-              <span className={`${hedgeRunningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`} title="Hedge 1-1 Total">{hedgeRunningProfit.toFixed(2)}</span>
-              <br />
-              <br />
-
-              <span
-                className="text-[35px]"
-                title="Closed Hedge Count"
-              >
-                {filteredTradeData.filter(trade => trade.Hedge === true & trade.Type === "hedge_close").length}
-              </span>
-            &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] text-yellow-300 font-semibold opacity-80">Closed Hedge &nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className="text-[26px] font-semibold ">👇&nbsp;</span>
-<br/>
-              <span className="text-green-300 text-[35px]" title="Closed Hedge Profit +">{hedgeClosedPlus.toFixed(2)}</span>
-              &nbsp;+&nbsp;
-              <span className="text-red-400 text-[35px]" title="Closed Hedge Profit -">{hedgeClosedMinus.toFixed(2)}</span>
-              &nbsp;&nbsp;= &nbsp;&nbsp;
-              <span className={`${hedgeClosedTotal >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`} title="Closed Hedge Profit Total">{hedgeClosedTotal.toFixed(2)}</span>
-            </>
-          ),
-          Count_Stats: (
+Closed_Count_Stats: (
             <>
-              <span className="text-[30px] font-semibold opacity-70"> 🚀 &nbsp;&nbsp;After&nbsp;&nbsp; PJ&nbsp;&nbsp; Count :&nbsp;&nbsp;</span><span className="text-[35px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
-              <br />
-              <span className="text-[30px] font-semibold opacity-70">✅ &nbsp;&nbsp;Profit&nbsp;&nbsp; Count :&nbsp;&nbsp;</span> <span className="text-[35px]">{filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}</span>
-              <br />
-              <span className="text-[30px] font-semibold opacity-70">❌ &nbsp;&nbsp;Loss&nbsp;&nbsp; Count :&nbsp;&nbsp;</span> <span className="text-[35px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}</span>
+              <span className="text-[25px] font-semibold opacity-70"> PJ -&nbsp;</span><span className="text-[30px] text-green-300" >{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
+           
+              <span className="text-[25px] font-semibold opacity-70">, &nbsp;&nbsp;&nbsp;Profit -</span> <span className="text-[30px] text-green-300">{filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}</span>
+
+              <span className="text-[25px] font-semibold opacity-70">,&nbsp;&nbsp;&nbsp; Loss -</span> <span className="text-[30px] text-red-400">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}</span>
               
             </>
           ),
-          Buy_Sell_Stats: (
+Buy_Sell_Stats: (
             <>
-              <span className="text-[30px] font-semibold opacity-70">Buy running&nbsp;&nbsp;</span>
-              <span className="text-[35px] text-green-300">{buyRunning}</span>
+              <span className="text-[25px] font-semibold opacity-70">Buy running&nbsp;&nbsp;</span>
+              <span className="text-[30px] text-green-300">{buyRunning}</span>
               &nbsp;&nbsp;out of&nbsp;&nbsp;
-              <span className="text-[35px] text-green-300">{buyTotal}</span>
+              <span className="text-[30px] text-green-300">{buyTotal}</span>
               <br />
-              <span className="text-[30px] font-semibold opacity-70">Sell running&nbsp;&nbsp;</span>
-              <span className="text-[35px] text-green-300">{sellRunning}</span>
+              <span className="text-[25px] font-semibold opacity-70">Sell running&nbsp;&nbsp;</span>
+              <span className="text-[30px] text-green-300">{sellRunning}</span>
               &nbsp;&nbsp;out of&nbsp;&nbsp;
-              <span className="text-[35px] text-green-300">{sellTotal}</span>
+              <span className="text-[30px] text-green-300">{sellTotal}</span>
               <br />
             </>
           ),
-          Journey_Stats: (
+Journey_Stats_Running: (
             <>
-              <span className="text-[25px] font-semibold opacity-70">PJ -</span>
-              <span className="text-green-300 text-[35px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
-              <span className="text-[25px] font-semibold opacity-70"> / CJ -</span>
-              <span className="text-yellow-300 text-[35px]">{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
-              <span className="text-[25px] font-semibold opacity-70"> / BC -</span>
-              <span className="text-red-400 text-[35px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
+              <span className="text-[20px] font-semibold opacity-70">PJ -</span>
+              <span className="text-green-300 text-[30px]">{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
+              <span className="text-[20px] font-semibold opacity-70"> / CJ -</span>
+              <span className="text-yellow-300 text-[30px]">{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
+              <span className="text-[20px] font-semibold opacity-70"> / BC -</span>
+              <span className="text-red-400 text-[30px]">{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
             </>
           ),
-          Client_Stats: (
+Client_Stats: (
             <>
-             <span className="text-[30px] font-semibold opacity-70"> Clients&nbsp;&nbsp; : &nbsp;&nbsp;</span>
-              <span className="text-[35px]">{machines.filter(machine => machine.Active).length}</span>
+             <span className="text-[25px] font-semibold opacity-70"> Clients&nbsp;&nbsp; : &nbsp;&nbsp;</span>
+              <span className="text-[30px]">{machines.filter(machine => machine.Active).length}</span>
               &nbsp;&nbsp;/&nbsp;&nbsp;
-              <span className="text-[35px]">{machines.length}</span>
+              <span className="text-[30px]">{machines.length}</span>
             </>
           ),
-          Min_Close_Profit: (
+Min_Close_Profit: (
             <>
-             <span className="text-[30px] font-semibold opacity-70"> Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp;</span>
-              <span className="text-green-300 text-[35px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
+             <span className="text-[25px] font-semibold opacity-70"> Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+              <span className="text-green-300 text-[30px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
               &nbsp;&nbsp;=&nbsp;&nbsp;$&nbsp;&nbsp;
               <span className={`${minCloseProfitVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}>{minCloseProfitVlaue}</span>
             </>
           ),
-          Min_Close_Loss: (
+Min_Close_Loss: (
             <>
-             <span className="text-[30px] font-semibold opacity-70"> Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp;</span>
-              <span className="text-red-400 text-[35px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
+             <span className="text-[25px] font-semibold opacity-70"> Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+              <span className="text-red-400 text-[30px]">{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
               &nbsp;&nbsp; = &nbsp;&nbsp;$&nbsp;&nbsp;
-              <span className={`${minCloseLossVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}>{minCloseLossVlaue}</span>
+              <span className={`${minCloseLossVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`}>{minCloseLossVlaue}</span>
             </>
           ),
         }));
@@ -1890,23 +1930,17 @@ const toggleBox = (cardTitle) => {
   const data = getFilteredForTitle[normalized];
 
   setSelectedBox((prevSelected) => {
-    const normalizedPrev = (prevSelected || "").trim().replace(/\s+/g, "_");
-    if (normalizedPrev === normalized || !data) return null;
-    // 🧠 Auto-select subreport based on text
-    if (normalized === "Profit_Stats") {
-      if (cardTitle.toLowerCase().includes("running")) setActiveSubReport("running");
-      else if (cardTitle.toLowerCase().includes("close")) setActiveSubReport("close");
-      else if (cardTitle.toLowerCase().includes("assign")) setActiveSubReport("assign");
-      else setActiveSubReport("total");
-    } else if (normalized === "Hedge_Stats") {
-      if (cardTitle.toLowerCase().includes("closed")) setActiveSubReport("closed");
-      else if (cardTitle.toLowerCase().includes("1-1")) setActiveSubReport("holding");
-      else setActiveSubReport("running");
-    } else if (normalized === "Count_Stats") {
-      if (cardTitle.toLowerCase().includes("pj")) setActiveSubReport("pj");
-      else if (cardTitle.toLowerCase().includes("profit")) setActiveSubReport("profit");
-      else setActiveSubReport("loss");
-    }
+    if (prevSelected === normalized || !data) return null;
+
+    // Automatically select sub-report button based on clicked box title
+    if (normalized.includes("Running")) setActiveSubReport("running");
+    else if (normalized.includes("Closed") && normalized.includes("Direct")) setActiveSubReport("close");
+    else if (normalized.includes("Closed") && normalized.includes("Hedge")) setActiveSubReport("closed");
+    else if (normalized.includes("Hedge_on_Hold")) setActiveSubReport("holding");
+    else if (normalized.includes("Assign")) setActiveSubReport("assign");
+    else if (normalized.includes("Total_Closed")) setActiveSubReport("close");
+    else if (normalized.includes("Total_Running")) setActiveSubReport("running");
+
     return normalized;
   });
 };
@@ -2211,9 +2245,27 @@ return (
       </label>
     ))}
     
-    <span className="text-green-600 text-[16px] font-bold block text-left mb-1">
-                ➤ Assigned New:</span> <span className="text-red-600 text-[34px] font-bold block text-left mb-1">{filteredTradeData.filter(trade => trade.Type === "assign").length}</span>
-              
+
+      <span className="text-green-600 text-[16px] font-bold block text-left mb-1">
+                ➤ Assigned New:</span> <span
+  className="text-red-600 text-[34px] font-bold block text-left mb-1 cursor-pointer hover:underline"
+  title="Click to view Assigned Trades"
+  onClick={() => {
+    setSelectedBox((prev) => {
+      const next = prev === "Assigned_New" ? null : "Assigned_New";
+      if (next) {
+        setActiveSubReport("assign");
+        setTimeout(() => {
+          const section = document.getElementById("tableViewSection");
+          if (section) section.scrollIntoView({ behavior: "smooth" });
+        }, 0);
+      }
+      return next;
+    });
+  }}
+>
+  {filteredTradeData.filter(trade => trade.Type === "assign").length}
+</span>
   </div>
   
 </div>
