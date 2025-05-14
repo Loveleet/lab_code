@@ -1294,7 +1294,9 @@ const formatTradeData = (trade, index) => ({
   Swing4: safeFixed(trade.Swing4, 6),
   Swing5: safeFixed(trade.Swing5, 6),
   HSHighP : safeFixed(trade.Hedge_Swing_High_Point, 6),
-  HSLowP : safeFixed(trade.Hedge_Swing_Low_Point, 6)  
+  HSLowP : safeFixed(trade.Hedge_Swing_Low_Point, 6),
+  THighP : safeFixed(trade.Temp_High_Point, 6),
+  TlowP : safeFixed(trade.Temp_Low_Point, 6)
 
 });
 const Dashboard = () => {
