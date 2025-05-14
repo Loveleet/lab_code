@@ -172,6 +172,7 @@ const TableView = ({ title, tradeData, clientData, logData, activeSubReport, set
   const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
   const [selectedRow, setSelectedRow] = useState(null);
   const [activeFilters, setActiveFilters] = useState({});
+  const [searchInput, setSearchInput] = useState(""); // ✅ Preserve search term
 
   function updateFilterIndicators() {
     document.querySelectorAll("th .filter-icon").forEach((icon) => {
@@ -472,9 +473,91 @@ const filteredAndSortedData = useMemo(() => {
 
 useEffect(() => {
   if (!title || !tradeData || tradeData.length === 0) return;
-  const result = tradeData.map((trade, index) => formatTradeData(trade, index));
+
+  let result = tradeData.map((trade, index) => formatTradeData(trade, index));
+
+  // ✅ Apply sub-report filtering
+  switch (title) {
+    case "Total_Closed_Stats":
+      result = result.filter(trade => trade.Type === "close" || trade.Type === "hedge_close");
+      break;
+    case "Direct_Closed_Stats":
+      result = result.filter(trade => trade.Type === "close");
+      break;
+    case "Hedge_Closed_Stats":
+      result = result.filter(trade => trade.Type === "hedge_close" && trade.Hedge === true);
+      break;
+    case "Total_Running_Stats":
+      result = result.filter(trade => trade.Type === "running" && trade.Hedge_1_1_bool === false);
+      break;
+    case "Assigned_New":
+      result = result.filter(trade => trade.Type === "assign" && trade.Hedge_1_1_bool === false);
+      break;
+    case "Direct_Running_Stats":
+      result = result.filter(trade => trade.Type === "running" && trade.Hedge === false);
+      break;
+    case "Hedge_Running_Stats":
+      result = result.filter(trade => trade.Type === "running" && trade.Hedge === true && trade.Hedge_1_1_bool === false);
+      break;
+    case "Hedge_on_Hold":
+      result = result.filter(trade => trade.Type === "running" && trade.Hedge === true && trade.Hedge_1_1_bool === true);
+      break;
+    case "Closed_Count_Stats":
+      result = result.filter((trade) => {
+        if (activeSubReport === "loss") return trade.Type === "close" && trade.Pl_after_comm < 0;
+        if (activeSubReport === "profit") return trade.Type === "close" && trade.Pl_after_comm > 0;
+        if (activeSubReport === "pj") return trade.Type === "close" && trade.Profit_journey === true;
+        return true;
+      });
+      break;
+    case "Buy_Sell_Stats":
+      result = result.filter((trade) => {
+        if (!["BUY", "SELL"].includes(trade.Action)) return false;
+        if (activeSubReport === "buy") return trade.Action === "BUY";
+        if (activeSubReport === "sell") return trade.Action === "SELL";
+        return true;
+      });
+      break;
+    case "Journey_Stats_Running":
+      result = result.filter((trade) => {
+        if (activeSubReport === "pj") return trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running";
+        if (activeSubReport === "cj") return trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && !trade.Profit_journey;
+        if (activeSubReport === "bc") return trade.Pl_after_comm < 0 && trade.Type === "running";
+        return true;
+      });
+      break;
+    case "Client_Stats":
+      result = clientData.map((client, index) => ({
+        "S No": index + 1,
+        "Machine ID": client.MachineId || "N/A",
+        "Client Name": client.Name || "N/A",
+        "Active": client.Active ? "✅" : "❌",
+        "Last Ping": client.LastPing || "N/A",
+        "Region": client.Region || "N/A",
+      }));
+      break;
+    case "Min_Close_Profit":
+      result = result.filter(trade => trade.Type === "close" && trade.Min_close === "Min_close" && trade.Pl_after_comm > 0);
+      break;
+    case "Min_Close_Loss":
+      result = result.filter(trade => trade.Type === "close" && trade.Min_close === "Min_close" && trade.Pl_after_comm < 0);
+      break;
+    default:
+      break;
+  }
+
+  // ✅ Apply search filter conditionally
+  if (searchInput.trim().length > 0) {
+    const query = searchInput.toLowerCase();
+    result = result.filter(row =>
+      Object.values(row).some(val =>
+        String(val).toLowerCase().includes(query)
+      )
+    );
+  }
+
   setFilteredData(result);
-}, [title, tradeData, activeSubReport]);
+}, [title, tradeData, activeSubReport, clientData, searchInput]);
 
   const handleOpenReport = (title, sortedData) => {
     if (!sortedData || sortedData.length === 0) return;
@@ -870,6 +953,8 @@ function showCopyPopup(text) {
 
   
   useEffect(() => {
+    // Prevent reset if searching
+    if (searchInput.trim().length > 0) return;
     if (!Array.isArray(tradeData) || tradeData.length === 0 || !title) {
       setFilteredData([]);
       return;
@@ -974,7 +1059,7 @@ function showCopyPopup(text) {
         result = tradeData.map((trade, index) => formatTradeData(trade, index));
     }
     setFilteredData(result);
-  }, [title, tradeData, activeSubReport, clientData]);
+  }, [title, tradeData, activeSubReport, clientData, searchInput]);
 
   // Add conditional early return to prevent unnecessary rendering
   // (Moved subReportButtons below to allow always showing buttons even if no data)
@@ -1021,13 +1106,39 @@ function showCopyPopup(text) {
   );
 
   if (filteredData.length === 0) {
-    return (
-      <div>
+  return (
+    <div className="mt-6 p-6 bg-[#f2f2f7] text-[#222] shadow-md rounded-lg max-w-full">
+      <h2 className="text-xl font-bold">{title.replace(/_/g, " ")} Details</h2>
+      <div className="flex gap-2 my-4">
+        <input
+          type="text"
+          placeholder="🔍 Type to search..."
+          onChange={(e) => {
+            const value = e.target.value.toLowerCase();
+            const filtered = tradeData.filter(row =>
+              Object.values(row).some(val =>
+                String(val).toLowerCase().includes(value)
+              )
+            );
+            setFilteredData(filtered);
+          }}
+          className="px-3 py-2 border rounded-md w-64 text-sm"
+        />
+        <button
+          onClick={() => {
+            setActiveFilters({});
+            setFilteredData(tradeData);
+          }}
+          className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+        >
+          ♻️ Reset Filters
+        </button>
         {subReportButtons}
-        <p className="text-center text-gray-500 mt-4">⚠️ No relevant data available for {title}</p>
       </div>
-    );
-  }
+      <p className="text-center text-gray-500 mt-4">⚠️ No relevant data available for {title}</p>
+    </div>
+  );
+}
   const getStickyClass = (index) => {
     if (index === 0)
       return "sticky left-0 z-[5] bg-[#046e7a] text-white min-w-[110px] max-w-[110px]";
@@ -1052,19 +1163,21 @@ return (
 
   {/* Search */}
   <input
-    type="text"
-    placeholder="🔍 Type to search..."
-    onChange={(e) => {
-      const value = e.target.value.toLowerCase();
-      const filtered = tradeData.filter(row =>
-        Object.values(row).some(val =>
-          String(val).toLowerCase().includes(value)
-        )
-      );
-      setFilteredData(filtered);
-    }}
-    className="px-3 py-2 border rounded-md w-64 text-sm"
-  />
+  type="text"
+  placeholder="🔍 Type to search..."
+  value={searchInput}
+  onChange={(e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchInput(e.target.value); // store input
+    const filtered = tradeData.filter(row =>
+      Object.values(row).some(val =>
+        String(val).toLowerCase().includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  }}
+  className="px-3 py-2 border rounded-md w-64 text-sm"
+/>
 
 {/* <div className="flex items-center gap-4 mb-4"> */}
   <button
