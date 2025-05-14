@@ -1652,7 +1652,7 @@ Direct_Closed_Stats: (
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
-                className={`${closedProfit >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`}
+                className={`${(closePlus + closeMinus ) >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`}
                 title="Closed Total (Only Direct)"
               >
                 {(closePlus + closeMinus ).toFixed(2)}
@@ -1702,7 +1702,7 @@ Total_Running_Stats: (
               </span>
               &nbsp;&nbsp;=&nbsp;&nbsp;
               <span
-                className={`${runningProfit >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`}
+                className={`${(runningProfit + hedgeActiveRunningTotal) >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`}
                 title="Running Total (Hedge + Direct)"
               >
                 {((runningProfit + hedgeActiveRunningTotal)).toFixed(2)}
@@ -1839,7 +1839,7 @@ Closed_Count_Stats: (
               
             </>
           ),
-          
+
 Journey_Stats_Running: (
             <>
             <span title="Journey Detail" className="text-[21px] text-yellow-300 font-semibold opacity-80">Journey Stats&nbsp;</span>
