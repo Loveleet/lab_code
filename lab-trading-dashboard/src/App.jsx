@@ -546,9 +546,9 @@ useEffect(() => {
       break;
   }
 
-  // ✅ Apply search filter conditionally
-  if (searchInput.trim().length > 0) {
-    const query = searchInput.toLowerCase();
+  // Always apply search filter regardless of title
+  const query = searchInput.trim().toLowerCase();
+  if (query.length > 0) {
     result = result.filter(row =>
       Object.values(row).some(val =>
         String(val).toLowerCase().includes(query)
@@ -953,14 +953,13 @@ function showCopyPopup(text) {
 
   
   useEffect(() => {
-    // Prevent reset if searching
-    if (searchInput.trim().length > 0) return;
     if (!Array.isArray(tradeData) || tradeData.length === 0 || !title) {
       setFilteredData([]);
       return;
     }
+
     let result = [];
-    // Updated switch block for new box titles and filter logic
+
     switch (title) {
       case "Total_Closed_Stats":
         result = tradeData
@@ -979,12 +978,12 @@ function showCopyPopup(text) {
         break;
       case "Total_Running_Stats":
         result = tradeData
-          .filter(trade => trade.Type === "running" & trade.Hedge_1_1_bool === false)
+          .filter(trade => trade.Type === "running" && trade.Hedge_1_1_bool === false)
           .map((trade, index) => formatTradeData(trade, index));
         break;
       case "Assigned_New":
         result = tradeData
-          .filter(trade => trade.Type === "assign" & trade.Hedge_1_1_bool === false)
+          .filter(trade => trade.Type === "assign" && trade.Hedge_1_1_bool === false)
           .map((trade, index) => formatTradeData(trade, index));
         break;
       case "Direct_Running_Stats":
@@ -1005,7 +1004,7 @@ function showCopyPopup(text) {
       case "Total_Stats":
         result = tradeData.map((trade, index) => formatTradeData(trade, index));
         break;
-       case "Closed_Count_Stats":
+      case "Closed_Count_Stats":
         result = tradeData
           .filter((trade) => {
             if (activeSubReport === "loss") return trade.Type === "close" && trade.Pl_after_comm < 0;
@@ -1058,6 +1057,16 @@ function showCopyPopup(text) {
       default:
         result = tradeData.map((trade, index) => formatTradeData(trade, index));
     }
+
+    const query = searchInput.trim().toLowerCase();
+    if (query.length > 0) {
+      result = result.filter(row =>
+        Object.values(row).some(val =>
+          String(val).toLowerCase().includes(query)
+        )
+      );
+    }
+
     setFilteredData(result);
   }, [title, tradeData, activeSubReport, clientData, searchInput]);
 
@@ -1105,40 +1114,46 @@ function showCopyPopup(text) {
     </div>
   );
 
-  if (filteredData.length === 0) {
-  return (
-    <div className="mt-6 p-6 bg-[#f2f2f7] text-[#222] shadow-md rounded-lg max-w-full">
-      <h2 className="text-xl font-bold">{title.replace(/_/g, " ")} Details</h2>
-      <div className="flex gap-2 my-4">
-        <input
-          type="text"
-          placeholder="🔍 Type to search..."
-          onChange={(e) => {
-            const value = e.target.value.toLowerCase();
-            const filtered = tradeData.filter(row =>
-              Object.values(row).some(val =>
-                String(val).toLowerCase().includes(value)
-              )
-            );
-            setFilteredData(filtered);
-          }}
-          className="px-3 py-2 border rounded-md w-64 text-sm"
-        />
-        <button
-          onClick={() => {
-            setActiveFilters({});
-            setFilteredData(tradeData);
-          }}
-          className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
-        >
-          ♻️ Reset Filters
-        </button>
-        {subReportButtons}
+  const query = searchInput?.trim()?.toLowerCase();
+  const isQueryActive = query && query.length > 0;
+  const isFilteredEmpty = filteredData.length === 0;
+
+  if (isFilteredEmpty && !isQueryActive) {
+    return (
+      <div className="mt-6 p-6 bg-[#f2f2f7] text-[#222] shadow-md rounded-lg max-w-full">
+        <h2 className="text-xl font-bold">{title.replace(/_/g, " ")} Details</h2>
+        <div className="flex gap-2 my-4">
+          <input
+            type="text"
+            placeholder="🔍 Type to search..."
+            value={searchInput}
+            onChange={(e) => {
+              const value = e.target.value.toLowerCase();
+              setSearchInput(e.target.value);
+              const filtered = tradeData.filter(row =>
+                Object.values(row).some(val =>
+                  String(val).toLowerCase().includes(value)
+                )
+              );
+              setFilteredData(filtered);
+            }}
+            className="px-3 py-2 border rounded-md w-64 text-sm"
+          />
+          <button
+            onClick={() => {
+              setActiveFilters({});
+              setFilteredData(tradeData);
+            }}
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+          >
+            ♻️ Reset Filters
+          </button>
+          {subReportButtons}
+        </div>
+        <p className="text-center text-gray-500 mt-4">⚠️ No relevant data available for {title}</p>
       </div>
-      <p className="text-center text-gray-500 mt-4">⚠️ No relevant data available for {title}</p>
-    </div>
-  );
-}
+    );
+  }
   const getStickyClass = (index) => {
     if (index === 0)
       return "sticky left-0 z-[5] bg-[#046e7a] text-white min-w-[110px] max-w-[110px]";
