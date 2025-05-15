@@ -1226,7 +1226,9 @@ return (
         ➕
       </button>
     </div>
+     <div style={{ height: '5px' }} />
     <h2 className="text-xl font-bold">{title.replace(/_/g, " ")} Details</h2>
+    <div style={{ height: '5px' }} />
 
     {/* ✅ Open Report Button */}
     <button
@@ -1826,17 +1828,17 @@ useEffect(() => {
     ...prevMetrics,
 Total_Closed_Stats: (
           <>
-              <div style={{ height: '4px' }} />
+{/* className={`relative px-[3px] text-yellow-300 font-semibold font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }} */}
 
-
-              <span title="Closed Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
+              <span title="Closed Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Total Closed Trades &nbsp;</span>
+              <span title="Closed Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+             
+             &nbsp;
+               <span title="Closed Count" className={`relative px-[3px] text-yellow-300 font-semibold  font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {filteredTradeData.filter(trade => trade.Type === "close" || trade.Type === "hedge_close").length}
               </span>
              
-                &nbsp;&nbsp;
-              <span title="Closed Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>Total Closed Trades &nbsp;</span>
-              <span title="Closed Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
-              <div style={{ height: '4px' }} />
+              <div style={{ height: '14px' }} />
               <span title="Closed Profit (Hedge + Direct) " className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {(closePlus + hedgeClosedPlus).toFixed(2)}
               </span>
@@ -1854,17 +1856,17 @@ Total_Closed_Stats: (
               </>),
 Direct_Closed_Stats: (
           <>
-              <div style={{ height: '4px' }} />
 
-
-              <span title="Closed Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
+               <span title="Closed Count (Only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Direct Closed Trades&nbsp;</span>
+              <span title="Closed Count (Only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+                &nbsp;
+             
+              <span title="Closed Count" className={`relative px-[3px] text-yellow-300 font-semibold  font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {filteredTradeData.filter(trade => trade.Type === "close" ).length}
               </span>
              
-                &nbsp;&nbsp;
-              <span title="Closed Count (Only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>Direct Closed Trades&nbsp;</span>
-              <span title="Closed Count (Only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
-              <div style={{ height: '4px' }} />
+              <div style={{ height: '14px' }} />
+
               <span title="Closed Profit (Only Direct) " className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {(closePlus).toFixed(2)}
               </span>
@@ -1882,19 +1884,19 @@ Direct_Closed_Stats: (
               </>),
 Hedge_Closed_Stats: (
             <>
-              <div style={{ height: '4px' }} />
 
-
+               <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold font-semibold`} style={{ fontSize: `${26 + (fontSizeLevel - 8) * 5}px` }}>Hedge Closed  &nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+            &nbsp;
+             
               <span
-                className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}
+                className={`relative px-[3px] text-yellow-300 font-semibold  font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}
                 title="Closed Hedge Count"
               >
                 {filteredTradeData.filter(trade => trade.Hedge === true & trade.Type === "hedge_close").length}
               </span>
-            &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>Hedge Closed  &nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
-              <div style={{ height: '4px' }} />
+             
+              <div style={{ height: '14px' }} />
               <span className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} title="Closed Hedge Profit +">{hedgeClosedPlus.toFixed(2)}</span>
               &nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>+ </span>&nbsp;
               <span className={`text-red-400 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} title="Closed Hedge Profit -">{hedgeClosedMinus.toFixed(2)}</span>
@@ -1904,16 +1906,18 @@ Hedge_Closed_Stats: (
           ),
 Total_Running_Stats: (
           <>
-          <div style={{ height: '4px' }} />
 
-            <span title="Running Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
+
+             <span title="Running Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Total Running Trades&nbsp;</span>
+             <span title="Running Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇</span>
+             &nbsp;
+           
+            <span title="Running Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold  font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {filteredTradeData.filter(trade => trade.Type === "running" & trade.Hedge_1_1_bool === false).length}
               </span>
               
-              &nbsp;&nbsp;
-            <span title="Running Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>Total Running Trades&nbsp;</span>
-             <span title="Running Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇</span>
-           <div style={{ height: '4px' }} />
+           
+           <div style={{ height: '14px' }} />
               &nbsp;
               <span title="Running Profit (Hedge + Direct)" className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {(runningPlus+hedgeActiveRunningPlus).toFixed(2)}
@@ -1932,16 +1936,16 @@ Total_Running_Stats: (
                </>),
  Direct_Running_Stats: (
           <>
-          <div style={{ height: '4px' }} />
-
-            <span title="Running Count (only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
+            
+            
+             <span title="Running Count (only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Direct Running Trades&nbsp;</span>
+             <span title="Running Count (only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇</span>
+            &nbsp;
+            <span title="Running Count (only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold  font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {filteredTradeData.filter(trade => trade.Type === "running" & trade.Hedge === false).length}
               </span>
               
-              &nbsp;&nbsp;
-            <span title="Running Count (only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>Direct Running Trades&nbsp;</span>
-             <span title="Running Count (only Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇</span>
-           <div style={{ height: '4px' }} />
+           <div style={{ height: '14px' }} />
               &nbsp;
               <span title="Running Profit (only Direct)" className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {runningPlus.toFixed(2)}
@@ -1960,19 +1964,19 @@ Total_Running_Stats: (
                </>),
  Hedge_Running_Stats: (
             <>
-             <div style={{ height: '4px' }} />
+
+              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold  font-semibold`} style={{ fontSize: `${26 + (fontSizeLevel - 8) * 5}px` }}>Hedge Running&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+              &nbsp;
               
               <span
-                className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}
+                className={`relative px-[3px] text-yellow-300 font-semibold  font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}
                 title="Running Hedge Count"
               >
                 {filteredTradeData.filter(trade => trade.Hedge_1_1_bool === false & trade.Hedge === true & trade.Type === "running").length}
               </span>
-             &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>Hedge Running&nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
 
-              <div style={{ height: '4px' }} />
+              <div style={{ height: '14px' }} />
               <span className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} title="Running Hedge in Profit">{hedgeActiveRunningPlus.toFixed(2)}</span>
               &nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>+ </span>&nbsp;
               <span className={`text-red-400 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} title="Running Hedge in Loss ">{hedgeActiveRunningMinus.toFixed(2)}</span>
@@ -1984,16 +1988,16 @@ Total_Running_Stats: (
 
 Total_Stats: (
           <>
-               <div style={{ height: '4px' }} />
+               
 
               
-              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
+              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>All Total Trades&nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+             &nbsp;
+              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold  font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {filteredTradeData.length}
               </span>
-             &nbsp;&nbsp;
-              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>All Total Trades&nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
-              <div style={{ height: '4px' }} />
+              <div style={{ height: '14px' }} />
               <span title="Total Profit (Hedge + Direct) " className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
                 {(runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus ).toFixed(2)}
               </span>
@@ -2012,11 +2016,14 @@ Total_Stats: (
           ),
  Buy_Sell_Stats: (
             <>
-              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>Buy running&nbsp;&nbsp;</span>
+              <div style={{ height: '6px' }} />
+
+              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>Buy running&nbsp;&nbsp;</span>
               <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{buyRunning}</span>
               &nbsp;&nbsp;<span style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>out of</span>&nbsp;
               <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{buyTotal}</span>
-              <br />
+              <div style={{ height: '10px' }} />
+              
               <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 `} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>Sell running&nbsp;&nbsp;</span>
               <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{sellRunning}</span>
               &nbsp;&nbsp;<span style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>out of</span>&nbsp;
@@ -2026,20 +2033,18 @@ Total_Stats: (
           ),
   Hedge_on_Hold: (
             <>
-              <div style={{ height: '4px' }} />
 
               
+              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-200 font-semibold  font-semibold`} style={{ fontSize: `${26 + (fontSizeLevel - 8) * 5}px` }}>Hedge on hold  1-1 &nbsp;</span>
+              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+              &nbsp;
               <span
-                className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}
+                className={`relative px-[3px] text-yellow-300 font-semibold  font-semibold`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}
                 title="Hedge 1-1 Count"
               >
                 {filteredTradeData.filter(trade => trade.Hedge === true & trade.Hedge_1_1_bool === true).length}
               </span>
-              &nbsp;&nbsp;
-              
-              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>Hedge on hold  1-1 &nbsp;</span>
-              <span title="Total Trades Count (Hedge + Direct)" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
-              <div style={{ height: '4px' }} />
+              <div style={{ height: '14px' }} />
               <span className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} title="Hedge 1-1 Profit">{hedgePlusRunning.toFixed(2)}</span>
               &nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>+ </span>&nbsp;
               <span className={`text-red-400 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} title="Hedge 1-1 Loss">{hedgeMinusRunning.toFixed(2)}</span>
@@ -2050,29 +2055,31 @@ Total_Stats: (
 
 Closed_Count_Stats: (
             <>
-            <span title="Closed Trades Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>Closed Trades Count&nbsp;</span>
-              <span title="Closed Trade Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
-              <br></br>
-              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}> PJ -&nbsp;</span><span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} >{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
-           
-              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>, &nbsp;&nbsp;&nbsp;Profit -</span> <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}</span>
+            <span title="Closed Trades Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Closed Trades Count&nbsp;</span>
+              <span title="Closed Trade Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+                            <div style={{ height: '14px' }} />
 
-              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>,&nbsp;&nbsp;&nbsp; Loss -</span> <span className="text-[30px] text-red-400" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}</span>
+              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${19 + (fontSizeLevel - 8) * 5}px` }}>After&nbsp;&nbsp;&nbsp;PJ -&nbsp;</span><span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} >{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
+           
+              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${19 + (fontSizeLevel - 8) * 5}px` }}>, &nbsp;&nbsp;&nbsp;Profit -</span> <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}</span>
+
+              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${19 + (fontSizeLevel - 8) * 5}px` }}>,&nbsp;&nbsp;&nbsp; Loss -</span> <span className="text-[30px] text-red-400" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}</span>
               
             </>
           ),
 
 Journey_Stats_Running: (
             <>
-            <span title="Journey Detail" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>Journey Stats&nbsp;</span>
-              <span title="Journey Detail" className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${21 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
-              <br></br>
-              <span className="text-[20px] font-semibold opacity-70" style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>PJ -</span>
-              <span className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
-              <span className="text-[20px] font-semibold opacity-70" style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}> / CJ -</span>
-              <span className="text-yellow-300 text-[30px]" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
-              <span className="text-[20px] font-semibold opacity-70" style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}> / BC -</span>
-              <span className={`text-red-400 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
+            <span title="Journey Detail" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Journey Stats&nbsp;</span>
+              <span title="Journey Detail" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+                            <div style={{ height: '14px' }} />
+
+              <span className="text-[20px] font-semibold opacity-70 text-center" style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>PJ -&nbsp;</span>
+              <span className={`text-green-300 text-[30px]text-center`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
+              <span className="text-[20px] font-semibold opacity-70 text-center" style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>  &nbsp;&nbsp;&nbsp;CJ -&nbsp;</span>
+              <span className="text-yellow-300 text-[30px] text-center" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
+              <span className="text-[20px] font-semibold opacity-70 text-center"  style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}> &nbsp;&nbsp;BC- &nbsp;</span>
+              <span className={`text-red-400 text-[30px] text-center`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
             </>
           ),
 Client_Stats: (
@@ -2085,7 +2092,7 @@ Client_Stats: (
           ),
 Min_Close_Profit: (
             <>
-             <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}> Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+             <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}> Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp;</span>
               <span className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
               &nbsp;&nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>=&nbsp;&nbsp;$&nbsp;&nbsp;</span>
               <span className={`${minCloseProfitVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{minCloseProfitVlaue}</span>
@@ -2093,7 +2100,7 @@ Min_Close_Profit: (
           ),
 Min_Close_Loss: (
             <>
-             <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}> Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+             <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}> Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp;</span>
               <span className={`text-red-400 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
               &nbsp;&nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>=&nbsp;&nbsp;$&nbsp;&nbsp;</span>
               <span className={`${minCloseLossVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{minCloseLossVlaue}</span>
@@ -2414,7 +2421,8 @@ return (
     ))}
   </div>
 </div>
-<div></div>
+
+
 {/* ✅ Buy/Sell Filter */}
 <div className="flex flex-col space-y-2 mb-4">
   <div className="flex items-center space-x-2">
@@ -2529,9 +2537,11 @@ return (
   timeFormat="HH:mm"
   dateFormat="YYYY-MM-DD"
 />
-  </div>
 
+  </div>
+<div style={{ height: '12px' }}/>
   <div className="flex flex-col">
+    <div style={{ height: '12px' }}/>
     <label className="text-sm font-semibold text-gray-800 mb-1">📅 To Date & Time</label>
     <Datetime
     key={`to-${dateKey}`}
@@ -2565,8 +2575,8 @@ return (
 </div>
  
 </div>
-<div className="flex items-left ml-6 space-x-3">
-  <span className="font-semibold text-gray-800">Layout:</span>
+<div className="flex items-center ml-6 space-x-3">
+  <span className="text-sm font-semibold text-black">Layout:</span>
   <button
     onClick={() => {
       const newOption = Math.max(1, layoutOption - 1);
@@ -2577,7 +2587,7 @@ return (
   >
     ➖
   </button>
-  <span className="text-sm text-gray-800">{layoutOption}</span>
+  &nbsp;&nbsp;
   <button
     onClick={() => {
       const newOption = Math.min(14, layoutOption + 1); // 🚀 Increase up to 14
@@ -2589,8 +2599,8 @@ return (
     ➕
   </button>
 
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   <div className="flex items-center space-x-2">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
+   <div className="flex items-center space-x-3">
   <button
     onClick={() => setFontSizeLevel(prev => {
       const newLevel = Math.max(1, prev - 1);
@@ -2615,7 +2625,10 @@ return (
     ➕
   </button>
 </div>
+
   </div>
+  <div style={{ height: '12px' }}/>
+
 
 </div>
         
