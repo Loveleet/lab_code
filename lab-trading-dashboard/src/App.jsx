@@ -39,7 +39,42 @@ const SidebarItem = ({ icon: Icon, text, isOpen }) => (
 
 import { useRef } from "react";
 const DashboardCard = ({ title, value, isSelected, onClick }) =>  {
-  // Remove localHovered state, useRef instead if needed in future
+  // Tag state for each card, loaded from localStorage by title
+  const [tag, setTag] = React.useState(() => localStorage.getItem(`boxTag-${title}`) || "");
+
+  // Tag add/update
+  const handleTagClick = (e) => {
+    e.stopPropagation();
+    const newTag = prompt("Enter tag name:");
+    if (newTag !== null) {
+      const colorChoices = {
+        "yellow": "#FFF9C4",
+        "orange": "#FFE0B2",
+        "green": "#C8E6C9",
+        "blue": "#BBDEFB",
+        "pink": "#F8BBD0"
+      };
+
+      const colorName = prompt("Choose tag color (yellow, orange, green, blue, pink):", "yellow");
+      const chosenColor = colorChoices[colorName?.toLowerCase()] || "#FFF9C4";
+
+      const sizeChoice = prompt("Choose tag size (small, large, largest):", "small");
+      let scale = 1.0;
+      if (sizeChoice === "large") scale = 1.2;
+      if (sizeChoice === "largest") scale = 1.4;
+
+      const tagData = JSON.stringify({ text: newTag, color: chosenColor, scale });
+      setTag(tagData);
+      localStorage.setItem(`boxTag-${title}`, tagData);
+    }
+  };
+  // Tag remove
+  const handleTagRemove = (e) => {
+    e.stopPropagation();
+    setTag("");
+    localStorage.removeItem(`boxTag-${title}`);
+  };
+
   // Use title attribute for tooltips on number spans
   const formatValue = (val) => {
     let numberIndex = 0;
@@ -115,28 +150,56 @@ const DashboardCard = ({ title, value, isSelected, onClick }) =>  {
     });
   };
 
+  // Wrap card UI in relative div with overlays for tag and add button
   return (
-    <div
-      className={`cursor-pointer p-8 rounded-2xl border transition-all duration-300 transform
+    <div className="relative">
+      {/* Tag display and remove button with dynamic color and font size */}
+      {tag && (() => {
+        const parsed = JSON.parse(tag);
+        return (
+          <div
+            className="absolute top-2 left-2 text-black px-2 py-1 rounded-full z-10 shadow"
+            style={{
+              backgroundColor: parsed.color || "yellow",
+              fontSize: `calc(0.85rem * var(--app-font-scale) * ${parsed.scale || 1})`,
+            }}
+          >
+            {parsed.text}
+            <button onClick={handleTagRemove} className="ml-1 text-red-700 font-bold">×</button>
+          </div>
+        );
+      })()}
+      {/* Add tag button (always shown) */}
+      <button
+        onClick={handleTagClick}
+        className="absolute top-2 left-2 bg-gray-200 text-black text-xs w-4 h-4 rounded-full z-10 shadow hover:bg-gray-300"
+        style={{ transform: "translate(-100%, -100%)" }}
+      >
+        +
+      </button>
+      {/* Card UI */}
+      <div
+        className={`cursor-pointer p-8 rounded-2xl border transition-all duration-300 transform
         ${isSelected
           ? "bg-gradient-to-br from-blue-900 to-green-500 scale-[1.03] shadow-lg ring-4 ring-yellow-600 border-yellow-700 text-gray-900"
           : "bg-gradient-to-br from-blue-800 to-indigo-900 hover:scale-[1.03] hover:shadow-xl hover:ring-4 hover:ring-yellow-400/60 hover:border-yellow-500/70 text-white"}`}
-      onClick={onClick}
-    >
-      {/* ✅ Title with sky blue color */}
-      {/* <h2 className="text-lg font-semibold text-center text-blue-400">{title.replace(/_/g, " ")}</h2> */}
-      {/* ✅ Properly formatted value using JSX with tooltips */}
-      <p className="text-2xl font-bold text-center leading-snug whitespace-nowrap overflow-x-auto">
-        {typeof value === "string"
-          ? (
-            <span className="text-[22px] leading-snug inline-block min-w-full pointer-events-none">
-              <div className="flex flex-wrap justify-end gap-[3px] pointer-events-auto" style={{ pointerEvents: "auto" }}>
-                {formatValue(value)}
-              </div>
-            </span>
-          )
-          : value}
-      </p>
+        onClick={onClick}
+      >
+        {/* ✅ Title with sky blue color */}
+        {/* <h2 className="text-lg font-semibold text-center text-blue-400">{title.replace(/_/g, " ")}</h2> */}
+        {/* ✅ Properly formatted value using JSX with tooltips */}
+        <p className="text-2xl font-bold text-center leading-snug whitespace-nowrap overflow-x-auto">
+          {typeof value === "string"
+            ? (
+              <span className="text-[22px] leading-snug inline-block min-w-full pointer-events-none">
+                <div className="flex flex-wrap justify-end gap-[3px] pointer-events-auto" style={{ pointerEvents: "auto" }}>
+                  {formatValue(value)}
+                </div>
+              </span>
+            )
+            : value}
+        </p>
+      </div>
     </div>
   );
 };
