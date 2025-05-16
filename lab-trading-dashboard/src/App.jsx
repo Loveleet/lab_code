@@ -158,10 +158,10 @@ const DashboardCard = ({ title, value, isSelected, onClick }) =>  {
         const parsed = JSON.parse(tag);
         return (
           <div
-            className="absolute top-2 left-2 text-black px-2 py-1 rounded-full z-10 shadow"
+            className="absolute top-2 left-2 text-black px-3 py-1.5 rounded-full z-10 shadow"
             style={{
               backgroundColor: parsed.color || "yellow",
-              fontSize: `calc(0.85rem * var(--app-font-scale) * ${parsed.scale || 1})`,
+              fontSize: `calc(1.1rem * var(--app-font-scale) * ${parsed.scale || 1})`,
             }}
           >
             {parsed.text}
@@ -1517,8 +1517,8 @@ const formatTradeData = (trade, index) => ({
   Unique_ID: trade.Unique_id || "N/A",
 
   "Candle_🕒": formatDateTime(trade.Candel_time),
-"Fetcher_🕒": formatDateTime(trade.Fetcher_Trade_time),
-"Operator_🕒": formatDateTime(trade.Operator_Trade_time),
+  "Fetcher_🕒": formatDateTime(trade.Fetcher_Trade_time),
+  "Operator_🕒": formatDateTime(trade.Operator_Trade_time),
   Pair: trade.Pair || "N/A",
   "⏱️": trade.Interval || "N/A",
   "💼": trade.Action || "N/A",
@@ -1526,7 +1526,7 @@ const formatTradeData = (trade, index) => ({
   PL: trade.Pl_after_comm != null ? parseFloat(trade.Pl_after_comm.toFixed(2)) : "N/A",
   PJ: trade.Profit_journey ? "✅" : "❌",
   Type: trade.Type || "N/A",
-  "Operator_🕒": formatDateTime(trade.Operator_Close_time),
+  "Operator_🕒❌": formatDateTime(trade.Operator_Close_time),
   "📡": trade.SignalFrom || "N/A",
   Min: trade.Min_close,
   Stop_Price: safeFixed(trade.Stop_price, 6),
@@ -2699,25 +2699,32 @@ return (
         {/* ✅ Dashboard Cards */}
         {metrics && (
           <div
-            className="grid gap-8"
-            style={{ gridTemplateColumns: `repeat(${layoutOption}, minmax(0, 1fr))` }}
+            className="grid gap-4 w-full px-1"
+            style={{
+              gridTemplateColumns: `repeat(${layoutOption}, minmax(0, 1fr))`,
+              transition: "all 0.3s ease-in-out"
+            }}
           >
             {Object.entries(metrics).map(([title, value]) => {
               const normalizedKey = title.trim().replace(/\s+/g, "_");
               return (
-                <DashboardCard
+                <div
                   key={normalizedKey}
-                  title={title}
-                  value={value}
-                  isSelected={selectedBox === normalizedKey}
-                  onClick={() => {
-                    const hasData = getFilteredForTitle[normalizedKey];
-                    setSelectedBox(prev =>
-                      prev === normalizedKey || !hasData ? null : normalizedKey
-                    );
-                  }}
-                  filteredTradeData={filteredTradeData}
-                />
+                  className="relative"
+                >
+                  <DashboardCard
+                    title={title}
+                    value={value}
+                    isSelected={selectedBox === normalizedKey}
+                    onClick={() => {
+                      const hasData = getFilteredForTitle[normalizedKey];
+                      setSelectedBox(prev =>
+                        prev === normalizedKey || !hasData ? null : normalizedKey
+                      );
+                    }}
+                    filteredTradeData={filteredTradeData}
+                  />
+                </div>
               );
             })}
           </div>
