@@ -1511,25 +1511,26 @@ const formatDateTime = (val) => {
     return "N/A";
   }
 };
-
+// Hedge_Buy_pl
 const formatTradeData = (trade, index) => ({
   "S No": index + 1,
   "M.Id": trade.MachineId || "N/A",
   Unique_ID: trade.Unique_id || "N/A",
-
   "Candle_🕒": formatDateTime(trade.Candel_time),
   "Fetcher_🕒": formatDateTime(trade.Fetcher_Trade_time),
   "Operator_🕒": formatDateTime(trade.Operator_Trade_time),
   Pair: trade.Pair || "N/A",
   "⏱️": trade.Interval || "N/A",
   "💼": trade.Action || "N/A",
-  CJ: trade.Commision_journey ? "✅" : "❌",
   PL: trade.Pl_after_comm != null ? parseFloat(trade.Pl_after_comm.toFixed(2)) : "N/A",
-  PJ: trade.Profit_journey ? "✅" : "❌",
+  "🛡️_BUY": trade.Hedge_Buy_pl != null ? parseFloat(trade.Hedge_Buy_pl.toFixed(2)) : "N/A",
+  "🛡️_SELL": trade.Hedge_Sell_pl != null ? parseFloat(trade.Hedge_Sell_pl.toFixed(2)) : "N/A",
   Type: trade.Type || "N/A",
   "Operator_🕒❌": formatDateTime(trade.Operator_Close_time),
   "📡": trade.SignalFrom || "N/A",
   Min: trade.Min_close,
+    PJ: trade.Profit_journey ? "✅" : "❌",
+      CJ: trade.Commision_journey ? "✅" : "❌",
   Stop_Price: safeFixed(trade.Stop_price, 6),
   Save_Price: safeFixed(trade.Save_price, 6),
   Min_Comm: safeFixed(trade.Min_comm, 6),
