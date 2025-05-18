@@ -1623,10 +1623,27 @@ const Dashboard = () => {
     "CrossOver": "CO",
     "Spike":"SP",
   };
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+const [fromDate, setFromDate] = useState(() => {
+  const saved = localStorage.getItem("fromDate");
+  return saved ? moment(saved) : null;
+});
 
+const [toDate, setToDate] = useState(() => {
+  const saved = localStorage.getItem("toDate");
+  return saved ? moment(saved) : null;
+});
 
+useEffect(() => {
+  if (fromDate) {
+    localStorage.setItem("fromDate", fromDate.toISOString());
+  }
+}, [fromDate]);
+
+useEffect(() => {
+  if (toDate) {
+    localStorage.setItem("toDate", toDate.toISOString());
+  }
+}, [toDate]);
 
   const [selectedSignals, setSelectedSignals] = useState({
     "2POLE_IN5LOOP": true,
@@ -2626,6 +2643,8 @@ return (
   <div className="flex items-end">
   <button
   onClick={() => {
+    localStorage.removeItem("fromDate");
+    localStorage.removeItem("toDate");    
     setFromDate(null);
     setToDate(null);
     setDateKey(prev => prev + 1); // 🔁 Force calendar re-render
