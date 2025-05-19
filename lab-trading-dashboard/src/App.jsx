@@ -364,7 +364,6 @@ function showFilterPopup(index, event) {
 
 
 function showCopyPopup(text, x, y) {
-
   let popup = document.getElementById("copyPopup");
   if (!popup) {
     popup = document.createElement("div");
@@ -410,20 +409,9 @@ function showCopyPopup(text, x, y) {
     document.body.appendChild(popup);
   }
 
-  // ✅ Calculate safe position
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight;
-
-  if (x < 10 || x > screenWidth - 10 || y < 10 || y > screenHeight - 10) {
-    document.addEventListener("mousemove", (ev) => {
-      popup.style.left = `${ev.clientX}px`;
-      popup.style.top = `${ev.clientY}px`;
-    }, { once: true });
-  } else {
-    popup.style.left = `${x}px`;
-    popup.style.top = `${y}px`;
-  }
-
+  // Place the popup at the requested (x, y) position, fixed and keep it there
+  popup.style.left = `${x - window.scrollX}px`;
+  popup.style.top = `${y - window.scrollY}px`;
   popup.style.display = "block";
   popup.style.opacity = "1";
 
@@ -454,16 +442,17 @@ useEffect(() => {
       return;
     }
 
-
     setTimeout(() => {
       try {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
-        const x = window.scrollX + rect.left;
-        const y = window.scrollY + rect.bottom + 10;
+        // Position popup centered below the selection, like exported report
+        const x = rect.left + window.scrollX + rect.width / 2;
+        const y = rect.bottom + window.scrollY + 10;
 
         showCopyPopup(text, x, y);
       } catch (err) {
+        console.error("Copy popup positioning error:", err);
       }
     }, 0);
   };
@@ -1450,44 +1439,44 @@ return (
             .map((item, rowIndex) => (
               <tr
                 key={rowIndex}
-                className={`border-b cursor-pointer transition-all duration-200 ${
+                className={`border-b cursor-pointer ${
                   selectedRow === rowIndex
-                    ? "bg-gradient-to-r from-yellow-300 to-yellow-500 text-black font-bold shadow-xl border-l-4 border-yellow-700 rounded-md"
-                    : "hover:bg-green-200 hover:scale-[1.001] hover:border-l-2 hover:border-blue-500"
+                    ? "bg-yellow-200 text-black"
+                    : "hover:bg-green-200"
                 }`}
-                style={selectedRow === rowIndex ? { fontSize: `${12 + (reportFontSizeLevel - 3) * 2}px` } : {}}
+                style={{ fontSize: `${12 + (reportFontSizeLevel - 3) * 2}px` }}
                 onClick={() => setSelectedRow(prev => prev === rowIndex ? null : rowIndex)}
               >
                 {Object.entries(item).map(([key, val], colIndex) => (
-                 <td
-  key={colIndex}
-  className={`
-    px-2 py-1 border whitespace-nowrap align-top text-sm select-text
-    ${colIndex === 0 && "min-w-[90px] max-w-[90px] sticky left-0 bg-[#046e7a] text-white z-[5] text-xs"}
-    ${colIndex === 1 && "min-w-[100px] max-w-[100px] sticky left-[90px] bg-[#046e7a] text-white z-[5] text-[10px] font-light"}
-    ${colIndex === 2 && "min-w-[170px] max-w-[170px] sticky left-[190px] bg-[#046e7a] text-white z-[5] text-[12px] leading-snug"}
-    ${["Candle_Time", "Fetcher_Trade_Time", "Operator_Trade_Time", "Operator_Close_Time"].includes(key) ? "text-[11px]" : ""}
-    ${["Type", "Action", "Interval", "CJ", "PJ"].includes(key) ? "min-w-[60px] max-w-[60px] text-center" : ""}
-  `}
-  style={{ fontSize: key === "Unique_ID" ? `${8 + (reportFontSizeLevel - 2) * 2}px` : "inherit" }}
->
-  {key === "Unique_ID" && typeof val === "string" && val.match(/\d{4}-\d{2}-\d{2}/) ? (
-    (() => {
-      const match = val.match(/\d{4}-\d{2}-\d{2}/);
-      const splitIndex = val.indexOf(match[0]);
-      const pair = val.slice(0, splitIndex);
-      const timestamp = val.slice(splitIndex).replace("T", " ");
-      return (
-        <>
-          <div className="font-bold leading-tight" style={{ fontSize: `${10 + (reportFontSizeLevel - 2) * 2}px` }}>{pair}</div>
-          <div className="opacity-80 -mt-[2px] leading-tight" style={{ fontSize: `${2 + (reportFontSizeLevel - 2) * 2}px` }}>{timestamp}</div>
-        </>
-      );
-    })()
-  ) : (
-    key === "PL_After_Comm" && val !== "N/A" ? `$${val}` : val
-  )}
-</td>
+                  <td
+                    key={colIndex}
+                    className={`
+                      px-2 py-1 border whitespace-nowrap align-top text-sm select-text
+                      ${colIndex === 0 && "min-w-[90px] max-w-[90px] sticky left-0 bg-[#046e7a] text-white z-[5] text-xs"}
+                      ${colIndex === 1 && "min-w-[100px] max-w-[100px] sticky left-[90px] bg-[#046e7a] text-white z-[5] text-[10px] font-light"}
+                      ${colIndex === 2 && "min-w-[170px] max-w-[170px] sticky left-[190px] bg-[#046e7a] text-white z-[5] text-[12px] leading-snug"}
+                      ${["Candle_Time", "Fetcher_Trade_Time", "Operator_Trade_Time", "Operator_Close_Time"].includes(key) ? "text-[11px]" : ""}
+                      ${["Type", "Action", "Interval", "CJ", "PJ"].includes(key) ? "min-w-[60px] max-w-[60px] text-center" : ""}
+                    `}
+                    style={{ fontSize: key === "Unique_ID" ? `${8 + (reportFontSizeLevel - 2) * 2}px` : "inherit" }}
+                  >
+                    {key === "Unique_ID" && typeof val === "string" && val.match(/\d{4}-\d{2}-\d{2}/) ? (
+                      (() => {
+                        const match = val.match(/\d{4}-\d{2}-\d{2}/);
+                        const splitIndex = val.indexOf(match[0]);
+                        const pair = val.slice(0, splitIndex);
+                        const timestamp = val.slice(splitIndex).replace("T", " ");
+                        return (
+                          <>
+                            <div className="font-bold leading-tight" style={{ fontSize: `${10 + (reportFontSizeLevel - 2) * 2}px` }}>{pair}</div>
+                            <div className="opacity-80 -mt-[2px] leading-tight" style={{ fontSize: `${2 + (reportFontSizeLevel - 2) * 2}px` }}>{timestamp}</div>
+                          </>
+                        );
+                      })()
+                    ) : (
+                      key === "PL_After_Comm" && val !== "N/A" ? `$${val}` : val
+                    )}
+                  </td>
                 ))}
               </tr>
             ))}
