@@ -1844,9 +1844,24 @@ useEffect(() => {
   .filter(trade => trade.Hedge === false & trade.Type === "running")
   .reduce((sum, trade) => sum + (trade.Pl_after_comm || 0), 0);
 
-  const buyRunning = filteredTradeData.filter(t => t.Action === "BUY" && t.Type === "running").length;
+  const buyRunningDirect = filteredTradeData.filter(t => t.Action === "BUY" && t.Type === "running" && t.Hedge === false).length;
+  const buyRunningHedge = filteredTradeData.filter(t => t.Action === "BUY" && t.Type === "running" && t.Hedge === true).length;
+  const buyRunningCloseD = filteredTradeData.filter(t => t.Action === "BUY" && t.Type === "close").length ;
+  const buyRunningCloseH = filteredTradeData.filter(t => t.Action === "BUY" && t.Type === "hedge_close").length ;
+  const buyRunningClose = buyRunningCloseD + buyRunningCloseH;
+
+
   const buyTotal = filteredTradeData.filter(t => t.Action === "BUY").length;
-  const sellRunning = filteredTradeData.filter(t => t.Action === "SELL" && t.Type === "running").length;
+  const sellRunningDirect = filteredTradeData.filter(t => t.Action === "SELL" && t.Type === "running" && t.Hedge === false).length;
+  const sellRunningHedge = filteredTradeData.filter(t => t.Action === "SELL" && t.Type === "running" && t.Hedge === true).length;
+  const sellRunningCloseD = filteredTradeData.filter(t => t.Action === "SELL" && t.Type === "close" ).length;
+  const sellRunningCloseH = filteredTradeData.filter(t => t.Action === "SELL" && t.Type === "hedge_close").length;
+  const sellRunningClose = sellRunningCloseD + sellRunningCloseH;
+
+
+
+
+
   const sellTotal = filteredTradeData.filter(t => t.Action === "SELL").length;
 
   const hedgePlusRunning = filteredTradeData
@@ -2070,7 +2085,7 @@ Total_Stats: (
               </span>
               <div style={{ height: '14px' }} />
               <span title="Total Profit (Hedge + Direct) " className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
-                {(runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus ).toFixed(2)}
+                {(runningPlus + hedgeActiveRunningPlus + hedgePlusRunning + hedgeClosedPlus + closePlus ).toFixed(2)}
               </span>
               &nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>+ </span>&nbsp;
               <span title="Total Loss (Hedge + Direct)" className={`text-red-400 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>
@@ -2078,10 +2093,10 @@ Total_Stats: (
               </span>
               &nbsp;&nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>=</span>&nbsp;&nbsp;
               <span
-                className={`${((runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2) >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}
+                className={`${((runningPlus + hedgeActiveRunningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2) >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`}style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}
                 title="Total (Hedge + Direct)"
               >
-                {((runningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2)}
+                {((runningPlus + hedgeActiveRunningPlus + hedgeClosedPlus + hedgePlusRunning + closePlus )+((runningMinus + hedgeClosedMinus + hedgeMinusRunning + closeMinus + hedgeActiveRunningMinus))).toFixed(2)}
               </span>
             </>
           ),
@@ -2089,14 +2104,23 @@ Total_Stats: (
             <>
               <div style={{ height: '6px' }} />
 
-              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>Buy running&nbsp;&nbsp;</span>
-              <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{buyRunning}</span>
+              <span className={`relative px-[3px] text-yellow-300 font-semibold`} style={{ fontSize: `${28 + (fontSizeLevel - 8) * 5}px` }}>Buy</span>
+              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}> Direct-</span>
+              <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{buyRunningDirect}</span>
+              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>, Hedge-</span>
+              <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{buyRunningHedge}</span>
+                <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>, Close-</span>
+              <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{buyRunningClose}</span>
               &nbsp;&nbsp;<span style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>out of</span>&nbsp;
               <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{buyTotal}</span>
               <div style={{ height: '10px' }} />
-              
-              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 `} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>Sell running&nbsp;&nbsp;</span>
-              <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{sellRunning}</span>
+              <span className={`relative px-[3px] text-yellow-300 font-semibold`} style={{ fontSize: `${28 + (fontSizeLevel - 8) * 5}px` }}>Sell</span>
+              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 `} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}> Direct-</span>
+              <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{sellRunningDirect}</span>
+              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 `} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>, Hedge-</span>
+               <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{sellRunningHedge}</span>
+                <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>, Close-</span>
+              <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{sellRunningClose}</span>
               &nbsp;&nbsp;<span style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>out of</span>&nbsp;
               <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{sellTotal}</span>
               <br />
