@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 10000;
 // ✅ Allowed Frontend Origins (Local + Vercel + Render)
 const allowedOrigins = [
   "http://localhost:5174",                    // Dev (Vite)
-  "https://lab-code-new.vercel.app/",       // ✅ Your Vercel Frontend
+  "https://lab-code-new.vercel.app",       // ✅ Your Vercel Frontend
   "https://lab-code-1.onrender.com", 
   "https://vercel.com/loveleets-projects-ef26b22c/lab-code-new/5a1kt3gH7C2qV8WFbM3gAy1av44b"       // Optional: if your frontend is ever on Render
 ];
