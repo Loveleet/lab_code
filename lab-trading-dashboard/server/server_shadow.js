@@ -10,7 +10,8 @@ const allowedOrigins = [
   "http://localhost:5174",                    // Dev (Vite)
   "https://lab-code-new.vercel.app",       // ✅ Your Vercel Frontend
   "https://lab-code-1.onrender.com", 
-  "https://vercel.com/loveleets-projects-ef26b22c/lab-code-new/5a1kt3gH7C2qV8WFbM3gAy1av44b"       // Optional: if your frontend is ever on Render
+  "https://lab-code-o5gvgnh0e-loveleets-projects-ef26b22c.vercel.app/", 
+  "https://lab-code-new-git-lab-loveleets-projects-ef26b22c.vercel.app/"       // Optional: if your frontend is ever on Render
 ];
 
 // ✅ Proper CORS Handling
