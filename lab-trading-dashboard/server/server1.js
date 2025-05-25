@@ -3,144 +3,102 @@ const cors = require("cors");
 const sql = require("mssql");
 
 const app = express();
-const PORT = 3017;
+const PORT = process.env.PORT || 10000;
 
-// ✅ Database Connection Config
+// ✅ Allowed Frontend Origins (Local + Vercel + Render)
+const allowedOrigins = [
+  "http://localhost:5173",                    // Dev (Vite)
+  "https://lab-code-lyart.vercel.app",       // ✅ Your Vercel Frontend
+  "https://lab-code-9v3o.onrender.com", 
+  "https://lab-code-nxlc714mf-loveleets-projects-ef26b22c.vercel.app"       // Optional: if your frontend is ever on Render
+];
+
+// ✅ Proper CORS Handling
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error("❌ CORS blocked origin:", origin);
+      callback(new Error("CORS not allowed for this origin"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+}));
+
+app.use(express.json());
+
+// ✅ Database Configuration
 const dbConfig = {
-  user: "sa",
-  password: "IndiaNepal-1",
+  user: "lab",
+  password: "IndiaNepal1-",
   server: "4.240.115.57",
   port: 1433,
-  database: "labDB",
+  database: "labDB2",
   options: {
-    encrypt: false, // Set to true if using Azure SQL
-    trustServerCertificate: true, // Use this for self-signed certificates
+    encrypt: false,
+    trustServerCertificate: true,
   },
 };
 
-// ✅ Connect to Database
-sql.connect(dbConfig)
-  .then(() => console.log("✅ Connected to SQL Server"))
-  .catch((err) => console.error("❌ Database Connection Failed:", err));
+// ✅ Retry SQL Connection Until Successful
+async function connectWithRetry() {
+  try {
+    const pool = await new sql.ConnectionPool(dbConfig).connect();
+    console.log("✅ Connected to SQL Server");
+    return pool;
+  } catch (err) {
+    console.error("❌ SQL Connection Failed. Retrying in 5 seconds...", err.code || err.message);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    return connectWithRetry();
+  }
+}
 
-app.use(cors());
+let poolPromise = connectWithRetry();
 
-// // ✅ API to Fetch ALL Trades (Running & Closed)
-// app.get("/api/trades", async (req, res) => {
-//   try {
-//     const result = await sql.query("SELECT * FROM AllTradeRecords;");
-//     res.json({ trades: result.recordset || [] }); // ✅ Ensures valid JSON response
-//   } catch (error) {
-//     console.error("❌ Query Error:", error);
-//     res.status(500).json({ error: "Failed to fetch trades" });
-//   }
-// });
+// ✅ Health Check Route
+app.get("/", (req, res) => {
+  res.send("✅ Backend is working!");
+});
 
+// ✅ API: Fetch All Trades
 app.get("/api/trades", async (req, res) => {
   try {
-    console.log("🔍 Fetching Trades...");
-
-    const result = await sql.query("SELECT * FROM AllTradeRecords;");
-    
-    console.log("✅ API Data Fetched:", result.recordset.slice(0, 5)); // Print only first 5 for debugging
-
+    const pool = await poolPromise;
+    if (!pool) throw new Error("Database not connected");
+    const result = await pool.request().query("SELECT * FROM AllTradeRecords;");
     res.json({ trades: result.recordset });
   } catch (error) {
-    console.error("❌ Query Error:", error);
-    res.status(500).json({ error: "Failed to fetch trades" });
+    console.error("❌ Query Error (/api/trades):", error.message);
+    res.status(500).json({ error: error.message || "Failed to fetch trades" });
   }
 });
-// // ✅ API to Fetch Total Profit from Closed Trades
-// app.get("/api/closed_profit", async (req, res) => {
-//   try {
-//     const result = await sql.query(`
-//       SELECT COALESCE(SUM(Pl_after_comm), 0) AS total_closed_profit
-//       FROM AllTradeRecords
-//       WHERE Type = 'close';
-//     `);
-    
-//     res.json({ total_closed_profit: result.recordset[0].total_closed_profit || 0 });
-//   } catch (error) {
-//     console.error("❌ Query Error:", error);
-//     res.status(500).json({ error: "Failed to fetch closed trades profit" });
-//   }
-// });
 
-// ✅ API to Fetch Total Profit from Closed Trades
-// app.get("/api/running_profit", async (req, res) => {
-//   try {
-//     const result = await sql.query(`
-//       SELECT COALESCE(SUM(Pl_after_comm), 0) AS total_closed_profit
-//       FROM AllTradeRecords
-//       WHERE Type = 'running';
-//     `);
-    
-//     res.json({ total_closed_profit: result.recordset[0].total_closed_profit || 0 });
-//   } catch (error) {
-//     console.error("❌ Query Error:", error);
-//     res.status(500).json({ error: "Failed to fetch closed trades profit" });
-//   }
-// });
-// // ✅ API to Fetch Closed Trades
-// app.get("/api/closed_trades", async (req, res) => {
-//   try {
-//     const result = await sql.query("SELECT * FROM AllTradeRecords WHERE Type = 'close';");
-//     res.json({ trades: result.recordset || [] });
-//   } catch (error) {
-//     console.error("❌ Query Error:", error);
-//     res.status(500).json({ error: "Failed to fetch closed trades" });
-//   }
-// });
-
-// ✅ API to Fetch Total Profit per Machine
-// app.get("/api/total_profit", async (req, res) => {
-//   try {
-//     const result = await sql.query(`
-//       SELECT SUM(Pl_after_comm) AS total_pl, 'M1' AS source FROM M1 WHERE Type = 'close'
-//       UNION ALL
-//       SELECT SUM(Pl_after_comm), 'M2' FROM M2 WHERE Type = 'close'
-//       UNION ALL
-//       SELECT SUM(Pl_after_comm), 'M3' FROM M3 WHERE Type = 'close';
-//     `);
-//     res.json(result.recordset || []);
-//   } catch (error) {
-//     console.error("❌ Query Error:", error);
-//     res.status(500).json({ error: "Failed to fetch total profit" });
-//   }
-// });
-
-// ✅ API to Fetch Grand Total Profit
-// app.get("/api/grand_total_profit", async (req, res) => {
-//   try {
-//     const result = await sql.query(`
-//       SELECT 
-//           (SELECT COALESCE(SUM(Pl_after_comm), 0) FROM M1) +
-//           (SELECT COALESCE(SUM(Pl_after_comm), 0) FROM M2) +
-//           (SELECT COALESCE(SUM(Pl_after_comm), 0) FROM M3) 
-//           AS grand_total;
-//     `);
-//     res.json(result.recordset?.[0] || { grand_total: 0 });
-//   } catch (error) {
-//     console.error("❌ Query Error:", error);
-//     res.status(500).json({ error: "Failed to fetch grand total profit" });
-//   }
-// });
-
-// ✅ API to Fetch Active Machines (Fix for 404 Error)
-// ✅ API to Fetch Machines (Fix 404 Error)
+// ✅ API: Fetch Machines
 app.get("/api/machines", async (req, res) => {
   try {
-    const result = await sql.query(`
-      SELECT MachineId, Active FROM Machines;
-    `);
+    const pool = await poolPromise;
+    if (!pool) throw new Error("Database not connected");
+    const result = await pool.request().query("SELECT MachineId, Active FROM Machines;");
     res.json({ machines: result.recordset });
   } catch (error) {
-    console.error("❌ Query Error:", error);
-    res.status(500).json({ error: "Failed to fetch machines" });
+    console.error("❌ Query Error (/api/machines):", error.message);
+    res.status(500).json({ error: error.message || "Failed to fetch machines" });
   }
 });
 
-// ✅ Start the Server
+// ✅ Start Express Server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
+const http = require("https");
+
+// ✅ Self-Ping to Prevent Render Sleep (every 14 minutes)
+setInterval(() => {
+  http.get("https://lab-code-9v3o.onrender.com/api/machines", (res) => {
+    console.log(`📡 Self-ping status: ${res.statusCode}`);
+  }).on("error", (err) => {
+    console.error("❌ Self-ping failed:", err.message);
+  });
+}, 14 * 60 * 1000); // 14 minutes
