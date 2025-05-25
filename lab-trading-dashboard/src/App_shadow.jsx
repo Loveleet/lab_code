@@ -2319,7 +2319,7 @@ return (
     <div className={`flex-1 min-h-screen transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-20"} overflow-hidden`}>
       <div className="p-8">
         {/* ✅ Dashboard Title */}
-        <h1 className="text-4xl font-bold text-gray-800 text-center mb-8">LAB Dashboard</h1>
+        <h1 className="text-4xl font-bold text-gray-800 text-center mb-8">LAB Dashboard (NEW)</h1>
 
 
 
