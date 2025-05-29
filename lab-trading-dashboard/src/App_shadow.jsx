@@ -2148,59 +2148,59 @@ Total_Stats: (
               </>
           ),
 
-Closed_Count_Stats: (
-            <>
-            <span title="Closed Trades Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Closed Trades Count&nbsp;</span>
-              <span title="Closed Trade Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
-                            <div style={{ height: '14px' }} />
+// Closed_Count_Stats: (
+//             <>
+//             <span title="Closed Trades Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Closed Trades Count&nbsp;</span>
+//               <span title="Closed Trade Count" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+//                             <div style={{ height: '14px' }} />
 
-              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${19 + (fontSizeLevel - 8) * 5}px` }}>After&nbsp;&nbsp;&nbsp;PJ -&nbsp;</span><span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} >{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
+//               <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${19 + (fontSizeLevel - 8) * 5}px` }}>After&nbsp;&nbsp;&nbsp;PJ -&nbsp;</span><span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }} >{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Type === "close").length}</span>
            
-              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${19 + (fontSizeLevel - 8) * 5}px` }}>, &nbsp;&nbsp;&nbsp;Profit -</span> <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}</span>
+//               <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${19 + (fontSizeLevel - 8) * 5}px` }}>, &nbsp;&nbsp;&nbsp;Profit -</span> <span className={`relative px-[3px] text-green-300 `} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm > 0 && trade.Type === "close").length}</span>
 
-              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${19 + (fontSizeLevel - 8) * 5}px` }}>,&nbsp;&nbsp;&nbsp; Loss -</span> <span className="text-[30px] text-red-400" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}</span>
+//               <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${19 + (fontSizeLevel - 8) * 5}px` }}>,&nbsp;&nbsp;&nbsp; Loss -</span> <span className="text-[30px] text-red-400" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "close").length}</span>
               
-            </>
-          ),
+//             </>
+//           ),
 
-Journey_Stats_Running: (
-            <>
-            <span title="Journey Detail" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Journey Stats&nbsp;</span>
-              <span title="Journey Detail" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
-                            <div style={{ height: '14px' }} />
+// Journey_Stats_Running: (
+//             <>
+//             <span title="Journey Detail" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>Journey Stats&nbsp;</span>
+//               <span title="Journey Detail" className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}>👇&nbsp;</span>
+//                             <div style={{ height: '14px' }} />
 
-              <span className="text-[20px] font-semibold opacity-70 text-center" style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>PJ -&nbsp;</span>
-              <span className={`text-green-300 text-[30px]text-center`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
-              <span className="text-[20px] font-semibold opacity-70 text-center" style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>  &nbsp;&nbsp;&nbsp;CJ -&nbsp;</span>
-              <span className="text-yellow-300 text-[30px] text-center" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
-              <span className="text-[20px] font-semibold opacity-70 text-center"  style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}> &nbsp;&nbsp;BC- &nbsp;</span>
-              <span className={`text-red-400 text-[30px] text-center`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
-            </>
-          ),
-Client_Stats: (
-            <>
-             <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}> Clients&nbsp;&nbsp; : &nbsp;&nbsp;</span>
-              <span className="text-[30px]" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{machines.filter(machine => machine.Active).length}</span>
-              &nbsp;<span className="text-[30px]"  style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}> &nbsp; out of </span>&nbsp;
-              <span className="text-[30px]" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{machines.length}</span>
-            </>
-          ),
-Min_Close_Profit: (
-            <>
-             <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}> Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp;</span>
-              <span className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
-              &nbsp;&nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>=&nbsp;&nbsp;$&nbsp;&nbsp;</span>
-              <span className={`${minCloseProfitVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{minCloseProfitVlaue}</span>
-            </>
-          ),
-Min_Close_Loss: (
-            <>
-             <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}> Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp;</span>
-              <span className={`text-red-400 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
-              &nbsp;&nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>=&nbsp;&nbsp;$&nbsp;&nbsp;</span>
-              <span className={`${minCloseLossVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{minCloseLossVlaue}</span>
-            </>
-          ),
+//               <span className="text-[20px] font-semibold opacity-70 text-center" style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>PJ -&nbsp;</span>
+//               <span className={`text-green-300 text-[30px]text-center`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Profit_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running").length}</span>
+//               <span className="text-[20px] font-semibold opacity-70 text-center" style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}>  &nbsp;&nbsp;&nbsp;CJ -&nbsp;</span>
+//               <span className="text-yellow-300 text-[30px] text-center" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Commision_journey === true && trade.Pl_after_comm > 0 && trade.Type === "running" && trade.Profit_journey === false).length}</span>
+//               <span className="text-[20px] font-semibold opacity-70 text-center"  style={{ fontSize: `${20 + (fontSizeLevel - 8) * 5}px` }}> &nbsp;&nbsp;BC- &nbsp;</span>
+//               <span className={`text-red-400 text-[30px] text-center`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Pl_after_comm < 0 && trade.Type === "running").length}</span>
+//             </>
+//           ),
+// Client_Stats: (
+//             <>
+//              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-80 font-semibold`} style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}> Clients&nbsp;&nbsp; : &nbsp;&nbsp;</span>
+//               <span className="text-[30px]" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{machines.filter(machine => machine.Active).length}</span>
+//               &nbsp;<span className="text-[30px]"  style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}> &nbsp; out of </span>&nbsp;
+//               <span className="text-[30px]" style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{machines.length}</span>
+//             </>
+//           ),
+// Min_Close_Profit: (
+//             <>
+//              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}> Min Close Profit&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+//               <span className={`text-green-300 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm > 0).length}</span>
+//               &nbsp;&nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>=&nbsp;&nbsp;$&nbsp;&nbsp;</span>
+//               <span className={`${minCloseProfitVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[35px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{minCloseProfitVlaue}</span>
+//             </>
+//           ),
+// Min_Close_Loss: (
+//             <>
+//              <span className={`relative px-[3px] text-yellow-300 font-semibold opacity-70 font-semibold`} style={{ fontSize: `${24 + (fontSizeLevel - 8) * 5}px` }}> Min Close Loss&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+//               <span className={`text-red-400 text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{filteredTradeData.filter(trade => trade.Min_close === "Min_close" && trade.Type === "close" && trade.Pl_after_comm < 0).length}</span>
+//               &nbsp;&nbsp;<span style={{ fontSize: `${25 + (fontSizeLevel - 8) * 5}px` }}>=&nbsp;&nbsp;$&nbsp;&nbsp;</span>
+//               <span className={`${minCloseLossVlaue >= 0 ? "text-green-300" : "text-red-400"} text-[30px]`} style={{ fontSize: `${30 + (fontSizeLevel - 8) * 5}px` }}>{minCloseLossVlaue}</span>
+//             </>
+//           ),
   }));
 // Update dependency array to refresh on filteredTradeData, selectedBox, fontSizeLevel
 }, [filteredTradeData, selectedBox, fontSizeLevel]);
