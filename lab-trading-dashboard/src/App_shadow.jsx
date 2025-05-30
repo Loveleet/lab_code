@@ -1612,6 +1612,7 @@ const Dashboard = () => {
     "ProGap":"PG",
     "CrossOver": "CO",
     "Spike":"SP",
+    "Kicker": "Kicker",
   };
 const [fromDate, setFromDate] = useState(() => {
   const saved = localStorage.getItem("fromDate");
@@ -1646,6 +1647,7 @@ useEffect(() => {
     "ProGap": true,
     "CrossOver": true,
     "Spike": true,
+    "Kicker": true,
 
   });
   const [intervalRadioMode, setIntervalRadioMode] = useState(false);
@@ -2222,6 +2224,7 @@ useEffect(() => {
       "ProGap": true,
       "CrossOver": true,
       "Spike": true,
+      "Kicker": true,
       ...parsed,
     };
     setSelectedSignals(merged);
