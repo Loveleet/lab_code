@@ -1460,22 +1460,25 @@ return (
                     `}
                     style={{ fontSize: key === "Unique_ID" ? `${8 + (reportFontSizeLevel - 2) * 2}px` : "inherit" }}
                   >
-                    {key === "Unique_ID" && typeof val === "string" && val.match(/\d{4}-\d{2}-\d{2}/) ? (
-                      (() => {
-                        const match = val.match(/\d{4}-\d{2}-\d{2}/);
-                        const splitIndex = val.indexOf(match[0]);
-                        const pair = val.slice(0, splitIndex);
-                        const timestamp = val.slice(splitIndex).replace("T", " ");
-                        return (
-                          <>
-                            <div className="font-bold leading-tight" style={{ fontSize: `${10 + (reportFontSizeLevel - 2) * 2}px` }}>{pair}</div>
-                            <div className="opacity-80 -mt-[2px] leading-tight" style={{ fontSize: `${2 + (reportFontSizeLevel - 2) * 2}px` }}>{timestamp}</div>
-                          </>
-                        );
-                      })()
-                    ) : (
-                      key === "PL_After_Comm" && val !== "N/A" ? `$${val}` : val
-                    )}
+                    {key === "Pair" ? (
+  <span dangerouslySetInnerHTML={{ __html: val }} />
+) : key === "Unique_ID" && typeof val === "string" && val.match(/\d{4}-\d{2}-\d{2}/) ? (
+  (() => {
+    const match = val.match(/\d{4}-\d{2}-\d{2}/);
+    if (!match) return val;
+    const splitIndex = val.indexOf(match[0]);
+    const pair = val.slice(0, splitIndex);
+    const timestamp = val.slice(splitIndex).replace("T", " ");
+    return (
+      <React.Fragment>
+        <div className="font-bold leading-tight">{pair}</div>
+        <div className="opacity-80 -mt-[2px] leading-tight">{timestamp}</div>
+      </React.Fragment>
+    );
+  })()
+) : (
+  key === "PL_After_Comm" && val !== "N/A" ? `$${val}` : val
+)}
                   </td>
                 ))}
               </tr>
@@ -1508,7 +1511,9 @@ const formatTradeData = (trade, index) => ({
   "Candle_🕒": formatDateTime(trade.Candel_time),
   "Fetcher_🕒": formatDateTime(trade.Fetcher_Trade_time),
   "Operator_🕒": formatDateTime(trade.Operator_Trade_time),
-  Pair: trade.Pair || "N/A",
+  Pair: trade.Pair
+  ? `<a href="https://www.binance.com/en/futures/${trade.Pair}" target="_blank" rel="noopener noreferrer" style="color:#1d4ed8;text-decoration:underline;">${trade.Pair}</a>`
+  : "N/A",
   "⏱️": trade.Interval || "N/A",
   "💼": trade.Action || "N/A",
   PL: trade.Pl_after_comm != null ? parseFloat(trade.Pl_after_comm.toFixed(2)) : "N/A",
