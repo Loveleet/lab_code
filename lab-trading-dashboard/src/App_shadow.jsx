@@ -218,6 +218,8 @@ const TableView = ({ title, tradeData, clientData, logData, activeSubReport, set
     const stored = localStorage.getItem("remarksMap");
     return stored ? JSON.parse(stored) : {};
   });
+  // Font size for remarks textarea
+  const [remarksFontSize, setRemarksFontSize] = useState(14);
   // Sync remarksMap to localStorage when it changes
   useEffect(() => {
     localStorage.setItem("remarksMap", JSON.stringify(remarksMap));
@@ -1392,11 +1394,27 @@ return (
                 </div>
               );
             })}
-            {/* Remarks textarea and Save button */}
-            <div className="flex flex-col gap-2">
+            {/* Font size buttons placed vertically between Sell Price and Remarks */}
+            <div className="flex flex-col justify-center items-center gap-1 ml-2">
+              <button
+                className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+                onClick={() => setRemarksFontSize((prev) => Math.max(10, prev - 2))}
+              >
+                A−
+              </button>
+              <button
+                className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+                onClick={() => setRemarksFontSize((prev) => Math.min(30, prev + 2))}
+              >
+                A+
+              </button>
+            </div>
+            {/* Remarks textarea */}
+            <div className="relative w-full max-w-xl">
               <textarea
-                className="border border-gray-300 rounded p-2 text-sm"
+                className="border border-gray-300 rounded p-2 w-full resize-x min-w-[250px]"
                 rows={2}
+                style={{ fontSize: `${remarksFontSize}px` }}
                 placeholder="Write your remarks here..."
                 value={remarksMap[cleanPair] || ""}
                 onChange={(e) =>
