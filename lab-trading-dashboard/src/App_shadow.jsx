@@ -213,6 +213,15 @@ const DashboardCard = ({ title, value, isSelected, onClick }) =>  {
 
 
 const TableView = ({ title, tradeData, clientData, logData, activeSubReport, setActiveSubReport }) => {
+  // Remarks per Pair (locally stored, persisted in localStorage)
+  const [remarksMap, setRemarksMap] = useState(() => {
+    const stored = localStorage.getItem("remarksMap");
+    return stored ? JSON.parse(stored) : {};
+  });
+  // Sync remarksMap to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("remarksMap", JSON.stringify(remarksMap));
+  }, [remarksMap]);
   // Font size state for report export
   const [reportFontSizeLevel, setReportFontSizeLevel] = useState(() => {
     const saved = localStorage.getItem("reportFontSizeLevel");
@@ -1322,8 +1331,23 @@ return (
       />
       <button
         onClick={() => {
+          // Prepare data for export: strip HTML from Pair, add Remarks
+          const dataForExport = filteredAndSortedData.map((item) => {
+            // Remove <a href=...> tags from Pair, keep just pair name
+            let cleanPair = item.Pair;
+            if (typeof cleanPair === "string") {
+              // Remove all HTML tags
+              cleanPair = cleanPair.replace(/<[^>]+>/g, "");
+            }
+            return {
+              ...item,
+              Pair: cleanPair,
+              Remarks: remarksMap[cleanPair] || "",
+            };
+          });
+
           const wb = XLSX.utils.book_new();
-          const ws = XLSX.utils.json_to_sheet(filteredAndSortedData);
+          const ws = XLSX.utils.json_to_sheet(dataForExport);
           XLSX.utils.book_append_sheet(wb, ws, "Dashboard Report");
           XLSX.writeFile(wb, "Dashboard_Trade_Report.xlsx");
         }}
@@ -1343,6 +1367,11 @@ return (
       {selectedRow !== null && (() => {
         const selectedData = filteredAndSortedData[selectedRow] || {};
         const fieldsToDisplay = ["Stop_Price", "Save_Price", "Buy_Price", "Sell_Price"];
+        // Strip HTML from selectedData.Pair for remarks key
+        let cleanPair = selectedData.Pair;
+        if (typeof cleanPair === "string") {
+          cleanPair = cleanPair.replace(/<[^>]+>/g, "");
+        }
         return (
           <div className="flex flex-wrap items-center gap-3 p-2 border border-gray-300 bg-white rounded ml-4">
             {fieldsToDisplay.map((field) => {
@@ -1363,6 +1392,21 @@ return (
                 </div>
               );
             })}
+            {/* Remarks textarea and Save button */}
+            <div className="flex flex-col gap-2">
+              <textarea
+                className="border border-gray-300 rounded p-2 text-sm"
+                rows={2}
+                placeholder="Write your remarks here..."
+                value={remarksMap[cleanPair] || ""}
+                onChange={(e) =>
+                  setRemarksMap((prev) => ({
+                    ...prev,
+                    [cleanPair]: e.target.value,
+                  }))
+                }
+              />
+            </div>
           </div>
         );
       })()}
