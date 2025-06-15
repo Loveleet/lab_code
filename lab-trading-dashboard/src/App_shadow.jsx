@@ -244,6 +244,14 @@ const TableView = ({ title, tradeData, clientData, logData, activeSubReport, set
   const [selectedRow, setSelectedRow] = useState(null);
   const [activeFilters, setActiveFilters] = useState({});
   const [searchInput, setSearchInput] = useState(""); // ✅ Preserve search term
+  // Moved copiedField and useEffect here (see below for usage)
+  const [copiedField, setCopiedField] = useState(null);
+  useEffect(() => {
+    if (copiedField) {
+      const timer = setTimeout(() => setCopiedField(null), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [copiedField]);
 
   function updateFilterIndicators() {
     document.querySelectorAll("th .filter-icon").forEach((icon) => {
@@ -1291,48 +1299,76 @@ return (
     </button>
     {/* ✅ SEARCH, EXPORT, RESET FILTER BAR */}
 
-    {/* Search */}
-    <input
-      type="text"
-      placeholder="🔍 Type to search..."
-      value={searchInput}
-      onChange={(e) => {
-        const value = e.target.value.toLowerCase();
-        setSearchInput(e.target.value); // store input
-        const filtered = tradeData.filter(row =>
-          Object.values(row).some(val =>
-            String(val).toLowerCase().includes(value)
-          )
-        );
-        setFilteredData(filtered);
-      }}
-      className="px-3 py-2 border rounded-md w-64 text-sm"
-    />
-{/* <div className="flex items-center gap-4 mb-4"> */}
-  <button
-    onClick={() => {
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(filteredAndSortedData);
-      XLSX.utils.book_append_sheet(wb, ws, "Dashboard Report");
-      XLSX.writeFile(wb, "Dashboard_Trade_Report.xlsx");
-    }}
-    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-  >
-    📥 Export to Excel
-  </button>
-
-  <button
-  
-    onClick={() => {
-      setActiveFilters({});
-      setFilteredData(tradeData);
-    }}
-    className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
-  >
-    ♻️ Reset Filters
     
-  </button>
+    <div
+      className="flex flex-wrap items-center gap-4 mb-4"
+      style={{ fontSize: `${12 + (reportFontSizeLevel - 3) * 2}px` }}
+    >
+      <input
+        type="text"
+        placeholder="🔍 Type to search..."
+        value={searchInput}
+        onChange={(e) => {
+          const value = e.target.value.toLowerCase();
+          setSearchInput(e.target.value); // store input
+          const filtered = tradeData.filter(row =>
+            Object.values(row).some(val =>
+              String(val).toLowerCase().includes(value)
+            )
+          );
+          setFilteredData(filtered);
+        }}
+        className="px-3 py-2 border rounded-md w-64 text-sm"
+      />
+      <button
+        onClick={() => {
+          const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.json_to_sheet(filteredAndSortedData);
+          XLSX.utils.book_append_sheet(wb, ws, "Dashboard Report");
+          XLSX.writeFile(wb, "Dashboard_Trade_Report.xlsx");
+        }}
+        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+      >
+        📥 Export to Excel
+      </button>
+      <button
+        onClick={() => {
+          setActiveFilters({});
+          setFilteredData(tradeData);
+        }}
+        className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+      >
+        ♻️ Reset Filters
+      </button>
+      {selectedRow !== null && (() => {
+        const selectedData = filteredAndSortedData[selectedRow] || {};
+        const fieldsToDisplay = ["Stop_Price", "Save_Price", "Buy_Price", "Sell_Price"];
+        return (
+          <div className="flex flex-wrap items-center gap-3 p-2 border border-gray-300 bg-white rounded ml-4">
+            {fieldsToDisplay.map((field) => {
+              const displayVal = selectedData[field] || "N/A";
+              return (
+                <div key={field} className="flex items-center gap-1">
+                  <span className="font-medium text-gray-800" style={{ fontSize: '20px' }}>{field.replace(/_/g, " ")}:</span>
+                  <button
+                    className="px-2 py-1 rounded bg-gray-100 border border-gray-400 hover:bg-gray-200"
+                    style={{ fontSize: '20px' }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(displayVal);
+                      setCopiedField(field);
+                    }}
+                  >
+                    {copiedField === field ? "✅ Copied!" : `${displayVal} 📋`}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+    </div>
 
+    {/* Search/Export/Reset group */}
   
 {(() => {
   const normalizedTitle = title.replace(/\s+/g, "_").trim();
@@ -1374,11 +1410,12 @@ return (
           {type.toUpperCase()}
         </button>
       ))}
+      
     </div>
   ) : null;
 })()}
   
-{/* </div> */}
+
     {/* ✅ Table with Sorting */}
     <div className="overflow-auto max-h-[600px] border border-gray-300 rounded-lg">
       <table

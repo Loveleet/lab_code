@@ -245,6 +245,15 @@ const TableView = ({ title, tradeData, clientData, logData, activeSubReport, set
   const [activeFilters, setActiveFilters] = useState({});
   const [searchInput, setSearchInput] = useState(""); // ✅ Preserve search term
 
+  // Moved copiedField and useEffect here (see below for usage)
+    const [copiedField, setCopiedField] = useState(null);
+    useEffect(() => {
+      if (copiedField) {
+        const timer = setTimeout(() => setCopiedField(null), 1200);
+        return () => clearTimeout(timer);
+      }
+    }, [copiedField]);
+
   function updateFilterIndicators() {
     document.querySelectorAll("th .filter-icon").forEach((icon) => {
         const index = icon.getAttribute("data-index");
@@ -1291,6 +1300,11 @@ return (
     </button>
     {/* ✅ SEARCH, EXPORT, RESET FILTER BAR */}
 
+        <div
+      className="flex flex-wrap items-center gap-4 mb-4"
+      style={{ fontSize: `${12 + (reportFontSizeLevel - 3) * 2}px` }}
+    ></div>
+
     {/* Search */}
     <input
       type="text"
@@ -1332,6 +1346,7 @@ return (
     ♻️ Reset Filters
     
   </button>
+  
 
   
 {(() => {
@@ -1461,24 +1476,24 @@ return (
                     style={{ fontSize: key === "Unique_ID" ? `${8 + (reportFontSizeLevel - 2) * 2}px` : "inherit" }}
                   >
                     {key === "Pair" ? (
-  <span dangerouslySetInnerHTML={{ __html: val }} />
-) : key === "Unique_ID" && typeof val === "string" && val.match(/\d{4}-\d{2}-\d{2}/) ? (
-  (() => {
-    const match = val.match(/\d{4}-\d{2}-\d{2}/);
-    if (!match) return val;
-    const splitIndex = val.indexOf(match[0]);
-    const pair = val.slice(0, splitIndex);
-    const timestamp = val.slice(splitIndex).replace("T", " ");
-    return (
-      <React.Fragment>
-        <div className="font-bold leading-tight">{pair}</div>
-        <div className="opacity-80 -mt-[2px] leading-tight">{timestamp}</div>
-      </React.Fragment>
-    );
-  })()
-) : (
-  key === "PL_After_Comm" && val !== "N/A" ? `$${val}` : val
-)}
+                      <span dangerouslySetInnerHTML={{ __html: val }} />
+                    ) : key === "Unique_ID" && typeof val === "string" && val.match(/\d{4}-\d{2}-\d{2}/) ? (
+                      (() => {
+                        const match = val.match(/\d{4}-\d{2}-\d{2}/);
+                        if (!match) return val;
+                        const splitIndex = val.indexOf(match[0]);
+                        const pair = val.slice(0, splitIndex);
+                        const timestamp = val.slice(splitIndex).replace("T", " ");
+                        return (
+                          <React.Fragment>
+                            <div className="font-bold leading-tight">{pair}</div>
+                            <div className="opacity-80 -mt-[2px] leading-tight">{timestamp}</div>
+                          </React.Fragment>
+                        );
+                      })()
+                    ) : (
+                      key === "PL_After_Comm" && val !== "N/A" ? `$${val}` : val
+                    )}
                   </td>
                 ))}
               </tr>
@@ -1486,6 +1501,38 @@ return (
         </tbody>
       </table>
     </div>
+    {/* Selected Row Details - Modern Design */}
+    {selectedRow !== null && (() => {
+      const selectedData = filteredAndSortedData[selectedRow] || {};
+      const fieldsToDisplay = ["Stop_Price", "Save_Price", "Buy_Price", "Sell_Price"];
+      return (
+        <div className="flex flex-wrap items-center gap-4 ml-6 p-2 bg-white border border-gray-300 rounded shadow">
+          {fieldsToDisplay.map((field) => {
+            const displayVal = selectedData[field] || "N/A";
+            return (
+              <div
+                key={field}
+                className="flex items-center gap-2 px-3 py-1 rounded border border-gray-300 bg-gray-100 shadow-sm"
+              >
+                <span className="font-semibold text-gray-800" style={{ fontSize: '20px' }}>
+                  {field.replace(/_/g, " ")}:
+                </span>
+                <button
+                  className="font-semibold text-gray-900 hover:text-blue-600"
+                  style={{ fontSize: '20px' }}
+                  onClick={() => {
+                    navigator.clipboard.writeText(displayVal);
+                    setCopiedField(field);
+                  }}
+                >
+                  {copiedField === field ? "✅ Copied!" : `${displayVal} 📋`}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      );
+    })()}
   </div>
 );
 };
